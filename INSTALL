@@ -122,12 +122,15 @@ Windows 11 (MinGW64) quick start
 On Windows 11 use the 64-bit MinGW toolchain (MSYS2 `MINGW64` shell). A
 minimal build flow is:
 
-1. Install Qt 5.15.x MinGW 64-bit, CMake, MSYS2, and the HAMLIB SDK.
-2. Open an MSYS2 `MINGW64` shell and ensure the Qt MinGW tools are on `PATH`.
+1. Install a Qt 5 MinGW 64-bit kit (from https://www.qt.io/download-open-source),
+   CMake, MSYS2, and the HAMLIB SDK.
+2. Open an MSYS2 `MINGW64` shell and ensure the Qt MinGW `bin` directory is on
+   `PATH` (for example `C:\Qt\Tools\<qt-mingw-kit>\bin`, where
+   `<qt-mingw-kit>` is your installed kit directory name).
 3. Configure and build:
 
    $ cmake -S <wsjtx-src> -B <wsjtx-build> -G "MinGW Makefiles" \
-      -D CMAKE_PREFIX_PATH="<hamlib-sdk-prefix>;<qt-prefix>" \
+      -DCMAKE_PREFIX_PATH="<hamlib-sdk-prefix>;<qt-prefix>" \
       -DWSJT_SKIP_MANPAGES=ON -DWSJT_GENERATE_DOCS=OFF
    $ cmake --build <wsjtx-build>
    $ cmake --build <wsjtx-build> --target install
