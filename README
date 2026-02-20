@@ -1,4 +1,6 @@
-FT2 and FT1 vibe-coded via Codex 5.3
+This repo has been cloned from https://sourceforge.net/p/wsjt/wsjtx/ci/wsjtx-2.7/tree/
+
+FT2 and FT1 vibe-coded by G8GRG via Codex 5.3
 FT2 and FT1 both use FSK-4, so the modes are simply sped up FT4
 FT2 and especially FT1 are very critical to have accurate time on your PC
 
