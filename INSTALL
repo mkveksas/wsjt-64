@@ -139,7 +139,7 @@ Hamlib build recipe is something like:
 
 In an MSYS shell:-
 
-$ mkdir ~/hamib-prefix
+$ mkdir ~/hamlib-prefix
 $ cd ~/hamlib-prefix
 $ git clone https://github.com/Hamlib/Hamlib src
 $ cd src
