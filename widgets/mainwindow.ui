@@ -2981,7 +2981,51 @@ QLabel[oob=&quot;true&quot;] {
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="ft4Button">
+           <widget class="QPushButton" name="ft1Button">
+             <property name="minimumSize">
+              <size>
+               <width>32</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="toolTip">
+              <string>Switch to FT1 mode</string>
+             </property>
+             <property name="text">
+              <string>FT1</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="ft2Button">
+            <property name="minimumSize">
+             <size>
+              <width>32</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>Switch to FT2 mode</string>
+            </property>
+            <property name="text">
+             <string>FT2</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="ft4Button">
              <property name="minimumSize">
               <size>
                <width>32</width>
@@ -3309,10 +3353,12 @@ QPushButton[state=&quot;ok&quot;] {
     <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuMode">
-    <property name="title">
+   <property name="title">
      <string>Mode</string>
-    </property>
-    <addaction name="actionFST4"/>
+   </property>
+   <addaction name="actionFST4"/>
+    <addaction name="actionFT1"/>
+    <addaction name="actionFT2"/>
     <addaction name="actionFT4"/>
     <addaction name="actionFT8"/>
     <addaction name="actionJT4"/>
@@ -3779,6 +3825,22 @@ QPushButton[state=&quot;ok&quot;] {
    </property>
    <property name="text">
     <string>FT4</string>
+   </property>
+  </action>
+  <action name="actionFT1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>FT1</string>
+   </property>
+  </action>
+  <action name="actionFT2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>FT2</string>
    </property>
   </action>
   <action name="actionFST4">

@@ -4,6 +4,8 @@ double tx_duration(QString mode, double trPeriod, int nsps, bool bFast9)
 {
   double txt=0.0;
   if(mode=="FT4")  txt=1.0 + 105*576/12000.0;      // FT4
+  if(mode=="FT2")  txt=0.5 + 105.0*288.0/12000.0;  // FT2
+  if(mode=="FT1")  txt=0.25 + 105.0*144.0/12000.0; // FT1
   if(mode=="FT8")  txt=1.0 + 79*1920/12000.0;      // FT8
   if(mode=="JT4")  txt=1.0 + 207.0*2520/11025.0;   // JT4
   if(mode=="JT9")  txt=1.0 + 85.0*nsps/12000.0;  // JT9

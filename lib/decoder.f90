@@ -45,8 +45,16 @@ subroutine multimode_decoder(ss,id2,params,nfsample)
   real ss(184,NSMAX)
   logical baddata,newdat65,newdat9,single_decode,bVHF,bad0,newdat,ex
   logical lprinthash22
+  integer, parameter :: FT2_NMAX=21*1728
+  integer, parameter :: FT1_NMAX=21*864
+  integer, parameter :: FT4_NMAX=21*3456
+  integer, parameter :: FT2_STRETCH=2
+  integer, parameter :: FT1_STRETCH=4
   integer*2 id2(NTMAX*12000)
+  integer*2 id2_ft4(FT4_NMAX)
   integer nqf(20)
+  integer nfa_ft2,nfb_ft2,nfqso_ft2
+  integer nfa_ft1,nfb_ft1,nfqso_ft1
   type(params_block) :: params
   real*4 dd(NTMAX*12000)
   character(len=20) :: datetime
@@ -209,6 +217,36 @@ subroutine multimode_decoder(ss,id2,params,nfsample)
           params%nfa,params%nfb,params%ndepth,                               &
           logical(params%lapcqonly),ncontest,mycall,hiscall)
      call timer('decft4  ',1)
+     go to 800
+  endif
+
+  if(params%nmode.eq.51) then
+     nfa_ft1=max(0,params%nfa/FT1_STRETCH)
+     nfb_ft1=max(nfa_ft1+1,params%nfb/FT1_STRETCH)
+     nfqso_ft1=max(0,params%nfqso/FT1_STRETCH)
+     do i=1,FT1_NMAX
+        id2_ft4(FT1_STRETCH*i-(FT1_STRETCH-1):FT1_STRETCH*i)=id2(i)
+     enddo
+     call timer('decft1  ',0)
+     call my_ft4%decode(ft1_decoded,id2_ft4,params%nQSOProgress,nfqso_ft1,   &
+          nfa_ft1,nfb_ft1,params%ndepth,                                      &
+          logical(params%lapcqonly),ncontest,mycall,hiscall)
+     call timer('decft1  ',1)
+     go to 800
+  endif
+
+  if(params%nmode.eq.52) then
+     nfa_ft2=max(0,params%nfa/FT2_STRETCH)
+     nfb_ft2=max(nfa_ft2+1,params%nfb/FT2_STRETCH)
+     nfqso_ft2=max(0,params%nfqso/FT2_STRETCH)
+     do i=1,FT2_NMAX
+        id2_ft4(FT2_STRETCH*i-(FT2_STRETCH-1):FT2_STRETCH*i)=id2(i)
+     enddo
+     call timer('decft2  ',0)
+     call my_ft4%decode(ft2_decoded,id2_ft4,params%nQSOProgress,nfqso_ft2,   &
+          nfa_ft2,nfb_ft2,params%ndepth,                                      &
+          logical(params%lapcqonly),ncontest,mycall,hiscall)
+     call timer('decft2  ',1)
      go to 800
   endif
 
@@ -739,6 +777,96 @@ contains
 
     return
   end subroutine ft4_decoded
+
+  subroutine ft1_decoded (this,sync,snr,dt,freq,decoded,nap,qual)
+    use ft4_decode
+    implicit none
+
+    class(ft4_decoder), intent(inout) :: this
+    real, intent(in) :: sync
+    integer, intent(in) :: snr
+    real, intent(in) :: dt
+    real, intent(in) :: freq
+    character(len=37), intent(in) :: decoded
+    integer, intent(in) :: nap
+    real, intent(in) :: qual
+    character*2 annot
+    character*37 decoded0
+    real dt_ft1,freq_ft1
+
+    decoded0=decoded
+    dt_ft1=0.25*dt
+    freq_ft1=4.0*freq
+
+    annot='  '
+    if(nap.ne.0) then
+       write(annot,'(a1,i1)') 'a',nap
+       if(qual.lt.0.17) decoded0(37:37)='?'
+    endif
+
+    write(*,1001) params%nutc,snr,dt_ft1,nint(freq_ft1),decoded0,annot
+1001 format(i6.6,i4,f5.1,i5,' + ',1x,a37,1x,a2)
+
+    if(ios13.eq.0) then
+       write(13,1002,err=10) params%nutc,nint(sync),snr,dt_ft1,freq_ft1,0,decoded0
+1002   format(i6.6,i4,i5,f6.1,f8.0,i4,3x,a37,' FT1')
+       flush(13)
+    endif
+
+10  call flush(6)
+
+    select type(this)
+    type is (counting_ft4_decoder)
+       this%decoded = this%decoded + 1
+    end select
+
+    return
+  end subroutine ft1_decoded
+
+  subroutine ft2_decoded (this,sync,snr,dt,freq,decoded,nap,qual)
+    use ft4_decode
+    implicit none
+
+    class(ft4_decoder), intent(inout) :: this
+    real, intent(in) :: sync
+    integer, intent(in) :: snr
+    real, intent(in) :: dt
+    real, intent(in) :: freq
+    character(len=37), intent(in) :: decoded
+    integer, intent(in) :: nap
+    real, intent(in) :: qual
+    character*2 annot
+    character*37 decoded0
+    real dt_ft2,freq_ft2
+
+    decoded0=decoded
+    dt_ft2=0.5*dt
+    freq_ft2=2.0*freq
+
+    annot='  '
+    if(nap.ne.0) then
+       write(annot,'(a1,i1)') 'a',nap
+       if(qual.lt.0.17) decoded0(37:37)='?'
+    endif
+
+    write(*,1001) params%nutc,snr,dt_ft2,nint(freq_ft2),decoded0,annot
+1001 format(i6.6,i4,f5.1,i5,' + ',1x,a37,1x,a2)
+
+    if(ios13.eq.0) then
+       write(13,1002,err=10) params%nutc,nint(sync),snr,dt_ft2,freq_ft2,0,decoded0
+1002   format(i6.6,i4,i5,f6.1,f8.0,i4,3x,a37,' FT2')
+       flush(13)
+    endif
+
+10  call flush(6)
+
+    select type(this)
+    type is (counting_ft4_decoder)
+       this%decoded = this%decoded + 1
+    end select
+
+    return
+  end subroutine ft2_decoded
 
   subroutine fst4_decoded (this,nutc,sync,nsnr,dt,freq,decoded,nap,   &
        qual,ntrperiod,fmid,w50)
