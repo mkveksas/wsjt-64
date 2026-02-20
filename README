@@ -4,6 +4,13 @@ FT2 and FT1 vibe-coded by G8GRG via Codex 5.3
 FT2 and FT1 both use FSK-4, so the modes are simply sped up FT4
 FT2 and especially FT1 are very critical to have accurate time on your PC
 
+For FT1, the time cycle is 1.875 s per slot (even though in the GUI it appears as 1.9s), and that syncs cleanly:
+  - 60 / 1.875 = 32 slots per minute exactly.
+  - Two-way Tx/Rx frame is 2 * 1.875 = 3.75 s.
+  - 60 / 3.75 = 16 full Tx/Rx frames per minute exactly.
+  So it re-aligns to UTC minute boundaries every minute, with no long-term phase walk (assuming clock accuracy is
+  decent)
+
 Should compile fine on Linux
 For Windows 11 I had to use MINGW64
 
