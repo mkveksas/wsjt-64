@@ -116,6 +116,25 @@ which is documented here:
 
 https://sourceforge.net/projects/hamlib-sdk/
 
+Windows 11 (MinGW64) quick start
+--------------------------------
+
+On Windows 11 use the 64-bit MinGW toolchain (MSYS2 `MINGW64` shell). A
+minimal build flow is:
+
+1. Install Qt 5.15.x MinGW 64-bit, CMake, MSYS2, and the HAMLIB SDK.
+2. Open an MSYS2 `MINGW64` shell and ensure the Qt MinGW tools are on `PATH`.
+3. Configure and build:
+
+   $ cmake -S <wsjtx-src> -B <wsjtx-build> -G "MinGW Makefiles" \
+      -D CMAKE_PREFIX_PATH="<hamlib-sdk-prefix>;<qt-prefix>" \
+      -DWSJT_SKIP_MANPAGES=ON -DWSJT_GENERATE_DOCS=OFF
+   $ cmake --build <wsjtx-build>
+   $ cmake --build <wsjtx-build> --target install
+
+For fuller environment details (MSYS2 packages, FFTW/libusb/portaudio, and
+toolchain layout), see `doc/building on MS Windows.txt`.
+
 If you need to build Hamlib rather than use the Hamlib kit included in
 the  HAMLIB SDK the following recipe should help. Reasons for building
 Hamlib from source might include picking up the very latest patches or
