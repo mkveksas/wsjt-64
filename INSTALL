@@ -152,7 +152,7 @@ $ cd ../build
    --without-cxx-binding --disable-winradio \
    CC=<path-to-Qt-MinGW-tools>/gcc \
    CXX=<path-to-Qt-MinGW-tools>/g++ \
-   CFLAGS="-g -O2 -fdata-sections -ffunction-sections -I<path-to-libusb-1.0>/include" \
+   CFLAGS="-g -fdata-sections -ffunction-sections -I<path-to-libusb-1.0>/include" \
    LDFLAGS="-Wl,--gc-sections" \
    LIBUSB_LIBS="-L<path-to-libusb-1.0>/MinGW32/dll -lusb-1.0"
 $ make
