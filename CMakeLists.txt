@@ -52,6 +52,9 @@ set (PROJECT_DESCRIPTION "WSJT-X: Digital Modes for Weak Signal Communications i
 set (CMAKE_PROJECT_DESCRIPTION ${PROJECT_DESCRIPTION})
 set (CMAKE_AUTOUIC ON) 
 
+option (WSJT_ENABLE_OMNIRIG "Build OmniRig support (Windows only)" OFF)
+
+
 #
 # Local CMake modules and support files
 #
@@ -320,10 +323,12 @@ if (WIN32)
     killbyname.cpp
     )
 
-  set (wsjt_qt_CXXSRCS
-    ${wsjt_qt_CXXSRCS}
-    Transceiver/OmniRigTransceiver.cpp
-    )
+  if (WSJT_ENABLE_OMNIRIG)
+    set (wsjt_qt_CXXSRCS
+      ${wsjt_qt_CXXSRCS}
+      Transceiver/OmniRigTransceiver.cpp
+      )
+  endif ()
 endif (WIN32)
 
 set (wsjt_FSRCS
@@ -843,7 +848,7 @@ set_source_files_properties (lib/filbig.f90 PROPERTIES COMPILE_FLAGS "-Wno-alias
 set_property (SOURCE ${all_C_and_CXXSRCS} APPEND_STRING PROPERTY COMPILE_FLAGS " -include wsjtx_config.h")
 set_property (SOURCE ${all_C_and_CXXSRCS} APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/wsjtx_config.h)
 
-if (WIN32)
+if (WIN32 AND WSJT_ENABLE_OMNIRIG)
   # generate the OmniRig COM interface source
   find_program (DUMPCPP dumpcpp)
   if (DUMPCPP-NOTFOUND)
@@ -1065,6 +1070,10 @@ if (NOT APPLE)
   set (CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -Wl,--gc-sections")
   set (CMAKE_EXE_LINKER_FLAGS_MINSIZEREL "${CMAKE_EXE_LINKER_FLAGS_MINSIZEREL} -Wl,--gc-sections")
 endif (NOT APPLE)
+
+if (WIN32 AND WSJT_ENABLE_OMNIRIG)
+  # add_definitions(-DWSJT_HAVE_OMNIRIG)
+endif()
 
 
 #
@@ -1460,6 +1469,11 @@ add_executable (record_time_signal Audio/tools/record_time_signal.cpp)
 target_link_libraries (record_time_signal wsjt_cxx wsjt_qtmm wsjt_qt)
 
 add_executable (jt9 ${jt9_FSRCS} ${jt9_VERSION_RESOURCES})
+# --- Force FFTW threads linkage for MinGW (needed for fftwf_*_threads symbols)
+if (MINGW)
+  target_link_libraries(jt9 fftw3f_threads fftw3f winpthread)
+endif ()
+
 if (${OPENMP_FOUND} OR APPLE)
   if (APPLE)
     # On  Mac  we don't  have  working  OpenMP  support in  the  C/C++
@@ -1499,7 +1513,7 @@ endif (${OPENMP_FOUND} OR APPLE)
 
 if (WIN32)
   find_package (Portaudio REQUIRED)
-  add_subdirectory (map65)
+  # add_subdirectory (map65)
 endif ()
   add_subdirectory (qmap)
 
@@ -1557,6 +1571,12 @@ else ()
 endif ()
 target_link_libraries (wsjtx Qt5::SerialPort wsjt_cxx wsjt_qt wsjt_qtmm ${FFTW3_LIBRARIES} ${LIBM_LIBRARIES})
 
+if (MINGW)
+  # Must come AFTER hamlib when linking static libs
+  target_link_libraries (wsjtx ws2_32 iphlpapi)
+endif ()
+
+
 # make a library for WSJT-X UDP servers
 # add_library (wsjtx_udp SHARED ${UDP_library_CXXSRCS})
 add_library (wsjtx_udp-static STATIC ${UDP_library_CXXSRCS})
@@ -1595,6 +1615,19 @@ generate_version_info (wsjtx_app_version_VERSION_RESOURCES
   )
 add_executable (wsjtx_app_version AppVersion/AppVersion.cpp ${wsjtx_app_version_VERSION_RESOURCES})
 target_link_libraries (wsjtx_app_version wsjt_qt)
+
+
+if (MINGW)
+  # Force ld to rescan these static libs; must be inside linkLibs.rsp
+  target_link_libraries (wsjtx
+    "-Wl,--start-group"
+    "C:/msys64/home/Martynas/hamlib-prefix/lib/libhamlib.a"
+    "C:/msys64/mingw64/lib/libiphlpapi.a"
+    "C:/msys64/mingw64/lib/libws2_32.a"
+    "-Wl,--end-group"
+  )
+endif ()
+
 
 generate_version_info (message_aggregator_VERSION_RESOURCES
   NAME message_aggregator
