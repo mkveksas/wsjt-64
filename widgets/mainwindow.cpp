@@ -508,6 +508,9 @@ MainWindow::MainWindow(QDir const& temp_directory, bool multiple,
   m_block_udp_status_updates {false}
 {
   ui->setupUi(this);
+  // Keep one band-hopping control visible in both FT and WSPR mode layouts.
+  ui->verticalLayout_7->removeWidget (ui->band_hopping_group_box);
+  ui->verticalLayout_15->addWidget (ui->band_hopping_group_box);
   setUnifiedTitleAndToolBarOnMac (true);
   createStatusBar();
   add_child_to_event_filter (this);
