@@ -21,7 +21,7 @@ int main (int argc, char * argv[])
   QCoreApplication app {argc, argv};
   try
     {
-      app.setApplicationName ("WSJT-X");
+      app.setApplicationName ("WSJT-64");
       app.setApplicationVersion (version());
 
       QCommandLineParser parser;

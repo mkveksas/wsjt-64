@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
       std::locale::global (std::locale::classic ());
 
       // Override programs executable basename as application name.
-      a.setApplicationName ("WSJT-X");
+      a.setApplicationName ("WSJT-64");
       a.setApplicationVersion (version ());
 
       QCommandLineParser parser;
