@@ -330,6 +330,8 @@ MainWindow::MainWindow(QDir const& temp_directory, bool multiple,
   m_FT_hopping_modes {ft_hopping_modes},
   m_FT_hopping_index {-1},
   m_FT_hopping_period_index {-1},
+  m_FT_hopping_minutes_per_mode {1},
+  m_FT_hopping_step_started_ms {-1},
   m_rigErrorMessageBox {MessageBox::Critical, tr ("Rig Control Error")
       , MessageBox::Cancel | MessageBox::Ok | MessageBox::Retry},
   m_wideGraph (new WideGraph(m_settings)),
@@ -1352,6 +1354,7 @@ void MainWindow::writeSettings()
   m_settings->setValue ("BandHopping", ui->band_hopping_group_box->isChecked ());
   m_settings->setValue ("FTBandHoppingBands", m_FT_hopping_bands);
   m_settings->setValue ("FTBandHoppingModes", m_FT_hopping_modes);
+  m_settings->setValue ("FTBandHoppingMinutesPerMode", m_FT_hopping_minutes_per_mode);
   m_settings->setValue ("MaxDrift", ui->sbMaxDrift->value());
   m_settings->setValue ("TRPeriod_FST4W", ui->sbTR_FST4W->value ());
   m_settings->setValue("FastMode",m_bFastMode);
@@ -1561,6 +1564,7 @@ void MainWindow::readSettings()
     {
       m_FT_hopping_modes = ft_modes;
     }
+  m_FT_hopping_minutes_per_mode = qBound (1, m_settings->value ("FTBandHoppingMinutesPerMode", 1).toInt (), 5);
   // setup initial value of tx attenuator
   m_block_pwr_tooltip = true;
   ui->outAttenuation->setValue (m_settings->value ("OutAttenuation", 0).toInt ());
@@ -5135,6 +5139,8 @@ void MainWindow::guiUpdate()
   else
     {
       m_FT_hopping_period_index = -1;
+      m_FT_hopping_index = -1;
+      m_FT_hopping_step_started_ms = -1;
     }
 
   if(m_mode=="Echo") {
@@ -10225,6 +10231,16 @@ void MainWindow::show_FT_band_hopping_dialog ()
     }
   layout->addWidget (band_group);
 
+  QGroupBox * timing_group {new QGroupBox {tr ("Timing"), &dialog}};
+  QVBoxLayout * timing_layout {new QVBoxLayout {timing_group}};
+  auto * minutes_per_mode_spin_box {new QSpinBox {timing_group}};
+  minutes_per_mode_spin_box->setRange (1, 5);
+  minutes_per_mode_spin_box->setValue (qBound (1, m_FT_hopping_minutes_per_mode, 5));
+  minutes_per_mode_spin_box->setPrefix (tr ("Minutes per mode "));
+  minutes_per_mode_spin_box->setSuffix (tr (" min"));
+  timing_layout->addWidget (minutes_per_mode_spin_box);
+  layout->addWidget (timing_group);
+
   QDialogButtonBox * buttons {new QDialogButtonBox {QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog}};
   connect (buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
   connect (buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
@@ -10248,8 +10264,10 @@ void MainWindow::show_FT_band_hopping_dialog ()
               m_FT_hopping_bands << check_box->text ();
             }
         }
+      m_FT_hopping_minutes_per_mode = minutes_per_mode_spin_box->value ();
       m_FT_hopping_index = -1;
       m_FT_hopping_period_index = -1;
+      m_FT_hopping_step_started_ms = -1;
     }
 }
 
@@ -10261,15 +10279,15 @@ void MainWindow::FT_scheduling ()
     }
 
   QList<QPair<QString, QString>> schedule;
-  for (auto const& mode : m_FT_hopping_modes)
+  for (auto const& band : m_FT_hopping_bands)
     {
-      auto mode_id = mode_from_name (mode);
-      if (Modes::ALL == mode_id)
+      for (auto const& mode : m_FT_hopping_modes)
         {
-          continue;
-        }
-      for (auto const& band : m_FT_hopping_bands)
-        {
+          auto mode_id = mode_from_name (mode);
+          if (Modes::ALL == mode_id)
+            {
+              continue;
+            }
           auto matched = std::any_of (m_config.frequencies ()->frequency_list ().cbegin ()
                                       , m_config.frequencies ()->frequency_list ().cend ()
                                       , [this, mode_id, &band] (FrequencyList_v2_101::Item const& item) {
@@ -10287,7 +10305,18 @@ void MainWindow::FT_scheduling ()
       return;
     }
 
+  auto const now_ms = QDateTime::currentMSecsSinceEpoch ();
+  auto const dwell_ms = static_cast<qint64> (qBound (1, m_FT_hopping_minutes_per_mode, 5)) * 60ll * 1000ll;
+  auto const should_advance = m_FT_hopping_index < 0
+    || m_FT_hopping_step_started_ms < 0
+    || (now_ms - m_FT_hopping_step_started_ms) >= dwell_ms;
+  if (!should_advance)
+    {
+      return;
+    }
+
   m_FT_hopping_index = (m_FT_hopping_index + 1) % schedule.size ();
+  m_FT_hopping_step_started_ms = now_ms;
   auto const& next = schedule.at (m_FT_hopping_index);
   if (next.first != m_mode)
     {

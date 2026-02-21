@@ -426,6 +426,8 @@ private:
   QStringList m_FT_hopping_modes;
   int m_FT_hopping_index;
   qint64 m_FT_hopping_period_index;
+  int m_FT_hopping_minutes_per_mode;
+  qint64 m_FT_hopping_step_started_ms;
   MessageBox m_rigErrorMessageBox;
   QScopedPointer<SampleDownloader> m_sampleDownloader;
   QScopedPointer<EqualizationToolsDialog> m_equalizationToolsDialog;
