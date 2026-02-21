@@ -53,6 +53,10 @@ set (CMAKE_PROJECT_DESCRIPTION ${PROJECT_DESCRIPTION})
 set (CMAKE_AUTOUIC ON) 
 
 option (WSJT_ENABLE_OMNIRIG "Build OmniRig support (Windows only)" OFF)
+set (WSJT_HAVE_OMNIRIG OFF)
+if (WIN32 AND WSJT_ENABLE_OMNIRIG)
+  set (WSJT_HAVE_OMNIRIG ON)
+endif ()
 
 
 #
@@ -1070,11 +1074,6 @@ if (NOT APPLE)
   set (CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -Wl,--gc-sections")
   set (CMAKE_EXE_LINKER_FLAGS_MINSIZEREL "${CMAKE_EXE_LINKER_FLAGS_MINSIZEREL} -Wl,--gc-sections")
 endif (NOT APPLE)
-
-if (WIN32 AND WSJT_ENABLE_OMNIRIG)
-  # add_definitions(-DWSJT_HAVE_OMNIRIG)
-endif()
-
 
 #
 # setup and test Fortran C/C++ interaction

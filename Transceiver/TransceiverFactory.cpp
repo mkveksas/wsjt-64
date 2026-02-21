@@ -7,7 +7,7 @@
 #include "HRDTransceiver.hpp"
 #include "EmulateSplitTransceiver.hpp"
 
-#ifdef WSJT_HAVE_OMNIRIG
+#if WSJT_HAVE_OMNIRIG
 #include "OmniRigTransceiver.hpp"   // or whatever your file is named
 #endif
 
@@ -38,7 +38,7 @@ TransceiverFactory::TransceiverFactory ()
   DXLabSuiteCommanderTransceiver::register_transceivers (&logger_, &transceivers_, CommanderId);
   HRDTransceiver::register_transceivers (&logger_, &transceivers_, HRDId);
   
-#ifdef WSJT_HAVE_OMNIRIG
+#if WSJT_HAVE_OMNIRIG
   // OmniRig is ActiveX/COM server so only on Windows
   OmniRigTransceiver::register_transceivers (&logger_, &transceivers_, OmniRigOneId, OmniRigTwoId);
 #endif
@@ -131,7 +131,7 @@ std::unique_ptr<Transceiver> TransceiverFactory::create (ParameterPack const& pa
       break;
 
 
-#ifdef WSJT_HAVE_OMNIRIG
+#if WSJT_HAVE_OMNIRIG
     case OmniRigOneId:
       {
         std::unique_ptr<TransceiverBase> basic_transceiver;
