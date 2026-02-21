@@ -10198,7 +10198,7 @@ void MainWindow::show_FT_band_hopping_dialog ()
   QSet<QString> available_bands;
   for (auto const& item : m_config.frequencies ()->frequency_list ())
     {
-      if (ft_hopping_modes.contains (Modes::to_string (item.mode_)))
+      if (ft_hopping_modes.contains (Modes::name (item.mode_)))
         {
           available_bands.insert (m_config.bands ()->find (item.frequency_));
         }
