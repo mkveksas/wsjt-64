@@ -41,6 +41,9 @@
 #include <QUdpSocket>
 #include <QAbstractItemView>
 #include <QInputDialog>
+#include <QDialogButtonBox>
+#include <QCheckBox>
+#include <QSet>
 #if QT_VERSION >= QT_VERSION_CHECK (5, 15, 0)
 #include <QRandomGenerator>
 #endif
@@ -255,6 +258,7 @@ namespace
   constexpr int N_WIDGETS {38};
   constexpr int default_rx_audio_buffer_frames {-1}; // lets Qt decide
   constexpr int default_tx_audio_buffer_frames {-1}; // lets Qt decide
+  QStringList const ft_hopping_modes {"FT8", "FT4", "FT2", "FT1"};
 
   bool message_is_73 (int type, QStringList const& msg_parts)
   {
@@ -287,6 +291,20 @@ namespace
     if (band == "160m") {frequency = 1843000; return true;}
     return false;
   }
+
+  bool is_ft_hopping_mode (QString const& mode)
+  {
+    return ft_hopping_modes.contains (mode);
+  }
+
+  Modes::Mode mode_from_name (QString const& mode)
+  {
+    if ("FT8" == mode) return Modes::FT8;
+    if ("FT4" == mode) return Modes::FT4;
+    if ("FT2" == mode) return Modes::FT2;
+    if ("FT1" == mode) return Modes::FT1;
+    return Modes::ALL;
+  }
 }
 
 //--------------------------------------------------- MainWindow constructor
@@ -309,6 +327,9 @@ MainWindow::MainWindow(QDir const& temp_directory, bool multiple,
   m_logBook {&m_config},
   m_WSPR_band_hopping {m_settings, &m_config, this},
   m_WSPR_tx_next {false},
+  m_FT_hopping_modes {ft_hopping_modes},
+  m_FT_hopping_index {-1},
+  m_FT_hopping_period_index {-1},
   m_rigErrorMessageBox {MessageBox::Critical, tr ("Rig Control Error")
       , MessageBox::Cancel | MessageBox::Ok | MessageBox::Retry},
   m_wideGraph (new WideGraph(m_settings)),
@@ -642,10 +663,19 @@ MainWindow::MainWindow(QDir const& temp_directory, bool multiple,
   connect (m_messageClient, &MessageClient::configure, this, &MainWindow::remote_configure);
 
   // Hook up WSPR band hopping
-  connect (ui->band_hopping_schedule_push_button, &QPushButton::clicked
-           , &m_WSPR_band_hopping, &WSPRBandHopping::show_dialog);
+  connect (ui->band_hopping_schedule_push_button, &QPushButton::clicked, [this] (bool checked) {
+      if (is_ft_hopping_mode (m_mode))
+        {
+          show_FT_band_hopping_dialog ();
+        }
+      else
+        {
+          m_WSPR_band_hopping.show_dialog (checked);
+        }
+    });
   connect (ui->sbTxPercent, static_cast<void (QSpinBox::*) (int)> (&QSpinBox::valueChanged)
            , &m_WSPR_band_hopping, &WSPRBandHopping::set_tx_percent);
+  connect (ui->band_hopping_group_box, &QGroupBox::toggled, [this] (bool) {statusChanged ();});
 
   on_EraseButton_clicked ();
 
@@ -1317,6 +1347,8 @@ void MainWindow::writeSettings()
   m_settings->setValue("UploadSpots",m_uploadWSPRSpots);
   m_settings->setValue("NoOwnCall",ui->cbNoOwnCall->isChecked());
   m_settings->setValue ("BandHopping", ui->band_hopping_group_box->isChecked ());
+  m_settings->setValue ("FTBandHoppingBands", m_FT_hopping_bands);
+  m_settings->setValue ("FTBandHoppingModes", m_FT_hopping_modes);
   m_settings->setValue ("MaxDrift", ui->sbMaxDrift->value());
   m_settings->setValue ("TRPeriod_FST4W", ui->sbTR_FST4W->value ());
   m_settings->setValue("FastMode",m_bFastMode);
@@ -1520,6 +1552,12 @@ void MainWindow::readSettings()
   m_uploadWSPRSpots=m_settings->value("UploadSpots",false).toBool();
   ui->cbNoOwnCall->setChecked(m_settings->value("NoOwnCall",false).toBool());
   ui->band_hopping_group_box->setChecked (m_settings->value ("BandHopping", false).toBool());
+  m_FT_hopping_bands = m_settings->value ("FTBandHoppingBands").toStringList ();
+  auto ft_modes = m_settings->value ("FTBandHoppingModes").toStringList ();
+  if (ft_modes.size ())
+    {
+      m_FT_hopping_modes = ft_modes;
+    }
   // setup initial value of tx attenuator
   m_block_pwr_tooltip = true;
   ui->outAttenuation->setValue (m_settings->value ("OutAttenuation", 0).toInt ());
@@ -2358,6 +2396,11 @@ void MainWindow::on_actionAbout_triggered()                  //Display "About"
 
 void MainWindow::on_autoButton_clicked (bool checked)
 {
+  if (checked && ft_frequency_hopping_active ())
+    {
+      ui->autoButton->setChecked (false);
+      return;
+    }
   stopWRTimer.stop();             // stop a running Tx3 timer
   m_auto = checked;
   m_maxPoints=-1;
@@ -2748,6 +2791,22 @@ void MainWindow::statusChanged()
 {
   m_specOp=m_config.special_op_id();
   if (m_specOp==SpecOp::Q65_PILEUP && m_mode != "Q65") on_actionQ65_triggered();
+  auto const ft_hopping = ft_frequency_hopping_active ();
+  ui->autoButton->setEnabled (!ft_hopping);
+  ui->tuneButton->setEnabled (!ft_hopping);
+  if (ft_hopping)
+    {
+      if (m_tune)
+        {
+          stop_tuning ();
+        }
+      if (m_auto)
+        {
+          auto_tx_mode (false);
+        }
+      m_btxok = false;
+      m_bTxTime = false;
+    }
   statusUpdate ();
   QFile f {m_config.temp_dir ().absoluteFilePath ("wsjtx_status.txt")};
   if(f.open(QFile::WriteOnly | QIODevice::Text)) {
@@ -5060,6 +5119,21 @@ void MainWindow::guiUpdate()
   int nseq = fmod(double(nsec),m_TRperiod);
   m_tRemaining=m_TRperiod - fmod(tsec,m_TRperiod);
 
+  if (ft_frequency_hopping_active ())
+    {
+      auto const period_ms = qMax<qint64> (1, qRound64 (m_TRperiod * 1000.0));
+      auto const period_index = QDateTime::currentMSecsSinceEpoch () / period_ms;
+      if (0 == nseq && period_index != m_FT_hopping_period_index)
+        {
+          m_FT_hopping_period_index = period_index;
+          FT_scheduling ();
+        }
+    }
+  else
+    {
+      m_FT_hopping_period_index = -1;
+    }
+
   if(m_mode=="Echo") {
     tx1=0.0;
     tx2=txDuration;
@@ -5087,6 +5161,10 @@ void MainWindow::guiUpdate()
   } else {
     // For all modes other than WSPR and FST4W
     m_bTxTime = (t2p >= tx1) and (t2p < tx2);
+    if (ft_frequency_hopping_active ())
+      {
+        m_bTxTime = false;
+      }
     if(m_mode=="Echo") m_bTxTime = m_bTxTime and m_bEchoTxOK;
     if(m_mode=="FT8" and ui->tx5->currentText().contains("/B ")) {
       //FT8 beacon transmission from Tx5 only at top of a UTC minute
@@ -5095,6 +5173,7 @@ void MainWindow::guiUpdate()
     }
   }
   if(m_tune) m_bTxTime=true;                 //"Tune" takes precedence
+  if (ft_frequency_hopping_active ()) m_bTxTime = false;
 
   if(m_transmitting or m_auto or m_tune) {
     m_dateTimeLastTX = QDateTime::currentDateTimeUtc ();
@@ -8816,6 +8895,11 @@ void MainWindow::on_rptSpinBox_valueChanged(int n)
 
 void MainWindow::on_tuneButton_clicked (bool checked)
 {
+  if (ft_frequency_hopping_active ())
+    {
+      ui->tuneButton->setChecked (false);
+      return;
+    }
   // prevent tuning on top of a SuperFox message
   if (SpecOp::HOUND==m_specOp && m_config.superFox() && !m_tune) {
     QDateTime now = QDateTime::currentDateTimeUtc();
@@ -10083,6 +10167,134 @@ void MainWindow::on_pbTxNext_clicked(bool b)
   if (b && !ui->autoButton->isChecked ())
     {
       ui->autoButton->click (); // make sure Tx is possible
+    }
+}
+
+bool MainWindow::ft_frequency_hopping_active () const
+{
+  return ui->band_hopping_group_box->isChecked () && is_ft_hopping_mode (m_mode);
+}
+
+void MainWindow::show_FT_band_hopping_dialog ()
+{
+  QDialog dialog {this};
+  dialog.setWindowTitle (tr ("FT Frequency Hopping"));
+  QVBoxLayout * layout {new QVBoxLayout {&dialog}};
+  QGroupBox * mode_group {new QGroupBox {tr ("Modes"), &dialog}};
+  QVBoxLayout * mode_layout {new QVBoxLayout {mode_group}};
+  QList<QCheckBox *> mode_check_boxes;
+  for (auto const& mode : ft_hopping_modes)
+    {
+      auto * check_box = new QCheckBox {mode, mode_group};
+      check_box->setChecked (m_FT_hopping_modes.contains (mode));
+      mode_layout->addWidget (check_box);
+      mode_check_boxes << check_box;
+    }
+  layout->addWidget (mode_group);
+
+  QGroupBox * band_group {new QGroupBox {tr ("Bands"), &dialog}};
+  QGridLayout * band_layout {new QGridLayout {band_group}};
+  QList<QCheckBox *> band_check_boxes;
+  QSet<QString> available_bands;
+  for (auto const& item : m_config.frequencies ()->frequency_list ())
+    {
+      if (ft_hopping_modes.contains (Modes::to_string (item.mode_)))
+        {
+          available_bands.insert (m_config.bands ()->find (item.frequency_));
+        }
+    }
+  for (int i = 0, column = 0, row = 0; i < m_config.bands ()->rowCount (); ++i)
+    {
+      auto band = m_config.bands ()->data (m_config.bands ()->index (i, 0)).toString ();
+      if (!available_bands.contains (band))
+        {
+          continue;
+        }
+      auto * check_box = new QCheckBox {band, band_group};
+      check_box->setChecked (m_FT_hopping_bands.contains (band));
+      band_layout->addWidget (check_box, row, column);
+      band_check_boxes << check_box;
+      if (++column > 3)
+        {
+          column = 0;
+          ++row;
+        }
+    }
+  layout->addWidget (band_group);
+
+  QDialogButtonBox * buttons {new QDialogButtonBox {QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog}};
+  connect (buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+  connect (buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  layout->addWidget (buttons);
+
+  if (QDialog::Accepted == dialog.exec ())
+    {
+      m_FT_hopping_modes.clear ();
+      for (auto * check_box : mode_check_boxes)
+        {
+          if (check_box->isChecked ())
+            {
+              m_FT_hopping_modes << check_box->text ();
+            }
+        }
+      m_FT_hopping_bands.clear ();
+      for (auto * check_box : band_check_boxes)
+        {
+          if (check_box->isChecked ())
+            {
+              m_FT_hopping_bands << check_box->text ();
+            }
+        }
+      m_FT_hopping_index = -1;
+      m_FT_hopping_period_index = -1;
+    }
+}
+
+void MainWindow::FT_scheduling ()
+{
+  if (!ft_frequency_hopping_active () || m_FT_hopping_modes.isEmpty () || m_FT_hopping_bands.isEmpty ())
+    {
+      return;
+    }
+
+  QList<QPair<QString, QString>> schedule;
+  for (auto const& mode : m_FT_hopping_modes)
+    {
+      auto mode_id = mode_from_name (mode);
+      if (Modes::ALL == mode_id)
+        {
+          continue;
+        }
+      for (auto const& band : m_FT_hopping_bands)
+        {
+          auto matched = std::any_of (m_config.frequencies ()->frequency_list ().cbegin ()
+                                      , m_config.frequencies ()->frequency_list ().cend ()
+                                      , [this, mode_id, &band] (FrequencyList_v2_101::Item const& item) {
+                                          return item.mode_ == mode_id
+                                            && m_config.bands ()->find (item.frequency_) == band;
+                                        });
+          if (matched)
+            {
+              schedule.append ({mode, band});
+            }
+        }
+    }
+  if (schedule.isEmpty ())
+    {
+      return;
+    }
+
+  m_FT_hopping_index = (m_FT_hopping_index + 1) % schedule.size ();
+  auto const& next = schedule.at (m_FT_hopping_index);
+  if (next.first != m_mode)
+    {
+      set_mode (next.first);
+    }
+  auto frequency_index = m_config.frequencies ()->best_working_frequency (next.second);
+  if (frequency_index >= 0)
+    {
+      ui->bandComboBox->setCurrentIndex (frequency_index);
+      on_bandComboBox_activated (frequency_index);
     }
 }
 
