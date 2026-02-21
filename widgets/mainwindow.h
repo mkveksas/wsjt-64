@@ -399,6 +399,9 @@ private:
   void foxTest();
   void setColorHighlighting();
   void chkFT4();
+  bool ft_frequency_hopping_active () const;
+  void show_FT_band_hopping_dialog ();
+  void FT_scheduling ();
   bool elide_tx1_not_allowed () const;
   void readWidebandDecodes();
   void configActiveStations();
@@ -419,6 +422,10 @@ private:
   LogBook m_logBook;            // must be after Configuration construction
   WSPRBandHopping m_WSPR_band_hopping;
   bool m_WSPR_tx_next;
+  QStringList m_FT_hopping_bands;
+  QStringList m_FT_hopping_modes;
+  int m_FT_hopping_index;
+  qint64 m_FT_hopping_period_index;
   MessageBox m_rigErrorMessageBox;
   QScopedPointer<SampleDownloader> m_sampleDownloader;
   QScopedPointer<EqualizationToolsDialog> m_equalizationToolsDialog;
