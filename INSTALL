@@ -86,9 +86,17 @@ $ git clone git://git.code.sf.net/p/wsjt/wsjtx src
 
 To build WSJT-X you will need CMake and asciidoc installed.
 
+On Ubuntu 24.04 LTS and Ubuntu 25.10, install build dependencies:
+
+$ sudo apt-get update
+$ sudo apt-get install build-essential cmake gfortran git asciidoc \
+   qtbase5-dev qtmultimedia5-dev libqt5serialport5-dev \
+   qttools5-dev qttools5-dev-tools libfftw3-dev libboost-all-dev \
+   libusb-1.0-0-dev portaudio19-dev
+
 $ cd ~/wsjtx-prefix/build
 $ cmake -D CMAKE_PREFIX_PATH=~/hamlib-prefix -DWSJT_SKIP_MANPAGES=ON \
-  	-DWSJT_GENERATE_DOCS=OFF ../src
+   	-DWSJT_GENERATE_DOCS=OFF ../src
 $ cmake --build .
 $ cmake --build . --target install
 

@@ -11,6 +11,17 @@ following packages:
 - fftw3
 - MinGW (for Windows only)
 
+For Ubuntu 24.04 LTS and Ubuntu 25.10, the following command installs
+the required build tools and development packages:
+
+=====
+sudo apt-get update
+sudo apt-get install build-essential cmake gfortran git asciidoc \
+     qtbase5-dev qtmultimedia5-dev libqt5serialport5-dev \
+     qttools5-dev qttools5-dev-tools libfftw3-dev libboost-all-dev \
+     libusb-1.0-0-dev portaudio19-dev
+=====
+
 Source code for _WSJT-X_ v{VERSION} can be downloaded with the command:
 
 =====
