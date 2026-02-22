@@ -194,10 +194,10 @@ To bundle Qt DLLs beside the executable:
 
 ## ✅ What This Setup Achieves
 
-✔ Builds clean on fresh Windows 11
-✔ No proprietary Qt installer
-✔ No HamlibSDK
-✔ No admin access
-✔ Fully reproducible
-✔ Works entirely inside MSYS2
+✔ Builds clean on fresh Windows 11  
+✔ No proprietary Qt installer  
+✔ No HamlibSDK  
+✔ No admin access  
+✔ Fully reproducible  
+✔ Works entirely inside MSYS2  
 
