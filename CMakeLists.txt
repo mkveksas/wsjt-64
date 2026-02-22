@@ -1619,15 +1619,15 @@ target_link_libraries (wsjtx_app_version wsjt_qt)
 
 
 if (MINGW)
-  # Force ld to rescan these static libs; must be inside linkLibs.rsp
-  target_link_libraries (wsjtx
+  # Force ld to rescan libs; keep in response file if needed
+  target_link_libraries(wsjtx
     "-Wl,--start-group"
-    "C:/msys64/home/Martynas/hamlib-prefix/lib/libhamlib.a"
-    "C:/msys64/mingw64/lib/libiphlpapi.a"
-    "C:/msys64/mingw64/lib/libws2_32.a"
+    Hamlib::Hamlib
+    iphlpapi
+    ws2_32
     "-Wl,--end-group"
   )
-endif ()
+endif()
 
 
 generate_version_info (message_aggregator_VERSION_RESOURCES
