@@ -157,20 +157,6 @@ cmake -S ~/src/wsjt-64 -B . -G Ninja \
 cmake --build . -- -j"$(nproc)"
 ```
 
-Optional install step:
-
-```bash
-cmake --install .
-```
-
-Installs into:
-
-```
-~/local/wsjt-64
-```
-
----
-
 # ▶️ 8. Run WSJT-64
 
 From MINGW64 terminal:
