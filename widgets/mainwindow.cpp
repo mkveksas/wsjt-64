@@ -280,16 +280,17 @@ namespace
   bool ft1_ft2_frequency_for_band (Modes::Mode mode, QString const& band, Radio::Frequency& frequency)
   {
     if (mode != Modes::FT1 && mode != Modes::FT2) return false;
-    if (band == "10m") {frequency = 28184000; return true;}
-    if (band == "12m") {frequency = 24923000; return true;}
-    if (band == "15m") {frequency = 21144000; return true;}
-    if (band == "17m") {frequency = 18108000; return true;}
-    if (band == "20m") {frequency = 14084000; return true;}
-    if (band == "30m") {frequency = 10144000; return true;}
-    if (band == "40m") {frequency = 7052000; return true;}
-    if (band == "60m") {frequency = 5360000; return true;}
-    if (band == "80m") {frequency = 3578000; return true;}
-    if (band == "160m") {frequency = 1843000; return true;}
+    auto const ft1_offset = (mode == Modes::FT1) ? 2000 : 0;
+    if (band == "10m") {frequency = 28184000 + ft1_offset; return true;}
+    if (band == "12m") {frequency = 24923000 + ft1_offset; return true;}
+    if (band == "15m") {frequency = 21144000 + ft1_offset; return true;}
+    if (band == "17m") {frequency = 18108000 + ft1_offset; return true;}
+    if (band == "20m") {frequency = 14084000 + ft1_offset; return true;}
+    if (band == "30m") {frequency = 10144000 + ft1_offset; return true;}
+    if (band == "40m") {frequency = 7052000 + ft1_offset; return true;}
+    if (band == "60m") {frequency = 5360000 + ft1_offset; return true;}
+    if (band == "80m") {frequency = 3578000 + ft1_offset; return true;}
+    if (band == "160m") {frequency = 1843000 + ft1_offset; return true;}
     return false;
   }
 
