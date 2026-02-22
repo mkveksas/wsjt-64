@@ -115,6 +115,8 @@ rigctl.exe
 libhamlib-*.dll
 ```
 
+`libhamlib-*.dll` means it might be `libhamlib-5.dll` or `libhamlib-2.dll`, etc.
+
 ---
 
 # 📥 5. Clone WSJT-64
