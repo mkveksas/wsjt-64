@@ -2,15 +2,54 @@
 
 #include <QAction>
 #include <QColorDialog>
+#include <QStyledItemDelegate>
 
 #include "models/DecodeHighlightingModel.hpp"
 #include "MessageBox.hpp"
 
 #include "moc_DecodeHighlightingListView.cpp"
 
+namespace
+{
+QColor contrast_text_for (QColor const& background)
+{
+  // Perceived luminance (sRGB weights) for readable text over custom highlight fills.
+  auto const luminance = (0.2126 * background.redF ())
+                       + (0.7152 * background.greenF ())
+                       + (0.0722 * background.blueF ());
+  return luminance > 0.55 ? QColor {0, 0, 0} : QColor {255, 255, 255};
+}
+
+class DecodeHighlightingItemDelegate final
+  : public QStyledItemDelegate
+{
+public:
+  using QStyledItemDelegate::QStyledItemDelegate;
+
+protected:
+  void initStyleOption (QStyleOptionViewItem * option, QModelIndex const& index) const override
+  {
+    QStyledItemDelegate::initStyleOption (option, index);
+
+    auto const foreground = index.data (Qt::ForegroundRole).value<QBrush> ();
+    auto const background = index.data (Qt::BackgroundRole).value<QBrush> ();
+
+    if (Qt::NoBrush == foreground.style () && Qt::NoBrush != background.style ())
+      {
+        auto const text = contrast_text_for (background.color ());
+        option->palette.setColor (QPalette::Text, text);
+        option->palette.setColor (QPalette::WindowText, text);
+        option->palette.setColor (QPalette::HighlightedText, text);
+      }
+  }
+};
+}
+
 DecodeHighlightingListView::DecodeHighlightingListView (QWidget * parent)
   : QListView {parent}
 {
+  setItemDelegate (new DecodeHighlightingItemDelegate {this});
+
   auto * fg_colour_action = new QAction {tr ("&Foreground color ..."), this};
   addAction (fg_colour_action);
   connect (fg_colour_action, &QAction::triggered, [this] (bool /*checked*/) {

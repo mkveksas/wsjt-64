@@ -9,6 +9,17 @@
 #include "ui_colorhighlighting.h"
 #include "moc_colorhighlighting.cpp"
 
+namespace
+{
+QColor contrast_text_for (QColor const& background)
+{
+  auto const luminance = (0.2126 * background.redF ())
+                       + (0.7152 * background.greenF ())
+                       + (0.0722 * background.blueF ());
+  return luminance > 0.55 ? QColor {0, 0, 0} : QColor {255, 255, 255};
+}
+}
+
 ColorHighlighting::ColorHighlighting (QSettings * settings, DecodeHighlightingModel const& highlight_model, QWidget * parent)
   : QDialog {parent}
   , ui {new Ui::ColorHighlighting}
@@ -117,6 +128,11 @@ void ColorHighlighting::set_items (DecodeHighlightingModel const& highlighting_m
       if (Qt::NoBrush != item.background_.style ())
         {
           style_sheet += QString {"; background-color: #%1"}.arg (item.background_.color ().rgb (), 8, 16, QLatin1Char {'0'});
+          if (Qt::NoBrush == item.foreground_.style ())
+            {
+              auto const text = contrast_text_for (item.background_.color ());
+              style_sheet += QString {"; color: #%1"}.arg (text.rgb (), 8, 16, QLatin1Char {'0'});
+            }
         }
       if (Qt::NoBrush != item.foreground_.style ())
         {

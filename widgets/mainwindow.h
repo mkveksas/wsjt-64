@@ -26,6 +26,8 @@
 #include <QFuture>
 #include <QFutureWatcher>
 #include <QDateTime>
+#include <QFont>
+#include <QPalette>
 
 #include "MultiGeometryWidget.hpp"
 #include "NonInheritingProcess.hpp"
@@ -79,6 +81,7 @@ class QSplashScreen;
 class QSettings;
 class QLineEdit;
 class QFont;
+class QAction;
 class QHostInfo;
 class EchoGraph;
 class FastGraph;
@@ -400,6 +403,7 @@ private:
   void setColorHighlighting();
   void chkFT4();
   bool ft_frequency_hopping_active () const;
+  void disable_band_hopping_for_manual_mode_button_click ();
   void show_FT_band_hopping_dialog ();
   void FT_scheduling ();
   bool elide_tx1_not_allowed () const;
@@ -415,6 +419,8 @@ private:
   bool m_multiple;
   MultiSettings * m_multi_settings;
   QPushButton * m_configurations_button;
+  QAction * m_dark_mode_action;
+  QAction * m_accessibility_mode_action;
   QSettings * m_settings;
   QScopedPointer<Ui::MainWindow> ui;
 
@@ -828,9 +834,16 @@ private:
   QByteArray m_geometryNoControls;
   QVector<double> m_phaseEqCoefficients;
   bool m_block_udp_status_updates;
+  bool m_dark_mode_enabled;
+  bool m_accessibility_mode_enabled;
+  QPalette m_default_palette;
+  QFont m_base_application_font;
+  QFont m_base_decoded_text_font;
 
   //---------------------------------------------------- private functions
   void readSettings();
+  QFont scaled_font_for_accessibility (QFont) const;
+  void apply_appearance_theme ();
   void set_application_font (QFont const&);
   void setDecodedTextFont (QFont const&);
   void writeSettings();

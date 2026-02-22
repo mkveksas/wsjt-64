@@ -43,6 +43,7 @@
 #include <QInputDialog>
 #include <QDialogButtonBox>
 #include <QCheckBox>
+#include <QSignalBlocker>
 #include <QSet>
 #if QT_VERSION >= QT_VERSION_CHECK (5, 15, 0)
 #include <QRandomGenerator>
@@ -321,6 +322,8 @@ MainWindow::MainWindow(QDir const& temp_directory, bool multiple,
   m_multiple {multiple},
   m_multi_settings {multi_settings},
   m_configurations_button {0},
+  m_dark_mode_action {nullptr},
+  m_accessibility_mode_action {nullptr},
   m_settings {multi_settings->settings ()},
   ui(new Ui::MainWindow),
   m_config {&m_network_manager, temp_directory, m_settings, &m_logBook, this},
@@ -507,12 +510,47 @@ MainWindow::MainWindow(QDir const& temp_directory, bool multiple,
         this}},
   m_psk_Reporter {&m_config, QString {"WSJT-X v" + version () + " " + m_revision}.simplified ()},
   m_manual {&m_network_manager},
-  m_block_udp_status_updates {false}
+  m_block_udp_status_updates {false},
+  m_dark_mode_enabled {false},
+  m_accessibility_mode_enabled {false}
 {
   ui->setupUi(this);
   // Keep one band-hopping control visible in both FT and WSPR mode layouts.
   ui->verticalLayout_7->removeWidget (ui->band_hopping_group_box);
   ui->verticalLayout_15->addWidget (ui->band_hopping_group_box);
+  m_default_palette = qApp->palette ();
+  m_base_application_font = qApp->font ();
+  m_base_decoded_text_font = m_base_application_font;
+
+  m_dark_mode_action = new QAction {tr ("Dark Mode"), this};
+  m_dark_mode_action->setCheckable (true);
+  m_accessibility_mode_action = new QAction {tr ("Accessibility Mode (High Contrast + Large Fonts)"), this};
+  m_accessibility_mode_action->setCheckable (true);
+  ui->menuView->addSeparator ();
+  ui->menuView->addAction (m_dark_mode_action);
+  ui->menuView->addAction (m_accessibility_mode_action);
+  connect (m_dark_mode_action, &QAction::toggled, [this] (bool enabled) {
+      if (enabled && m_accessibility_mode_action && m_accessibility_mode_action->isChecked ())
+        {
+          QSignalBlocker blocker {m_accessibility_mode_action};
+          m_accessibility_mode_action->setChecked (false);
+          m_accessibility_mode_enabled = false;
+        }
+      m_dark_mode_enabled = enabled;
+      set_application_font (m_base_application_font);
+      setDecodedTextFont (m_base_decoded_text_font);
+    });
+  connect (m_accessibility_mode_action, &QAction::toggled, [this] (bool enabled) {
+      if (enabled && m_dark_mode_action && m_dark_mode_action->isChecked ())
+        {
+          QSignalBlocker blocker {m_dark_mode_action};
+          m_dark_mode_action->setChecked (false);
+          m_dark_mode_enabled = false;
+        }
+      m_accessibility_mode_enabled = enabled;
+      set_application_font (m_base_application_font);
+      setDecodedTextFont (m_base_decoded_text_font);
+    });
   setUnifiedTitleAndToolBarOnMac (true);
   createStatusBar();
   add_child_to_event_filter (this);
@@ -1305,6 +1343,8 @@ void MainWindow::writeSettings()
   m_settings->setValue ("SerialNumber",ui->sbSerialNumber->value ());
   m_settings->setValue("FoxTextMsg", m_freeTextMsg0);
   m_settings->setValue("WorkDupes", ui->cbWorkDupes->isChecked());
+  m_settings->setValue ("DarkMode", m_dark_mode_enabled);
+  m_settings->setValue ("AccessibilityMode", m_accessibility_mode_enabled);
   m_settings->endGroup();
 
   // do this in the General group because we save the parameters from various places
@@ -1446,6 +1486,18 @@ void MainWindow::readSettings()
   bool displayQSYMessageCreator = m_settings->value ("QSYMessageCreatorDisplayed", false).toBool ();
   bool displayQSYMonitor = m_settings->value("QSYMonitorDisplayed", false).toBool ();
   bool enableQSYpopups = m_settings->value("ShowQSYMessages", true).toBool ();
+  m_dark_mode_enabled = m_settings->value ("DarkMode", false).toBool ();
+  m_accessibility_mode_enabled = m_settings->value ("AccessibilityMode", false).toBool ();
+  if (m_dark_mode_action)
+    {
+      QSignalBlocker blocker {m_dark_mode_action};
+      m_dark_mode_action->setChecked (m_dark_mode_enabled);
+    }
+  if (m_accessibility_mode_action)
+    {
+      QSignalBlocker blocker {m_accessibility_mode_action};
+      m_accessibility_mode_action->setChecked (m_accessibility_mode_enabled);
+    }
   if(m_config.enable_VHF_features()) ui->actionEnable_QSY_Popups->setVisible(true);
   ui->respondComboBox->setCurrentIndex(m_settings->value("RespondCQ",0).toInt());
   ui->comboBoxHoundSort->setCurrentIndex(m_settings->value("HoundSort",3).toInt());
@@ -1601,6 +1653,7 @@ void MainWindow::readSettings()
       }
   }
   m_settings->endGroup();
+  apply_appearance_theme ();
 
   // use these initialisation settings to tune the audio o/p buffer
   // size and audio thread priority
@@ -1631,27 +1684,148 @@ void MainWindow::checkMSK144ContestType()
     }
 }
 
+QFont MainWindow::scaled_font_for_accessibility (QFont font) const
+{
+  if (!m_accessibility_mode_enabled)
+    {
+      return font;
+    }
+
+  auto point_size = font.pointSizeF ();
+  if (point_size > 0.)
+    {
+      font.setPointSizeF (point_size * 1.35);
+    }
+  else if (font.pixelSize () > 0)
+    {
+      font.setPixelSize (qRound (font.pixelSize () * 1.35));
+    }
+
+  return font;
+}
+
+void MainWindow::apply_appearance_theme ()
+{
+  auto palette = m_default_palette;
+  QString theme_sheet;
+
+  if (m_accessibility_mode_enabled)
+    {
+      QColor const black {0, 0, 0};
+      QColor const white {255, 255, 255};
+      QColor const dark_gray {32, 32, 32};
+      QColor const mid_gray {96, 96, 96};
+      QColor const yellow {255, 255, 0};
+
+      palette.setColor (QPalette::Window, black);
+      palette.setColor (QPalette::WindowText, white);
+      palette.setColor (QPalette::Base, black);
+      palette.setColor (QPalette::AlternateBase, dark_gray);
+      palette.setColor (QPalette::ToolTipBase, white);
+      palette.setColor (QPalette::ToolTipText, black);
+      palette.setColor (QPalette::Text, white);
+      palette.setColor (QPalette::Button, black);
+      palette.setColor (QPalette::ButtonText, white);
+      palette.setColor (QPalette::BrightText, yellow);
+      palette.setColor (QPalette::Link, yellow);
+      palette.setColor (QPalette::Highlight, yellow);
+      palette.setColor (QPalette::HighlightedText, black);
+      palette.setColor (QPalette::Disabled, QPalette::Text, mid_gray);
+      palette.setColor (QPalette::Disabled, QPalette::ButtonText, mid_gray);
+      palette.setColor (QPalette::Disabled, QPalette::WindowText, mid_gray);
+
+      theme_sheet =
+          "QWidget { color: #ffffff; background-color: #000000; }"
+          "QMainWindow, QDialog { background-color: #000000; }"
+          "QMenuBar { background-color: #000000; color: #ffffff; }"
+          "QMenuBar::item { color: #ffffff; background: transparent; }"
+          "QMenuBar::item:selected, QMenuBar::item:pressed { color: #000000; background: #ffff00; }"
+          "QMenu { color: #ffffff; background-color: #000000; border: 1px solid #ffffff; }"
+          "QMenu::item { color: #ffffff; background: transparent; }"
+          "QLineEdit, QTextEdit, QPlainTextEdit, QComboBox, QSpinBox {"
+          " color: #ffffff; background-color: #000000; border: 1px solid #ffffff;"
+          " selection-color: #000000; selection-background-color: #ffff00; }"
+          "QComboBox QAbstractItemView { color: #ffffff; background-color: #000000; selection-color: #000000; selection-background-color: #ffff00; }"
+          "QPushButton, QToolButton { color: #ffffff; background-color: #000000; border: 1px solid #ffffff; }"
+          "QCheckBox, QRadioButton, QLabel, QGroupBox { color: #ffffff; }"
+          "QGroupBox { border: 1px solid #ffffff; margin-top: 0.6em; }"
+          "QGroupBox::title { subcontrol-origin: margin; left: 6px; padding: 0 3px; }"
+          "QStatusBar { color: #ffffff; background-color: #000000; }"
+          "QTabWidget::pane { border: 1px solid #ffffff; }"
+          "QTabBar::tab { color: #ffffff; background-color: #000000; border: 1px solid #ffffff; padding: 4px 8px; }"
+          "QTabBar::tab:selected { color: #000000; background-color: #ffff00; }"
+          "QTabBar::tab:hover { background-color: #333300; }"
+          "QHeaderView::section { color: #ffffff; background-color: #000000; border: 1px solid #ffffff; }"
+          "QToolTip { color: #000000; background-color: #ffff00; border: 1px solid #ffffff; }"
+          "QMenu::item:selected { color: #000000; background-color: #ffff00; }"
+          "QPushButton:disabled, QCheckBox:disabled, QLabel:disabled { color: #808080; }";
+    }
+  else if (m_dark_mode_enabled)
+    {
+      QColor const window {37, 37, 38};
+      QColor const base {26, 26, 28};
+      QColor const button {53, 53, 56};
+      QColor const text {230, 230, 230};
+      QColor const disabled {120, 120, 120};
+      QColor const highlight {42, 130, 218};
+
+      palette.setColor (QPalette::Window, window);
+      palette.setColor (QPalette::WindowText, text);
+      palette.setColor (QPalette::Base, base);
+      palette.setColor (QPalette::AlternateBase, button);
+      palette.setColor (QPalette::ToolTipBase, text);
+      palette.setColor (QPalette::ToolTipText, base);
+      palette.setColor (QPalette::Text, text);
+      palette.setColor (QPalette::Button, button);
+      palette.setColor (QPalette::ButtonText, text);
+      palette.setColor (QPalette::BrightText, QColor {255, 85, 85});
+      palette.setColor (QPalette::Link, QColor {88, 166, 255});
+      palette.setColor (QPalette::Highlight, highlight);
+      palette.setColor (QPalette::HighlightedText, QColor {255, 255, 255});
+      palette.setColor (QPalette::Disabled, QPalette::Text, disabled);
+      palette.setColor (QPalette::Disabled, QPalette::ButtonText, disabled);
+      palette.setColor (QPalette::Disabled, QPalette::WindowText, disabled);
+
+      theme_sheet =
+          "QWidget { color: #e6e6e6; background-color: #252526; }"
+          "QMainWindow, QDialog { background-color: #252526; }"
+          "QMenuBar { background-color: #2d2d30; color: #e6e6e6; }"
+          "QMenuBar::item { background: transparent; }"
+          "QMenuBar::item:selected { background: #3e3e42; }"
+          "QMenu { color: #e6e6e6; background-color: #2d2d30; border: 1px solid #555555; }"
+          "QMenu::item:selected { color: #ffffff; background-color: #2a82da; }"
+          "QStatusBar { color: #e6e6e6; background-color: #2d2d30; }"
+          "QGroupBox { color: #e6e6e6; border: 1px solid #555555; margin-top: 0.6em; }"
+          "QGroupBox::title { subcontrol-origin: margin; left: 6px; padding: 0 3px; }"
+          "QPushButton, QToolButton { color: #e6e6e6; background-color: #3a3a3d; border: 1px solid #666666; }"
+          "QPushButton:hover, QToolButton:hover { background-color: #45454a; }"
+          "QPushButton:disabled, QToolButton:disabled, QLabel:disabled, QCheckBox:disabled { color: #7a7a7a; }"
+          "QTabWidget::pane { border: 1px solid #555555; }"
+          "QTabBar::tab { color: #e6e6e6; background-color: #35353a; border: 1px solid #555555; padding: 4px 8px; }"
+          "QTabBar::tab:selected { color: #ffffff; background-color: #2a82da; }"
+          "QHeaderView::section { color: #e6e6e6; background-color: #35353a; border: 1px solid #555555; }"
+          "QLineEdit, QTextEdit, QPlainTextEdit, QComboBox, QSpinBox {"
+          " color: #e6e6e6; background-color: #1a1a1c; border: 1px solid #555555; }"
+          "QComboBox QAbstractItemView { color: #e6e6e6; background-color: #1a1a1c; selection-background-color: #2a82da; }"
+          "QToolTip { color: #e6e6e6; background-color: #2b2b2b; border: 1px solid #666666; }";
+    }
+
+  qApp->setPalette (palette);
+  qApp->setStyleSheet ("* {" + font_as_stylesheet (qApp->font ()) + '}' + theme_sheet);
+}
+
 void MainWindow::set_application_font (QFont const& font)
 {
-  qApp->setFont (font);
-  // set font in the application style sheet as well in case it has
-  // been modified in the style sheet which has priority
-  QString ss;
-  if (qApp->styleSheet ().size ())
-    {
-      auto sheet = qApp->styleSheet ();
-      sheet.remove ("file:///");
-      QFile sf {sheet};
-      if (sf.open (QFile::ReadOnly | QFile::Text))
-        {
-          QString tmp = sf.readAll();
-          if (tmp != NULL) ss = sf.readAll () + tmp;
-          else qDebug() << "tmp==NULL at sf.readAll";
-        }
-    }
-  qApp->setStyleSheet (ss + "* {" + font_as_stylesheet (font) + '}');
+  m_base_application_font = font;
+  auto effective_font = scaled_font_for_accessibility (font);
+  qApp->setFont (effective_font);
+  apply_appearance_theme ();
   // ensure a balanced layout of the mode buttons
-  qreal pointSize = m_config.text_font().pointSizeF();
+  qreal pointSize = effective_font.pointSizeF ();
+  if (pointSize <= 0 && effective_font.pixelSize () > 0)
+    {
+      pointSize = effective_font.pixelSize () * 0.75;
+    }
   if (pointSize < 11) {
       ui->houndButton->setMaximumWidth(40);
       ui->ft8Button->setMaximumWidth(40);
@@ -1687,31 +1861,33 @@ void MainWindow::set_application_font (QFont const& font)
 
 void MainWindow::setDecodedTextFont (QFont const& font)
 {
-  ui->decodedTextBrowser->setContentFont (font);
-  ui->decodedTextBrowser2->setContentFont (font);
-  ui->houndQueueTextBrowser->setContentFont(font);
+  m_base_decoded_text_font = font;
+  auto effective_font = scaled_font_for_accessibility (font);
+  ui->decodedTextBrowser->setContentFont (effective_font);
+  ui->decodedTextBrowser2->setContentFont (effective_font);
+  ui->houndQueueTextBrowser->setContentFont (effective_font);
   ui->houndQueueTextBrowser->displayHoundToBeCalled(" ");
   ui->houndQueueTextBrowser->setText("");
 
-  ui->foxTxListTextBrowser->setContentFont(font);
+  ui->foxTxListTextBrowser->setContentFont (effective_font);
   ui->foxTxListTextBrowser->displayHoundToBeCalled(" ");
   ui->foxTxListTextBrowser->setText("");
 
-  auto style_sheet = "QLabel {" + font_as_stylesheet (font) + '}';
-  ui->lh_decodes_headings_label->setStyleSheet (ui->lh_decodes_headings_label->styleSheet () + style_sheet);
-  ui->rh_decodes_headings_label->setStyleSheet (ui->rh_decodes_headings_label->styleSheet () + style_sheet);
+  auto style_sheet = "QLabel {" + font_as_stylesheet (effective_font) + '}';
+  ui->lh_decodes_headings_label->setStyleSheet (style_sheet);
+  ui->rh_decodes_headings_label->setStyleSheet (style_sheet);
   if (m_msgAvgWidget) {
-    m_msgAvgWidget->changeFont (font);
+    m_msgAvgWidget->changeFont (effective_font);
   }
   if (m_foxLogWindow) {
-    m_foxLogWindow->set_log_view_font (font);
+    m_foxLogWindow->set_log_view_font (effective_font);
   }
   if (m_contestLogWindow) {
-    m_contestLogWindow->set_log_view_font (font);
+    m_contestLogWindow->set_log_view_font (effective_font);
     m_contestLogWindow->set_nQSO(m_logBook.contest_log()->n_qso());
   }
   if(m_ActiveStationsWidget != NULL) {
-    m_ActiveStationsWidget->changeFont(font);
+    m_ActiveStationsWidget->changeFont (effective_font);
   }
   updateGeometry ();
 }
@@ -10184,6 +10360,20 @@ bool MainWindow::ft_frequency_hopping_active () const
   return ui->band_hopping_group_box->isChecked () && is_ft_hopping_mode (m_mode);
 }
 
+void MainWindow::disable_band_hopping_for_manual_mode_button_click ()
+{
+  // These slots are also called directly by startup/internal code; only disable on actual button clicks.
+  if (!sender ())
+    {
+      return;
+    }
+
+  if (ui->band_hopping_group_box->isChecked ())
+    {
+      ui->band_hopping_group_box->setChecked (false);
+    }
+}
+
 void MainWindow::show_FT_band_hopping_dialog ()
 {
   QDialog dialog {this};
@@ -12081,6 +12271,7 @@ void MainWindow::on_houndButton_clicked (bool checked)
 
 void MainWindow::on_ft8Button_clicked()
 {
+  disable_band_hopping_for_manual_mode_button_click ();
   if (m_specOp==SpecOp::HOUND or m_specOp==SpecOp::FOX) {
     m_config.setSpecial_None();
     m_specOp=m_config.special_op_id();
@@ -12090,26 +12281,31 @@ void MainWindow::on_ft8Button_clicked()
 
 void MainWindow::on_ft1Button_clicked()
 {
+  disable_band_hopping_for_manual_mode_button_click ();
   on_actionFT1_triggered();
 }
 
 void MainWindow::on_ft2Button_clicked()
 {
+  disable_band_hopping_for_manual_mode_button_click ();
   on_actionFT2_triggered();
 }
 
 void MainWindow::on_ft4Button_clicked()
 {
+  disable_band_hopping_for_manual_mode_button_click ();
   on_actionFT4_triggered();
 }
 
 void MainWindow::on_msk144Button_clicked()
 {
+  disable_band_hopping_for_manual_mode_button_click ();
   on_actionMSK144_triggered();
 }
 
 void MainWindow::on_q65Button_clicked()
 {
+  disable_band_hopping_for_manual_mode_button_click ();
   if (m_specOp==SpecOp::Q65_PILEUP) {
     m_config.setSpecial_None();
     m_specOp=m_config.special_op_id();
@@ -12119,6 +12315,7 @@ void MainWindow::on_q65Button_clicked()
 
 void MainWindow::on_jt65Button_clicked()
 {
+  disable_band_hopping_for_manual_mode_button_click ();
   on_actionJT65_triggered();
 }
 
