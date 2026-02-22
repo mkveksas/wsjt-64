@@ -336,6 +336,10 @@ MainWindow::MainWindow(QDir const& temp_directory, bool multiple,
   m_FT_hopping_period_index {-1},
   m_FT_hopping_minutes_per_mode {1},
   m_FT_hopping_step_started_ms {-1},
+  m_manual_mode_switch_interlock_active {false},
+  m_manual_mode_switch_interlock_waiting_for_frequency_change {false},
+  m_manual_mode_switch_interlock_unlock_earliest_ms {0},
+  m_manual_mode_switch_interlock_generation {0},
   m_rigErrorMessageBox {MessageBox::Critical, tr ("Rig Control Error")
       , MessageBox::Cancel | MessageBox::Ok | MessageBox::Retry},
   m_wideGraph (new WideGraph(m_settings)),
@@ -9040,6 +9044,7 @@ void MainWindow::band_changed (Frequency f)
         m_frequency_list_fcal_iter = m_config.frequencies ()->find (f);
       }
     setRig (f);
+    note_mode_switch_interlock_frequency_change ();
     setXIT (ui->TxFreqSpinBox->value ());
     m_specOp=m_config.special_op_id();
     if (m_specOp==SpecOp::FOX) FoxReset("BandChange");  // when changing bands, don't preserve the Fox queues
@@ -10373,6 +10378,71 @@ void MainWindow::disable_band_hopping_for_manual_mode_button_click ()
     {
       ui->band_hopping_group_box->setChecked (false);
     }
+}
+
+void MainWindow::set_manual_mode_buttons_enabled (bool enabled)
+{
+  ui->ft8Button->setEnabled (enabled);
+  ui->ft4Button->setEnabled (enabled);
+  ui->ft2Button->setEnabled (enabled);
+  ui->ft1Button->setEnabled (enabled);
+  ui->msk144Button->setEnabled (enabled);
+  ui->q65Button->setEnabled (enabled);
+  ui->jt65Button->setEnabled (enabled);
+}
+
+void MainWindow::begin_manual_mode_switch_interlock ()
+{
+  // These button slots can also be invoked directly by startup/internal code.
+  if (!sender ())
+    {
+      return;
+    }
+
+  auto const now_ms = QDateTime::currentMSecsSinceEpoch ();
+  auto const generation = ++m_manual_mode_switch_interlock_generation;
+
+  m_manual_mode_switch_interlock_active = true;
+  m_manual_mode_switch_interlock_waiting_for_frequency_change = true;
+  m_manual_mode_switch_interlock_unlock_earliest_ms = now_ms + 250; // let deferred UI/radio updates settle
+  set_manual_mode_buttons_enabled (false);
+
+  // Failsafe release in case no band/frequency callback arrives (e.g. keep-frequency paths).
+  QTimer::singleShot (1200, this, [this, generation] {
+      if (generation != m_manual_mode_switch_interlock_generation
+          || !m_manual_mode_switch_interlock_active)
+        {
+          return;
+        }
+      m_manual_mode_switch_interlock_waiting_for_frequency_change = false;
+      m_manual_mode_switch_interlock_active = false;
+      set_manual_mode_buttons_enabled (true);
+    });
+}
+
+void MainWindow::note_mode_switch_interlock_frequency_change ()
+{
+  if (!m_manual_mode_switch_interlock_active
+      || !m_manual_mode_switch_interlock_waiting_for_frequency_change)
+    {
+      return;
+    }
+
+  m_manual_mode_switch_interlock_waiting_for_frequency_change = false;
+  auto const generation = m_manual_mode_switch_interlock_generation;
+  auto const now_ms = QDateTime::currentMSecsSinceEpoch ();
+  auto const delay_ms = qMax<qint64> (0, m_manual_mode_switch_interlock_unlock_earliest_ms - now_ms);
+
+  QTimer::singleShot (static_cast<int> (delay_ms), this, [this, generation] {
+      if (generation != m_manual_mode_switch_interlock_generation
+          || !m_manual_mode_switch_interlock_active
+          || m_manual_mode_switch_interlock_waiting_for_frequency_change)
+        {
+          return;
+        }
+      m_manual_mode_switch_interlock_active = false;
+      set_manual_mode_buttons_enabled (true);
+    });
 }
 
 void MainWindow::show_FT_band_hopping_dialog ()
@@ -12273,6 +12343,7 @@ void MainWindow::on_houndButton_clicked (bool checked)
 void MainWindow::on_ft8Button_clicked()
 {
   disable_band_hopping_for_manual_mode_button_click ();
+  begin_manual_mode_switch_interlock ();
   if (m_specOp==SpecOp::HOUND or m_specOp==SpecOp::FOX) {
     m_config.setSpecial_None();
     m_specOp=m_config.special_op_id();
@@ -12283,30 +12354,35 @@ void MainWindow::on_ft8Button_clicked()
 void MainWindow::on_ft1Button_clicked()
 {
   disable_band_hopping_for_manual_mode_button_click ();
+  begin_manual_mode_switch_interlock ();
   on_actionFT1_triggered();
 }
 
 void MainWindow::on_ft2Button_clicked()
 {
   disable_band_hopping_for_manual_mode_button_click ();
+  begin_manual_mode_switch_interlock ();
   on_actionFT2_triggered();
 }
 
 void MainWindow::on_ft4Button_clicked()
 {
   disable_band_hopping_for_manual_mode_button_click ();
+  begin_manual_mode_switch_interlock ();
   on_actionFT4_triggered();
 }
 
 void MainWindow::on_msk144Button_clicked()
 {
   disable_band_hopping_for_manual_mode_button_click ();
+  begin_manual_mode_switch_interlock ();
   on_actionMSK144_triggered();
 }
 
 void MainWindow::on_q65Button_clicked()
 {
   disable_band_hopping_for_manual_mode_button_click ();
+  begin_manual_mode_switch_interlock ();
   if (m_specOp==SpecOp::Q65_PILEUP) {
     m_config.setSpecial_None();
     m_specOp=m_config.special_op_id();
@@ -12317,6 +12393,7 @@ void MainWindow::on_q65Button_clicked()
 void MainWindow::on_jt65Button_clicked()
 {
   disable_band_hopping_for_manual_mode_button_click ();
+  begin_manual_mode_switch_interlock ();
   on_actionJT65_triggered();
 }
 

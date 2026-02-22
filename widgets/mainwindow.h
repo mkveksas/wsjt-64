@@ -404,6 +404,9 @@ private:
   void chkFT4();
   bool ft_frequency_hopping_active () const;
   void disable_band_hopping_for_manual_mode_button_click ();
+  void set_manual_mode_buttons_enabled (bool enabled);
+  void begin_manual_mode_switch_interlock ();
+  void note_mode_switch_interlock_frequency_change ();
   void show_FT_band_hopping_dialog ();
   void FT_scheduling ();
   bool elide_tx1_not_allowed () const;
@@ -434,6 +437,10 @@ private:
   qint64 m_FT_hopping_period_index;
   int m_FT_hopping_minutes_per_mode;
   qint64 m_FT_hopping_step_started_ms;
+  bool m_manual_mode_switch_interlock_active;
+  bool m_manual_mode_switch_interlock_waiting_for_frequency_change;
+  qint64 m_manual_mode_switch_interlock_unlock_earliest_ms;
+  int m_manual_mode_switch_interlock_generation;
   MessageBox m_rigErrorMessageBox;
   QScopedPointer<SampleDownloader> m_sampleDownloader;
   QScopedPointer<EqualizationToolsDialog> m_equalizationToolsDialog;
