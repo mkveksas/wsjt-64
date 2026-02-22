@@ -19,14 +19,15 @@ For Windows 11 I had to use MINGW64
 Check out this repo, and ask Claude Code or OpenAI Codex on how to build it for your system
 
 
- __      __  _________     ____.___________        ________   _____  
-/  \    /  \/   _____/    |    |\__    ___/       /  _____/  /  |  | 
+```text
+ __      __  _________     ____.___________        ________   _____
+/  \    /  \/   _____/    |    |\__    ___/       /  _____/  /  |  |
 \   \/\/   /\_____  \     |    |  |    |  ______ /   __  \  /   |  |_
  \        / /        \/\__|    |  |    | /_____/ \  |__\  \/    ^   /
-  \__/\  / /_______  /\________|  |____|          \_____  /\____   | 
-       \/          \/                                   \/      |__| 
-                                                                                                                  
-                                                         
+  \__/\  / /_______  /\________|  |____|          \_____  /\____   |
+       \/          \/                                   \/      |__|
+```
+
 Copyright (C) 2001 - 2023 by Joe Taylor, K1JT.
 
 WSJT-X Version 2.6.1 offers eleven different protocols or modes: FT4,
