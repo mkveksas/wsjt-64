@@ -70,7 +70,7 @@ pacman -S --needed \
 
 # 📡 4. Build Hamlib from Source
 
-Install Hamlib into:
+Next, we will install Hamlib into (go to "Clone Hamlib" step):
 
 ```
 ~/local/hamlib/mingw64/release
