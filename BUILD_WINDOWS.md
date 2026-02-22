@@ -170,16 +170,6 @@ WSJT-64 should now start normally.
 
 ---
 
-# 📦 Optional: Make EXE Standalone
-
-To bundle Qt DLLs beside the executable:
-
-```bash
-/mingw64/bin/windeployqt.exe ./wsjtx.exe
-```
-
----
-
 ## ✅ What This Setup Achieves
 
 ✔ Builds clean on fresh Windows 11  
