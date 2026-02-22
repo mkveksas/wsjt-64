@@ -3,11 +3,11 @@
 
 This guide builds WSJT-64 entirely inside MSYS2 using:
 
-✅ MSYS2 MINGW64 toolchain
-✅ Qt from MSYS2 (no Qt account needed)
-✅ Hamlib built from source
-✅ No HamlibSDK
-✅ No admin privileges
+✅ MSYS2 MINGW64 toolchain  
+✅ Qt from MSYS2 (no Qt account needed)  
+✅ Hamlib built from source  
+✅ No HamlibSDK  
+✅ No admin privileges  
 ✅ No Program Files install
 
 ---
