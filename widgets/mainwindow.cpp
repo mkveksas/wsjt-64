@@ -41,7 +41,11 @@
 #include <QUdpSocket>
 #include <QAbstractItemView>
 #include <QInputDialog>
+#include <QDialog>
 #include <QDialogButtonBox>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QPushButton>
 #include <QCheckBox>
 #include <QSignalBlocker>
 #include <QSet>
@@ -1217,6 +1221,19 @@ MainWindow::MainWindow(QDir const& temp_directory, bool multiple,
   }
 #endif
 
+  // Initialise internal time-compensation service.
+  // Must be done AFTER settings and status-bar are set up.
+  WsjtClock::instance ().init (m_settings);
+  connect (&WsjtClock::instance (), &WsjtClock::statusChanged,
+           this, &MainWindow::updateTimeCompStatusBar);
+  connect (&WsjtClock::instance (), &WsjtClock::diagnosticsUpdated,
+           this, &MainWindow::updateTimeCompStatusBar);
+  updateTimeCompStatusBar ();
+
+  // Connect Tools menu action.
+  connect (ui->actionTime_Compensation, &QAction::triggered,
+           this, &MainWindow::on_actionTime_Compensation_triggered);
+
 // this must be the last statement of constructor
   if (!m_valid) throw std::runtime_error {"Fatal initialization exception"};
 }
@@ -2259,7 +2276,7 @@ void MainWindow::fastSink(qint64 frames)
     m_bDecoded=false;
   }
 
-  QDateTime tnow=QDateTime::currentDateTimeUtc();
+  QDateTime tnow=utcNowForCycles();
   int ihr=tnow.toString("hh").toInt();
   int imin=tnow.toString("mm").toInt();
   int isec=tnow.toString("ss").toInt();
@@ -3147,6 +3164,20 @@ void MainWindow::createStatusBar()                           //createStatusBar
 
   statusBar ()->addPermanentWidget (&watchdog_label);
   update_watchdog_label ();
+
+  // Time compensation indicators (permanent, right side)
+  m_timeCompLabel.setAlignment (Qt::AlignHCenter);
+  m_timeCompLabel.setMinimumSize (QSize {160, 18});
+  m_timeCompLabel.setFrameStyle (QFrame::Panel | QFrame::Sunken);
+  m_timeCompLabel.setToolTip (tr ("Internal time compensation (affects cycle timing only; logging uses host time)"));
+  statusBar ()->addPermanentWidget (&m_timeCompLabel);
+
+  m_ntpDiagLabel.setAlignment (Qt::AlignHCenter);
+  m_ntpDiagLabel.setMinimumSize (QSize {180, 18});
+  m_ntpDiagLabel.setFrameStyle (QFrame::Panel | QFrame::Sunken);
+  m_ntpDiagLabel.setToolTip (tr ("Latest NTP diagnostic measurement (diagnostics only, does not change compensation)"));
+  m_ntpDiagLabel.hide ();
+  statusBar ()->addPermanentWidget (&m_ntpDiagLabel);
 }
 
 void MainWindow::setup_status_bar (bool vhf)
@@ -3194,6 +3225,133 @@ void MainWindow::setup_status_bar (bool vhf)
   } else {
     if (band_hopping_label.isVisible ()) statusBar ()->removeWidget (&band_hopping_label);
   }
+}
+
+// ---------------------------------------------------------------------------
+//  Time compensation helpers
+// ---------------------------------------------------------------------------
+
+QDateTime MainWindow::utcNowForCycles () const
+{
+  return WsjtClock::instance ().nowWsjtUtc ();
+}
+
+void MainWindow::updateTimeCompStatusBar ()
+{
+  auto& clk = WsjtClock::instance ();
+
+  m_timeCompLabel.setText (clk.statusString ());
+
+  if (clk.enabled ())
+    {
+      m_timeCompLabel.setStyleSheet (
+        clk.ntpOk ()
+          ? "QLabel{color:#000000; background-color:#99ff66}"   // green = OK
+          : "QLabel{color:#000000; background-color:#ffcc00}"); // amber = NTP unavailable
+
+      QString diag = clk.diagnosticsString ();
+      if (!diag.isEmpty ())
+        {
+          m_ntpDiagLabel.setText (diag);
+          m_ntpDiagLabel.show ();
+        }
+      else
+        {
+          m_ntpDiagLabel.hide ();
+        }
+    }
+  else
+    {
+      m_timeCompLabel.setStyleSheet ("QLabel{color:#888888; background-color:#eeeeee}");
+      m_ntpDiagLabel.hide ();
+    }
+}
+
+void MainWindow::showTimeCompDialog ()
+{
+  auto& clk = WsjtClock::instance ();
+
+  // Build a small modal dialog on the fly.
+  QDialog dlg {this};
+  dlg.setWindowTitle (tr ("Time Compensation"));
+  dlg.setWindowFlags (dlg.windowFlags () & ~Qt::WindowContextHelpButtonHint);
+
+  auto *layout = new QVBoxLayout (&dlg);
+
+  // Enable checkbox
+  auto *cbEnable = new QCheckBox (tr ("Enable internal time compensation"), &dlg);
+  cbEnable->setChecked (clk.enabled ());
+  layout->addWidget (cbEnable);
+
+  // NTP server input
+  auto *serverLayout = new QHBoxLayout;
+  serverLayout->addWidget (new QLabel (tr ("NTP server:"), &dlg));
+  auto *leServer = new QLineEdit (clk.ntpServer (), &dlg);
+  serverLayout->addWidget (leServer);
+  layout->addLayout (serverLayout);
+
+  // Status labels (read-only)
+  auto *labApplied = new QLabel (&dlg);
+  auto *labDiag    = new QLabel (&dlg);
+  auto refreshLabels = [&]() {
+    labApplied->setText (clk.statusString ());
+    labDiag->setText (clk.diagnosticsString ().isEmpty ()
+                      ? tr ("(no NTP measurement yet)")
+                      : clk.diagnosticsString ());
+  };
+  refreshLabels ();
+  layout->addWidget (labApplied);
+  layout->addWidget (labDiag);
+
+  // Hint
+  auto *hint = new QLabel (
+    tr ("<small>Compensation affects only RX/TX scheduling and waterfall labels.<br>"
+        "Logging and ADIF always use the host (system) clock.</small>"), &dlg);
+  hint->setWordWrap (true);
+  layout->addWidget (hint);
+
+  // Buttons
+  auto *btnRecompensate = new QPushButton (tr ("Force re-compensate now"), &dlg);
+  btnRecompensate->setEnabled (clk.enabled ());
+  layout->addWidget (btnRecompensate);
+
+  auto *btnBox = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dlg);
+  layout->addWidget (btnBox);
+
+  // Wire up
+  auto updateSignal = connect (&clk, &WsjtClock::statusChanged, &dlg, [&](){
+    refreshLabels ();
+  });
+  auto diagSignal = connect (&clk, &WsjtClock::diagnosticsUpdated, &dlg, [&](){
+    refreshLabels ();
+  });
+
+  connect (cbEnable, &QCheckBox::toggled, [&](bool en){
+    btnRecompensate->setEnabled (en);
+  });
+
+  connect (btnRecompensate, &QPushButton::clicked, [&](){
+    // Apply current enable state before triggering burst.
+    clk.setEnabled (cbEnable->isChecked ());
+    clk.forceRecompensateBurst ();
+  });
+
+  connect (btnBox, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+  connect (btnBox, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
+
+  if (dlg.exec () == QDialog::Accepted)
+    {
+      clk.setNtpServer (leServer->text ().trimmed ());
+      clk.setEnabled (cbEnable->isChecked ());
+    }
+
+  disconnect (updateSignal);
+  disconnect (diagSignal);
+}
+
+void MainWindow::on_actionTime_Compensation_triggered ()
+{
+  showTimeCompDialog ();
 }
 
 bool MainWindow::subProcessFailed (QProcess * process, int exit_code, QProcess::ExitStatus status)
@@ -3972,7 +4130,7 @@ void MainWindow::decode()                                       //decode()
     dec_data.params.nutc=dec_data.params.nutc/100;
   }
   if(dec_data.params.nagain==0 && dec_data.params.newdat==1 && (!m_diskData)) {
-    m_dateTimeSeqStart = qt_truncate_date_time_to (QDateTime::currentDateTimeUtc (), m_TRperiod * 1.e3);
+    m_dateTimeSeqStart = qt_truncate_date_time_to (utcNowForCycles (), m_TRperiod * 1.e3);
     auto t = m_dateTimeSeqStart.time ();
     dec_data.params.nutc = t.hour () * 100 + t.minute ();
     if (m_TRperiod < 60.)
@@ -3982,7 +4140,7 @@ void MainWindow::decode()                                       //decode()
   }
 
   if(m_nPick==1 and !m_diskData) {
-    QDateTime t=QDateTime::currentDateTimeUtc();
+    QDateTime t=utcNowForCycles();
     int ihr=t.toString("hh").toInt();
     int imin=t.toString("mm").toInt();
     int isec=t.toString("ss").toInt();
@@ -5299,7 +5457,10 @@ void MainWindow::guiUpdate()
     tx2 += m_TRperiod;
   }
 
-  qint64 ms = QDateTime::currentMSecsSinceEpoch() % 86400000;
+  // Use the compensated clock for ALL cycle/slot timing derived from `ms`.
+  // When time-compensation is disabled utcNowForCycles() returns host UTC,
+  // so behaviour is identical to the original code in that case.
+  qint64 ms = utcNowForCycles().toMSecsSinceEpoch() % 86400000;
   int nsec=ms/1000;
   double tsec=0.001*ms;
   double t2p=fmod(tsec,2*m_TRperiod);
@@ -5310,7 +5471,7 @@ void MainWindow::guiUpdate()
   if (ft_frequency_hopping_active ())
     {
       auto const period_ms = qMax<qint64> (1, qRound64 (m_TRperiod * 1000.0));
-      auto const period_index = QDateTime::currentMSecsSinceEpoch () / period_ms;
+      auto const period_index = utcNowForCycles().toMSecsSinceEpoch () / period_ms;
       if (0 == nseq && period_index != m_FT_hopping_period_index)
         {
           m_FT_hopping_period_index = period_index;
@@ -10235,7 +10396,7 @@ void MainWindow::p1ReadFromStdout()                        //p1readFromStdout
 
 QString MainWindow::beacon_start_time (int n)
 {
-  auto bt = qt_truncate_date_time_to (QDateTime::currentDateTimeUtc ().addSecs (n), m_TRperiod * 1.e3);
+  auto bt = qt_truncate_date_time_to (utcNowForCycles ().addSecs (n), m_TRperiod * 1.e3);
   if (m_TRperiod < 60.)
     {
       return bt.toString ("HHmmss");

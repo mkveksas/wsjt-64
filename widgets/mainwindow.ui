@@ -3392,6 +3392,8 @@ QPushButton[state=&quot;ok&quot;] {
     <addaction name="separator"/>
     <addaction name="actionFrequency_calibration"/>
     <addaction name="actionSolve_FreqCal"/>
+    <addaction name="separator"/>
+    <addaction name="actionTime_Compensation"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuConfig"/>
@@ -3970,6 +3972,14 @@ QPushButton[state=&quot;ok&quot;] {
   <action name="actionQSY_Monitor">
    <property name="text">
     <string>QSY Monitor</string>
+   </property>
+  </action>
+  <action name="actionTime_Compensation">
+   <property name="text">
+    <string>Time Compensation...</string>
+   </property>
+   <property name="toolTip">
+    <string>Configure NTP-based internal time compensation for RX/TX slot timing</string>
    </property>
   </action>
  </widget>

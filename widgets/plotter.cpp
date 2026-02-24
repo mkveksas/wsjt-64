@@ -9,6 +9,7 @@
 #include <QDebug>
 #include "qt_helpers.hpp"
 #include "commons.h"
+#include "WsjtClock.h"
 #include "moc_plotter.cpp"
 #include <fstream>
 #include <iostream>
@@ -253,7 +254,7 @@ void CPlotter::draw(float swide[], bool bScroll, bool bRed)
     painter1.setPen(Qt::white);
     QString t;
     if(m_nUTC<0) {
-      auto start = qt_truncate_date_time_to (QDateTime::currentDateTimeUtc(), m_TRperiod * 1e3)
+      auto start = qt_truncate_date_time_to (WsjtClock::instance ().nowWsjtUtc (), m_TRperiod * 1e3)
         .toString (m_TRperiod < 60. ? "hh:mm:ss" : "hh:mm");
       t = QString {"%1    %2"}.arg (start, m_rxBand);
     } else {

@@ -48,6 +48,7 @@
 #include "widgets/qsymonitor.h"
 #include "MessageBox.hpp"
 #include "Network/NetworkAccessManager.hpp"
+#include "WsjtClock.h"
 
 #define NUM_JT4_SYMBOLS 206                //(72+31)*2, embedded sync
 #define NUM_JT65_SYMBOLS 126               //63 data + 63 sync
@@ -172,6 +173,7 @@ private slots:
   void on_tx5_currentTextChanged (QString const&);
   void on_tx6_editingFinished();
   void on_actionSettings_triggered();
+  void on_actionTime_Compensation_triggered ();
   void on_monitorButton_clicked (bool);
   void on_actionAbout_triggered();
   void on_autoButton_clicked (bool);
@@ -394,6 +396,17 @@ private:
   Q_SIGNAL void reset_audio_input_stream (bool report_dropped_frames) const;
 
 private:
+  // Returns compensated UTC time for cycle/slot timing and waterfall labels.
+  // Uses WsjtClock when time-compensation is enabled; host time otherwise.
+  // NEVER use this for logging, ADIF, or host-clock displays.
+  QDateTime utcNowForCycles () const;
+
+  // Opens the Time Compensation settings/status dialog.
+  void showTimeCompDialog ();
+
+  // Updates the status-bar time-comp labels.
+  void updateTimeCompStatusBar ();
+
   void set_mode (QString const& mode);
   void astroUpdate ();
   void writeAllTxt(QString message);
@@ -664,6 +677,8 @@ private:
   QLabel ndecodes_label;
   QProgressBar progressBar;
   QLabel watchdog_label;
+  QLabel m_timeCompLabel;   // "Time comp: ON/OFF ..." permanent status bar widget
+  QLabel m_ntpDiagLabel;    // "NTP Δ: ... RTT ... ms"  (shown when enabled)
 
   QFuture<void> m_wav_future;
   QFutureWatcher<void> m_wav_future_watcher;

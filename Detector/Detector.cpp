@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <math.h>
 #include "commons.h"
+#include "WsjtClock.h"
 
 #include "moc_Detector.cpp"
 
@@ -57,7 +58,7 @@ void Detector::clear ()
 qint64 Detector::writeData (char const * data, qint64 maxSize)
 {
   static unsigned mstr0=999999;
-  qint64 ms0 = QDateTime::currentMSecsSinceEpoch() % 86400000;
+  qint64 ms0 = WsjtClock::instance().nowWsjtUtc().toMSecsSinceEpoch() % 86400000;
   unsigned mstr = ms0 % int(1000.0*m_period); // ms into the nominal Tx start time
   if(mstr < mstr0) {              //When mstr has wrapped around to 0, restart the buffer
     dec_data.params.kin = 0;
