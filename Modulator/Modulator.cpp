@@ -9,6 +9,7 @@
 #include "widgets/mainwindow.h" // TODO: G4WJS - break this dependency
 #include "Audio/soundout.h"
 #include "commons.h"
+#include "WsjtClock.h"
 
 #include "moc_Modulator.cpp"
 
@@ -52,8 +53,8 @@ void Modulator::start (QString mode, unsigned symbolsLength, double framesPerSym
 {
   // qDebug () << "mode:" << mode << "symbolsLength:" << symbolsLength << "framesPerSymbol:" << framesPerSymbol << "frequency:" << frequency << "toneSpacing:" << toneSpacing << "channel:" << channel << "synchronize:" << synchronize << "fastMode:" << fastMode << "dBSNR:" << dBSNR << "TRperiod:" << TRperiod;
   Q_ASSERT (stream);
-// Time according to this computer which becomes our base time
-  qint64 ms0 = QDateTime::currentMSecsSinceEpoch() % 86400000;
+// Time according to compensated clock (WsjtClock) which becomes our base time
+  qint64 ms0 = WsjtClock::instance().nowWsjtUtc().toMSecsSinceEpoch() % 86400000;
   unsigned mstr = ms0 % int(1000.0*m_period); // ms into the nominal Tx start time
 
   if(m_state != Idle) stop();
@@ -201,7 +202,7 @@ qint64 Modulator::readData (char * data, qint64 maxSize)
         if(m_TRperiod==3.0) slowCwId=false;
         bool fastCwId=false;
         static bool bCwId=false;
-        qint64 ms = QDateTime::currentMSecsSinceEpoch();
+        qint64 ms = WsjtClock::instance().nowWsjtUtc().toMSecsSinceEpoch();
         float tsec=0.001*(ms % int(1000*m_TRperiod));
         if(m_bFastMode and (icw[0]>0) and (tsec > (m_TRperiod-5.0))) fastCwId=true;
         if(!m_bFastMode) m_nspd=2560;                 // 22.5 WPM
