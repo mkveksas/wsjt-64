@@ -1,5 +1,3 @@
----
-
 # WSJT-64 on macOS (MacPorts) — Build & Run Guide
 
 These instructions assume:
