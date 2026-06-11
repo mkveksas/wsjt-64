@@ -45,7 +45,7 @@ his locator AJ10:
 9.  G4AAA KH1DX -11
 10.                                  KH1DX G4AAA R-03
 11. G4AAA RR73; DL3BBB <KH1DX> -12
-12.                                  KH1DX DL3BBB R-09			 
+12.                                  KH1DX DL3BBB R-09
 13. DL3BBB RR73; DE <KH1DX>
 14. ...
 ------------------------------------------------------------------------
@@ -94,7 +94,7 @@ K0TPP       EM48  -15  1980
 N2BJ        EN61  +11   540
 N4NDR       EL98  -17  4620
 NX4E        EM70  +00  3780
-ON3LA       JN29  -10  3300  
+ON3LA       JN29  -10  3300
 PD9BG       JO21  -21  2100
 PJ4/KA1XYZ  FK60  -07  1020
 VE1SKY      FN74  +03  1620
@@ -137,7 +137,7 @@ hoping to find a clear slot, by using Shift+F11 and Shift+F12.
 
  - Hit F1 to call Fox in your next Tx sequence.  Yes, you must hit F1
    repeatedly, in order to keep calling.
-   
+
  - The Auto-sequencer will watch for a decoded message that contains
    "MyCall DXcall rpt" or "MyCall <DXcall> rpt".  When one of these is
    received, your next transmission will be "DXcall MyCall R+rpt",

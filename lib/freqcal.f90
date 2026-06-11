@@ -24,11 +24,11 @@ subroutine freqcal(id2,k,nkhz,noffset,ntol,line)
      enddo
      first=.false.
   endif
-  
+
   if(k.lt.NFFT) go to 900
   if(k.lt.k0) n=0
   k0=k
-     
+
   x=w*id2(k-NFFT:k-1)              !Apply window
   call four2a(x,NFFT,1,-1,0)       !Compute spectrum, r2c
   df=fs/NFFT

@@ -27,4 +27,3 @@ subroutine unpack50(dat,n1,n2)
 
   return
 end subroutine unpack50
-

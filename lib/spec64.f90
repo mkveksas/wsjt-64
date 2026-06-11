@@ -1,7 +1,7 @@
 subroutine spec64(c0,npts,nsps,mode_q65,jpk,s3,LL,NN)
 
   parameter (MAXFFT=20736)
-  complex c0(0:npts-1)                      !Complex spectrum of dd()
+  complex c0(0:npts-1)                       !Complex spectrum of dd()
   complex cs(0:MAXFFT-1)                     !Complex symbol spectrum
   real s3(LL,NN)                             !Synchronized symbol spectra
   real xbase0(LL),xbase(LL)
@@ -24,7 +24,8 @@ subroutine spec64(c0,npts,nsps,mode_q65,jpk,s3,LL,NN)
      if(jb.gt.npts-1) jb=npts-1
      nz=jb-ja
      cs(0:nz)=c0(ja:jb)
-     if(nz.lt.nfft-1) cs(nz+1:)=0.
+!     if(nz.lt.nfft-1) cs(nz+1:)=0.
+     if(nz.lt.nfft-1 .and. nz.ge.0) cs(nz+1:)=0.  !Avoid a potential bounds error with Q65-15 EME
      call four2a(cs,nsps,1,-1,1)             !c2c FFT to frequency
      do ii=1,LL
         i=ii-65+mode_q65      !mode_q65 = 1 2 4 8 16 for Q65 A B C D E
@@ -37,14 +38,14 @@ subroutine spec64(c0,npts,nsps,mode_q65,jpk,s3,LL,NN)
   do i=1,LL
      call pctile(s3(i,1:NN),NN,45,xbase0(i)) !Get baseline for passband shape
   enddo
-  
+
   nh=25
   xbase(1:nh-1)=sum(xbase0(1:nh-1))/(nh-1.0)
   xbase(LL-nh+1:LL)=sum(xbase0(LL-nh+1:LL))/(nh-1.0)
   do i=nh,LL-nh
      xbase(i)=sum(xbase0(i-nh+1:i+nh))/(2*nh+1)  !Smoothed passband shape
   enddo
-  
+
   do i=1,LL
      s3(i,1:NN)=s3(i,1:NN)/(xbase(i)+0.001) !Apply frequency equalization
   enddo

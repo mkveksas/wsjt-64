@@ -4,7 +4,7 @@ subroutine ft8_downsample(dd,newdat,f0,c1)
 
   parameter (NMAX=15*12000,NSPS=1920)
   parameter (NFFT1=192000,NFFT2=3200)      !192000/60 = 3200
-  
+
   logical newdat,first
   complex c1(0:NFFT2-1)
   complex cx(0:NFFT1/2)

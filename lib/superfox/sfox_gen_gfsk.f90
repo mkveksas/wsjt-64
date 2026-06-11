@@ -1,5 +1,5 @@
 subroutine sfox_gen_gfsk(idat,f0,isync,itone,cdat)
- 
+
   parameter (NSPS=1024)
   parameter (NDS=151)
   parameter (NN=127)             !NN = number of code symbols
@@ -9,7 +9,6 @@ subroutine sfox_gen_gfsk(idat,f0,isync,itone,cdat)
   parameter (BT=8)               !GFSK time-bandwidth product
 
   complex cdat(NMAX)
-  complex w, wstep
   integer idat(NN)
   integer isync(NS)
   integer itone(NDS)
@@ -26,14 +25,14 @@ subroutine sfox_gen_gfsk(idat,f0,isync,itone,cdat)
     dt=1.0/fsample
     hmod=1.0
     dphi_peak=twopi*hmod/real(NSPS)
-    do i=1,3*NSPS 
+    do i=1,3*NSPS
       tt=(i-1.5*NSPS)/real(NSPS)
       pulse(i)=gfsk_pulse(BT,tt)
     enddo
     first=.false.
   endif
   wave=0.
- 
+
 ! Create the itone sequence: data symbols and interspersed sync symbols
   j=1
   k=0
@@ -48,7 +47,7 @@ subroutine sfox_gen_gfsk(idat,f0,isync,itone,cdat)
   enddo
 
 ! Generate the SuperFox waveform.
-  
+
   dphi=0.d0
   do j=1,NDS
     ib=(j-1)*NSPS
@@ -66,13 +65,13 @@ subroutine sfox_gen_gfsk(idat,f0,isync,itone,cdat)
     cdat(k)=cmplx(cos(phi),sin(phi))
     phi=phi+dphi(j)
   enddo
-  
+
 ! Add raised cosine ramps at the beginning and end of the waveform.
 ! Since the modulator expects an integral number of symbols, dummy
-! symbols are added to the beginning and end of the waveform to 
+! symbols are added to the beginning and end of the waveform to
 ! hold the ramps. All but nramp of the samples in each dummy
 ! symbol will be zero.
- 
+
   nramp=NSPS/BT
   cdat(1:NSPS-nramp)=cmplx(0.0,0.0)
   cdat(NSPS-nramp+1:NSPS)=cdat(NSPS-nramp+1:NSPS) *                   &

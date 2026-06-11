@@ -2,9 +2,9 @@ subroutine sync8(dd,npts,nfa,nfb,syncmin,nfqso,maxcand,candidate,ncand,sbase)
 
   include 'ft8_params.f90'
   parameter (MAXPRECAND=1000)
-! Maximum sync correlation lag +/- 2.5s relative to 0.5s TX start time. 
+! Maximum sync correlation lag +/- 2.5s relative to 0.5s TX start time.
 ! 2.5s / 0.16s/symbol * 4 samples/symbol = 62.5 lag steps in 2.5s
-  parameter (JZ=62)                        
+  parameter (JZ=62)
   complex cx(0:NH1)
   real s(NH1,NHSYM)
   real savg(NH1)
@@ -25,9 +25,9 @@ subroutine sync8(dd,npts,nfa,nfb,syncmin,nfqso,maxcand,candidate,ncand,sbase)
   data icos7/3,1,4,0,6,5,2/                   !Costas 7x7 tone pattern
   equivalence (x,cx)
 
-! Compute symbol spectra, stepping by NSTEP steps.  
+! Compute symbol spectra, stepping by NSTEP steps.
   savg=0.
-  tstep=NSTEP/12000.0                         
+  tstep=NSTEP/12000.0
   df=12000.0/NFFT1                            !3.125 Hz
   fac=1.0/300.0
   do j=1,NHSYM
@@ -86,10 +86,10 @@ subroutine sync8(dd,npts,nfa,nfb,syncmin,nfqso,maxcand,candidate,ncand,sbase)
 
   red=0.
   red2=0.
-  mlag=10
+  mlag=13
   mlag2=JZ
   do i=ia,ib
-     ii=maxloc(sync2d(i,-mlag:mlag)) - 1 - mlag 
+     ii=maxloc(sync2d(i,-mlag:mlag)) - 1 - mlag
      jpeak(i)=ii(1)
      red(i)=sync2d(i,jpeak(i))
      ii=maxloc(sync2d(i,-mlag2:mlag2)) - 1 - mlag2
@@ -117,13 +117,13 @@ subroutine sync8(dd,npts,nfa,nfb,syncmin,nfqso,maxcand,candidate,ncand,sbase)
   do i=1,min(MAXPRECAND,iz)
      n=ia + indx(iz+1-i) - 1
      if(k.ge.MAXPRECAND) exit
-     if( (red(n).ge.syncmin) .and. (.not.isnan(red(n))) ) then 
+     if( (red(n).ge.syncmin) .and. (.not.isnan(red(n))) ) then
         k=k+1
         candidate0(1,k)=n*df
         candidate0(2,k)=(jpeak(n)-0.5)*tstep
         candidate0(3,k)=red(n)
      endif
-     if(abs(jpeak2(n)-jpeak(n)).eq.0) cycle 
+     if(abs(jpeak2(n)-jpeak(n)).eq.0) cycle
      if(k.ge.MAXPRECAND) exit
      if( (red2(n).ge.syncmin) .and. (.not.isnan(red2(n))) ) then
         k=k+1
@@ -134,7 +134,7 @@ subroutine sync8(dd,npts,nfa,nfb,syncmin,nfqso,maxcand,candidate,ncand,sbase)
   enddo
   ncand=k
 
-! Save only the best of near-dupe freqs.  
+! Save only the best of near-dupe freqs.
   do i=1,ncand
      if(i.ge.2) then
         do j=1,i-1
@@ -161,7 +161,7 @@ subroutine sync8(dd,npts,nfa,nfb,syncmin,nfqso,maxcand,candidate,ncand,sbase)
       k=k+1
     endif
   enddo
- 
+
   do i=ncand,1,-1
      j=indx(i)
      if( candidate0(3,j) .ge. syncmin ) then

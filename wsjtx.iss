@@ -27,4 +27,3 @@ Source: "c:\Users\joe\wsjt\wsjtx_install\Palettes\*.pal";                DestDir
 [Icons]
 Name: "{group}\wsjtx_w";        Filename: "{app}\wsjtx.exe";   WorkingDir: {app}; IconFilename: {app}\wsjt.ico
 Name: "{userdesktop}\wsjtx_w";  Filename: "{app}\wsjtx.exe";   WorkingDir: {app}; IconFilename: {app}\wsjt.ico
-

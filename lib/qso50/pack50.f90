@@ -23,4 +23,3 @@ subroutine pack50(n1,n2,dat)
 
   return
 end subroutine pack50
-

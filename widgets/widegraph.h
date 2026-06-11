@@ -54,6 +54,7 @@ public:
   void   setSingleDecode(bool b);
   void   setDiskUTC(int nutc);
   void   restartTotalPower();
+  void	 setDarkStyle(bool b);
 
 signals:
   void freezeDecode2(int n);
@@ -77,15 +78,18 @@ private slots:
   void on_fSplitSpinBox_valueChanged(int n);
   void on_fStartSpinBox_valueChanged(int n);
   void on_paletteComboBox_activated(const QString &palette);
+  void on_timestampComboBox_currentIndexChanged(int n);
   void on_cbFlatten_toggled(bool b);
   void on_cbRef_toggled(bool b);
   void on_cbControls_toggled(bool b);
+  void on_cbBars_toggled(bool b);
+  void on_cbFreq_toggled(bool b);
   void on_adjust_palette_push_button_clicked (bool);
   void on_gainSlider_valueChanged(int value);
   void on_zeroSlider_valueChanged(int value);
   void on_gain2dSlider_valueChanged(int value);
   void on_zero2dSlider_valueChanged(int value);
-  void on_smoSpinBox_valueChanged(int n);  
+  void on_smoSpinBox_valueChanged(int n);
   void on_sbPercent2dPlot_valueChanged(int n);
 
 private:
@@ -111,14 +115,17 @@ private:
   qint32 m_Percent2DScreen;
   qint32 m_jz=MAX_SCREENSIZE;
   qint32 m_n;
+  qint32 m_timestamp;
 
+  bool	 m_bars;
+  bool	 m_freq;
   bool   m_bFlatten;
   bool   m_bRef;
   bool   m_bHaveTransmitted;    //Set true at end of a WSPR or FT4 transmission
 
   QString m_rxBand;
   QString m_mode;
-  QString m_waterfallPalette;  
+  QString m_waterfallPalette;
   float   m_swide[MAX_SCREENSIZE];
   QString m_user_defined;
 };

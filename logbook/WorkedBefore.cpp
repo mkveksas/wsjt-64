@@ -677,7 +677,6 @@ bool WorkedBefore::CQ_zone_worked (int CQ_zone, QString const& mode, QString con
     }
 }
 
-
 bool WorkedBefore::ITU_zone_worked (int ITU_zone, QString const& mode, QString const& band) const
 {
   if (mode.size ())
@@ -709,5 +708,3 @@ bool WorkedBefore::ITU_zone_worked (int ITU_zone, QString const& mode, QString c
         }
     }
 }
-
-

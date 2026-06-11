@@ -44,11 +44,11 @@ program fmeasure
 
   read(11,*) a,b
 
-  write(*,1000) 
-  write(12,1000) 
+  write(*,1000)
+  write(12,1000)
 1000 format('    Freq     DF     A+B*f     Corrected  Offset'/        &
             '   (MHz)    (Hz)    (Hz)        (MHz)      (Hz)'/        &
-            '-----------------------------------------------')       
+            '-----------------------------------------------')
   i=0
   do j=1,9999
      read(10,1010,end=999) line

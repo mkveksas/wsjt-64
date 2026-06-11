@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>760</width>
-    <height>648</height>
+    <width>827</width>
+    <height>705</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Settings</string>
@@ -171,67 +177,50 @@
           <string>Display</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_4">
-          <item row="0" column="1" rowspan="4">
-           <layout class="QHBoxLayout" name="horizontalLayout_21">
-            <item>
-             <spacer name="horizontalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>0</width>
-                <height>0</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_6">
-              <item>
-               <widget class="QPushButton" name="font_push_button">
-                <property name="toolTip">
-                 <string>Set the font characteristics for the application.</string>
-                </property>
-                <property name="text">
-                 <string>Font...</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="decoded_text_font_push_button">
-                <property name="toolTip">
-                 <string>Set the font characteristics for the Band Activity and Rx Frequency areas.</string>
-                </property>
-                <property name="text">
-                 <string>Decoded Text Font...</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <spacer name="verticalSpacer">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>0</width>
-                  <height>0</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-             </layout>
-            </item>
-           </layout>
+          <item row="4" column="0">
+           <widget class="QCheckBox" name="DXCC_check_box">
+            <property name="toolTip">
+             <string>Show if decoded stations are new DXCC entities or worked before.</string>
+            </property>
+            <property name="text">
+             <string>Show &amp;DXCC, grid, and worked-before status    </string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
           </item>
-          <item row="1" column="0">
+          <item row="0" column="1">
            <widget class="QCheckBox" name="insert_blank_check_box">
             <property name="toolTip">
              <string>Include a separator line between periods in the band activity window.</string>
             </property>
             <property name="text">
              <string>&amp;Blank line between decoding periods</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="QPushButton" name="font_push_button">
+            <property name="toolTip">
+             <string>Set the font characteristics for the application.</string>
+            </property>
+            <property name="text">
+             <string>Font...</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QCheckBox" name="cbHighlightDXgrid">
+            <property name="text">
+             <string>Highlight DX Grid in message</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="2">
+           <widget class="QCheckBox" name="show_country_names_check_box">
+            <property name="text">
+             <string>Show DXCC for all messages</string>
             </property>
            </widget>
           </item>
@@ -245,24 +234,13 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
-           <widget class="QCheckBox" name="cbHighlightDXgrid">
-            <property name="text">
-             <string>Highlight DX Grid in message</string>
+          <item row="3" column="2">
+           <widget class="QPushButton" name="decoded_text_font_push_button">
+            <property name="toolTip">
+             <string>Set the font characteristics for the Band Activity and Rx Frequency areas.</string>
             </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QCheckBox" name="ppfx_check_box">
             <property name="text">
-             <string>Show principal prefix instead of country name</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QCheckBox" name="cbHighlightDXcall">
-            <property name="text">
-             <string>Highlight DX Call in message</string>
+             <string>Decoded Text Font...</string>
             </property>
            </widget>
           </item>
@@ -276,6 +254,23 @@
             </property>
            </widget>
           </item>
+          <item row="0" column="2">
+           <widget class="QCheckBox" name="cb_detailed_blank_line">
+            <property name="toolTip">
+             <string>Show the separator line between periods with time stamp of the decode period.</string>
+            </property>
+            <property name="text">
+             <string>Show blank line with time stamp</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QCheckBox" name="ppfx_check_box">
+            <property name="text">
+             <string>Show principal prefix instead of country name        </string>
+            </property>
+           </widget>
+          </item>
           <item row="3" column="0">
            <widget class="QCheckBox" name="TX_messages_check_box">
             <property name="toolTip">
@@ -286,16 +281,10 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="0">
-           <widget class="QCheckBox" name="DXCC_check_box">
-            <property name="toolTip">
-             <string>Show if decoded stations are new DXCC entities or worked before.</string>
-            </property>
+          <item row="2" column="1">
+           <widget class="QCheckBox" name="cbHighlightDXcall">
             <property name="text">
-             <string>Show &amp;DXCC, grid, and worked-before status</string>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
+             <string>Highlight DX Call in message</string>
             </property>
            </widget>
           </item>
@@ -314,8 +303,113 @@
          <property name="title">
           <string>Behavior</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_8">
-          <item row="3" column="1">
+         <layout class="QGridLayout" name="gridLayout_8" rowstretch="0,0,0,0,0,0,0,0" columnstretch="2,3,0,2">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="monitor_off_check_box">
+            <property name="toolTip">
+             <string>Don't start decoding until the monitor button is clicked.</string>
+            </property>
+            <property name="text">
+             <string>Mon&amp;itor off at startup</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="monitor_last_used_check_box">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check this if you wish to automatically return to the last monitored frequency when monitor is enabled, leave it unchecked if you wish to have the current rig frequency maintained.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Monitor returns to last used frequency</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QCheckBox" name="enable_VHF_features_check_box">
+            <property name="text">
+             <string>Enable VHF and submode features</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QCheckBox" name="alternate_bindings_check_box">
+            <property name="text">
+             <string>Alternate F1-F6 bindings</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QCheckBox" name="quick_call_check_box">
+            <property name="toolTip">
+             <string>Automatic transmission mode.</string>
+            </property>
+            <property name="text">
+             <string>Doubl&amp;e-click on call sets Tx enable</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QCheckBox" name="disable_TX_on_73_check_box">
+            <property name="toolTip">
+             <string>Turns off automatic transmissions after sending a 73 or any other free
+text message.</string>
+            </property>
+            <property name="text">
+             <string>Di&amp;sable Tx after sending 73</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2" colspan="2">
+           <widget class="QCheckBox" name="auto_astro_check_box">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open the Astronomical Data window automatically when switching to Q65 or JT65 mode and Decode after EME delay is enabled, and close it when no longer needed.&lt;/p&gt;&lt;p&gt;Open the QSYMessage Creator automatically if the VHF Features are enabled and such QSY messages are applicable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Auto-open/close Astronomical data window</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QCheckBox" name="force_call_1st_check_box">
+            <property name="text">
+             <string>Calling CQ forces Call 1st</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2" colspan="2">
+           <widget class="QCheckBox" name="repeat_Tx_check_box">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tx until 73 is received when in MSK144 or Q65 mode. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>MSK144/Q65: Tx until 73 is received</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="2" colspan="2">
+           <widget class="QCheckBox" name="kHz_without_k_check_box">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Allow kHz frequency offset entry without 'k' suffix.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>kHz entry without k (restart required)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QCheckBox" name="tx_QSY_check_box">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Some rigs are not able to process CAT commands while transmitting. This means that if you are operating in split mode you may have to uncheck this option.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Allow Tx frequency changes while transmitting</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
            <widget class="QCheckBox" name="decode_at_52s_check_box">
             <property name="text">
              <string>Decode after EME delay</string>
@@ -323,24 +417,60 @@
            </widget>
           </item>
           <item row="5" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_12">
+           <widget class="QCheckBox" name="single_decode_check_box">
+            <property name="text">
+             <string>Single decode</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1" colspan="3">
+           <layout class="QHBoxLayout" name="TxWatchdog_Layout" stretch="0,1,1,0,1">
             <item>
-             <spacer name="horizontalSpacer_7">
+             <widget class="QCheckBox" name="tune_watchdog_check_box">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Disable the Tune watchdog.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Tune watchdog   </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="tune_watchdog_spin_box">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of seconds before Tune is aborted&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="suffix">
+               <string> seconds</string>
+              </property>
+              <property name="minimum">
+               <number>0</number>
+              </property>
+              <property name="maximum">
+               <number>300</number>
+              </property>
+              <property name="value">
+               <number>60</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>0</width>
-                <height>0</height>
+                <width>10</width>
+                <height>20</height>
                </size>
               </property>
              </spacer>
             </item>
-            <item>
+            <item alignment="Qt::AlignRight">
              <widget class="QLabel" name="label_10">
               <property name="text">
-               <string>Tx watchdog:</string>
+               <string>Tx watchdog: </string>
               </property>
               <property name="buddy">
                <cstring>tx_watchdog_spin_box</cstring>
@@ -368,97 +498,19 @@
             </item>
            </layout>
           </item>
-          <item row="0" column="1">
-           <widget class="QCheckBox" name="enable_VHF_features_check_box">
-            <property name="text">
-             <string>Enable VHF and submode features</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QCheckBox" name="single_decode_check_box">
-            <property name="text">
-             <string>Single decode</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QCheckBox" name="tx_QSY_check_box">
+          <item row="6" column="2">
+           <widget class="QCheckBox" name="CW_id_after_73_check_box">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Some rigs are not able to process CAT commands while transmitting. This means that if you are operating in split mode you may have to uncheck this option.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Send a CW ID after every 73 or free text message.</string>
             </property>
             <property name="text">
-             <string>Allow Tx frequency changes while transmitting</string>
+             <string>CW ID a&amp;fter 73</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="monitor_off_check_box">
-            <property name="toolTip">
-             <string>Don't start decoding until the monitor button is clicked.</string>
-            </property>
-            <property name="text">
-             <string>Mon&amp;itor off at startup</string>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="monitor_last_used_check_box">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check this if you wish to automatically return to the last monitored frequency when monitor is enabled, leave it unchecked if you wish to have the current rig frequency maintained.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Monitor returns to last used frequency</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QCheckBox" name="alternate_bindings_check_box">
-            <property name="text">
-             <string>Alternate F1-F6 bindings</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QCheckBox" name="disable_TX_on_73_check_box">
-            <property name="toolTip">
-             <string>Turns off automatic transmissions after sending a 73 or any other free
-text message.</string>
-            </property>
-            <property name="text">
-             <string>Di&amp;sable Tx after sending 73</string>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="0" colspan="2">
-           <layout class="QHBoxLayout" name="horizontalLayout_9">
-            <item>
-             <widget class="QCheckBox" name="CW_id_after_73_check_box">
-              <property name="toolTip">
-               <string>Send a CW ID after every 73 or free text message.</string>
-              </property>
-              <property name="text">
-               <string>CW ID a&amp;fter 73</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>0</width>
-                <height>0</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
+          <item row="6" column="3">
+           <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="0,0">
+            <item alignment="Qt::AlignRight">
              <widget class="QLabel" name="label">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -467,7 +519,7 @@ text message.</string>
                </sizepolicy>
               </property>
               <property name="text">
-               <string>Periodic CW ID Inter&amp;val:</string>
+               <string>ID Inter&amp;val:</string>
               </property>
               <property name="buddy">
                <cstring>CW_id_interval_spin_box</cstring>
@@ -486,20 +538,13 @@ quiet period when decoding is done.</string>
             </item>
            </layout>
           </item>
-          <item row="2" column="0">
-           <widget class="QCheckBox" name="quick_call_check_box">
+          <item row="5" column="2" colspan="2">
+           <widget class="QCheckBox" name="progress_bar_check_box">
             <property name="toolTip">
-             <string>Automatic transmission mode.</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Turn the progress bar red while transmitting.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>Doubl&amp;e-click on call sets Tx enable</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QCheckBox" name="force_call_1st_check_box">
-            <property name="text">
-             <string>Calling CQ forces Call 1st</string>
+             <string>Turn progress bar red while transmitting</string>
             </property>
            </widget>
           </item>
@@ -507,17 +552,151 @@ quiet period when decoding is done.</string>
         </widget>
        </item>
        <item>
-        <spacer name="verticalSpacer_9">
+        <widget class="Line" name="line_2">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Horizontal</enum>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="additional_features_box">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-        </spacer>
+         <property name="title">
+          <string>Additional features</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_17" columnstretch="3,3,2,1,1">
+          <item row="2" column="1">
+           <widget class="QCheckBox" name="cbRxToTxAfterQSO">
+            <property name="text">
+             <string>Set Rx frequency to Tx frequency after QSO</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QCheckBox" name="cb_showDistance">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If a station sends locator, calculate and show the distance in Band Activity pane.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Show distance in messages with grid</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QCheckBox" name="cbEraseBandActivity">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Erase Band Activity and Rx frequency windows after band change.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Erase decodes after band change</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QCheckBox" name="cbClearDXgrid">
+            <property name="text">
+             <string>Clear DX Grid after QSO</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="Map_All_Messages">
+            <property name="text">
+             <string>Show U.S. States in messages with grid</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="Map_Grid_to_State">
+            <property name="text">
+             <string>Map Grid locator to U.S. State</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="2">
+           <widget class="QCheckBox" name="cb_Align">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Align the text for DXCC, distance and azimuth.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Align DXCC/distance/azimuth</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QCheckBox" name="alternate_erase_button_check_box">
+            <property name="text">
+             <string>Alternate Erase button behavior</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QCheckBox" name="cbClearDXcall">
+            <property name="text">
+             <string>Clear DX Call after QSO</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="3">
+           <widget class="QSpinBox" name="align_spin_box">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Increase or decrease the space between message text and DXCC.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="minimum">
+             <number>-2</number>
+            </property>
+            <property name="maximum">
+             <number>10</number>
+            </property>
+            <property name="value">
+             <number>1</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="QCheckBox" name="enable_Wait_features_check_box">
+            <property name="text">
+             <string>Enable Wait features</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QCheckBox" name="cb_showAzimuth">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If a station sends a valid Maidenhead locator, calculate and show the great-circle azimuth in Band Activity pane.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Show azimuth in messages with grid</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="4">
+           <widget class="QSpinBox" name="align_spin_box2">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Increase or decrease the space between DXCC and distance/azimuth.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="minimum">
+             <number>-8</number>
+            </property>
+            <property name="maximum">
+             <number>5</number>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2" colspan="3">
+           <widget class="QCheckBox" name="disable_button_coloring_check_box">
+            <property name="text">
+             <string>Less button coloring (restart required)</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -529,6 +708,89 @@ quiet period when decoding is done.</string>
        <string>Radio interface configuration settings.</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_3">
+       <item row="13" column="2">
+        <spacer name="verticalSpacer_13">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="8" column="2">
+        <widget class="QGroupBox" name="split_operation_group_box">
+         <property name="title">
+          <string>Split Operation</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_12">
+          <item row="0" column="2">
+           <widget class="QRadioButton" name="split_emulate_radio_button">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use only VFO A for split operation (the program temporarily changes the QRG of your rig during transmission).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Fake It</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+            <attribute name="buttonGroup">
+             <string notr="true">split_mode_button_group</string>
+            </attribute>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QRadioButton" name="split_rig_radio_button">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use VFO A+B for split operation (works with many rigs, but requires the use of both VFOs).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Rig</string>
+            </property>
+            <attribute name="buttonGroup">
+             <string notr="true">split_mode_button_group</string>
+            </attribute>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QRadioButton" name="split_none_radio_button">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Don't use split (not recommended).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>None</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+            <attribute name="buttonGroup">
+             <string notr="true">split_mode_button_group</string>
+            </attribute>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="13" column="0">
+        <spacer name="verticalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::MinimumExpanding</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
        <item row="5" column="2">
         <widget class="QGroupBox" name="mode_group_box">
          <property name="toolTip">
@@ -585,223 +847,19 @@ or bandwidth is selected).</string>
          </layout>
         </widget>
        </item>
-       <item row="3" column="2">
-        <widget class="QGroupBox" name="TX_audio_source_group_box">
-         <property name="toolTip">
-          <string>Some radios can select the audio input using a CAT command,
-this setting allows you to select which audio input will be used
-(if it is available then generally the Rear/Data option is best).</string>
-         </property>
-         <property name="title">
-          <string>Transmit Audio Source</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_7">
-          <item row="0" column="0">
-           <widget class="QRadioButton" name="TX_source_data_radio_button">
-            <property name="text">
-             <string>Rear&amp;/Data</string>
-            </property>
-            <attribute name="buttonGroup">
-             <string notr="true">TX_audio_source_button_group</string>
-            </attribute>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QRadioButton" name="TX_source_mic_radio_button">
-            <property name="text">
-             <string>&amp;Front/Mic</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-            <attribute name="buttonGroup">
-             <string notr="true">TX_audio_source_button_group</string>
-            </attribute>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="1" column="2">
-        <widget class="QGroupBox" name="PTT_method_group_box">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="toolTip">
-          <string>How this program activates the PTT on your radio?</string>
-         </property>
-         <property name="title">
-          <string>PTT Method</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_2">
-          <item row="0" column="0">
-           <widget class="QRadioButton" name="PTT_VOX_radio_button">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;No PTT activation, instead the radio's automatic VOX is used to key the transmitter.&lt;/p&gt;&lt;p&gt;Use this if you have no radio interface hardware.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>VO&amp;X</string>
-            </property>
-            <attribute name="buttonGroup">
-             <string notr="true">PTT_method_button_group</string>
-            </attribute>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QRadioButton" name="PTT_DTR_radio_button">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use the RS-232 DTR control line to toggle your radio's PTT, requires hardware to interface the line.&lt;/p&gt;&lt;p&gt;Some commercial interface units also use this method.&lt;/p&gt;&lt;p&gt;The DTR control line of the CAT serial port may be used for this or a DTR control line on a different serial port may be used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>&amp;DTR</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-            <attribute name="buttonGroup">
-             <string notr="true">PTT_method_button_group</string>
-            </attribute>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QRadioButton" name="PTT_CAT_radio_button">
-            <property name="toolTip">
-             <string>Some radios support PTT via CAT commands,
-use this option if your radio supports it and you have no
-other hardware interface for PTT.</string>
-            </property>
-            <property name="text">
-             <string>C&amp;AT</string>
-            </property>
-            <attribute name="buttonGroup">
-             <string notr="true">PTT_method_button_group</string>
-            </attribute>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QRadioButton" name="PTT_RTS_radio_button">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use the RS-232 RTS control line to toggle your radio's PTT, requires hardware to interface the line.&lt;/p&gt;&lt;p&gt;Some commercial interface units also use this method.&lt;/p&gt;&lt;p&gt;The RTS control line of the CAT serial port may be used for this or a RTS control line on a different serial port may be used. Note that this option is not available on the CAT serial port when hardware flow control is used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>R&amp;TS</string>
-            </property>
-            <attribute name="buttonGroup">
-             <string notr="true">PTT_method_button_group</string>
-            </attribute>
-           </widget>
-          </item>
-          <item row="2" column="0" rowspan="2" colspan="2">
-           <layout class="QFormLayout" name="formLayout_4">
-            <property name="fieldGrowthPolicy">
-             <enum>QFormLayout::ExpandingFieldsGrow</enum>
-            </property>
-            <item row="0" column="0">
-             <widget class="QLabel" name="PTT_port_label">
-              <property name="text">
-               <string>Port:</string>
-              </property>
-              <property name="buddy">
-               <cstring>PTT_port_combo_box</cstring>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QComboBox" name="PTT_port_combo_box">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                <horstretch>1</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the RS-232 serial port utilised for PTT control, this option is available when DTR or RTS is selected above as a transmit method.&lt;/p&gt;&lt;p&gt;This port can be the same one as the one used for CAT control.&lt;/p&gt;&lt;p&gt;For some interface types the special value CAT may be chosen, this is used for non-serial CAT interfaces that can control serial port control lines remotely (OmniRig for example).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="editable">
-               <bool>true</bool>
-              </property>
-              <property name="currentText">
-               <string/>
-              </property>
-              <property name="currentIndex">
-               <number>-1</number>
-              </property>
-              <property name="insertPolicy">
-               <enum>QComboBox::NoInsert</enum>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="8" column="2">
-        <widget class="QGroupBox" name="split_operation_group_box">
-         <property name="title">
-          <string>Split Operation</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_12">
-          <item row="0" column="2">
-           <widget class="QRadioButton" name="split_emulate_radio_button">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use only VFO A for split operation (the program temporarily changes the QRG of your rig during transmission).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Fake It</string>
-            </property>
-            <attribute name="buttonGroup">
-             <string notr="true">split_mode_button_group</string>
-            </attribute>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QRadioButton" name="split_rig_radio_button">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use VFO A+B for split operation (works with many rigs, but requires the use of both VFOs).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Rig</string>
-            </property>
-            <attribute name="buttonGroup">
-             <string notr="true">split_mode_button_group</string>
-            </attribute>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QRadioButton" name="split_none_radio_button">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Don't use split (not recommended).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>None</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-            <attribute name="buttonGroup">
-             <string notr="true">split_mode_button_group</string>
-            </attribute>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="11" column="2">
-        <spacer name="verticalSpacer_7">
+       <item row="4" column="2">
+        <widget class="Line" name="line_4">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Horizontal</enum>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="Line" name="line_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
          </property>
-        </spacer>
+        </widget>
        </item>
        <item row="1" column="0" rowspan="11">
         <widget class="QGroupBox" name="CAT_control_group_box">
@@ -1105,7 +1163,7 @@ other hardware interface for PTT.</string>
                  <widget class="QRadioButton" name="CAT_handshake_hardware_radio_button">
                   <property name="toolTip">
                    <string>Flow control using the RTS and CTS RS-232 control lines
-not often used but some radios have it as an option and 
+not often used but some radios have it as an option and
 a few, particularly some Kenwood rigs, require it).</string>
                   </property>
                   <property name="text">
@@ -1209,46 +1267,12 @@ a few, particularly some Kenwood rigs, require it).</string>
          </layout>
         </widget>
        </item>
-       <item row="4" column="2">
-        <widget class="Line" name="line_4">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="2">
-        <widget class="Line" name="line_6">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="2">
-        <widget class="Line" name="line_3">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
        <item row="1" column="1" rowspan="13">
         <widget class="Line" name="line">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
         </widget>
-       </item>
-       <item row="13" column="0">
-        <spacer name="verticalSpacer_5">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
-        </spacer>
        </item>
        <item row="10" column="2">
         <layout class="QHBoxLayout" name="horizontalLayout_11">
@@ -1308,6 +1332,220 @@ radio interface behave as expected.</string>
          </item>
         </layout>
        </item>
+       <item row="6" column="2">
+        <widget class="Line" name="line_6">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QGroupBox" name="PTT_method_group_box">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>How this program activates the PTT on your radio?</string>
+         </property>
+         <property name="title">
+          <string>PTT Method</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="0" column="0">
+           <widget class="QRadioButton" name="PTT_VOX_radio_button">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;No PTT activation, instead the radio's automatic VOX is used to key the transmitter.&lt;/p&gt;&lt;p&gt;Use this if you have no radio interface hardware.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>VO&amp;X</string>
+            </property>
+            <attribute name="buttonGroup">
+             <string notr="true">PTT_method_button_group</string>
+            </attribute>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QRadioButton" name="PTT_DTR_radio_button">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use the RS-232 DTR control line to toggle your radio's PTT, requires hardware to interface the line.&lt;/p&gt;&lt;p&gt;Some commercial interface units also use this method.&lt;/p&gt;&lt;p&gt;The DTR control line of the CAT serial port may be used for this or a DTR control line on a different serial port may be used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>&amp;DTR</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+            <attribute name="buttonGroup">
+             <string notr="true">PTT_method_button_group</string>
+            </attribute>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QRadioButton" name="PTT_CAT_radio_button">
+            <property name="toolTip">
+             <string>Some radios support PTT via CAT commands,
+use this option if your radio supports it and you have no
+other hardware interface for PTT.</string>
+            </property>
+            <property name="text">
+             <string>C&amp;AT</string>
+            </property>
+            <attribute name="buttonGroup">
+             <string notr="true">PTT_method_button_group</string>
+            </attribute>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QRadioButton" name="PTT_RTS_radio_button">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use the RS-232 RTS control line to toggle your radio's PTT, requires hardware to interface the line.&lt;/p&gt;&lt;p&gt;Some commercial interface units also use this method.&lt;/p&gt;&lt;p&gt;The RTS control line of the CAT serial port may be used for this or a RTS control line on a different serial port may be used. Note that this option is not available on the CAT serial port when hardware flow control is used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>R&amp;TS</string>
+            </property>
+            <attribute name="buttonGroup">
+             <string notr="true">PTT_method_button_group</string>
+            </attribute>
+           </widget>
+          </item>
+          <item row="2" column="0" rowspan="2" colspan="2">
+           <layout class="QFormLayout" name="formLayout_4">
+            <property name="fieldGrowthPolicy">
+             <enum>QFormLayout::ExpandingFieldsGrow</enum>
+            </property>
+            <item row="0" column="0">
+             <widget class="QLabel" name="PTT_port_label">
+              <property name="text">
+               <string>Port:</string>
+              </property>
+              <property name="buddy">
+               <cstring>PTT_port_combo_box</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QComboBox" name="PTT_port_combo_box">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                <horstretch>1</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the RS-232 serial port utilised for PTT control, this option is available when DTR or RTS is selected above as a transmit method.&lt;/p&gt;&lt;p&gt;This port can be the same one as the one used for CAT control.&lt;/p&gt;&lt;p&gt;For some interface types the special value CAT may be chosen, this is used for non-serial CAT interfaces that can control serial port control lines remotely (OmniRig for example).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="editable">
+               <bool>true</bool>
+              </property>
+              <property name="currentText">
+               <string/>
+              </property>
+              <property name="currentIndex">
+               <number>-1</number>
+              </property>
+              <property name="insertPolicy">
+               <enum>QComboBox::NoInsert</enum>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="12" column="0">
+        <widget class="QGroupBox" name="hamlib_groupBox">
+         <property name="title">
+          <string>Update Hamlib</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_24">
+          <item row="0" column="1">
+           <widget class="QRadioButton" name="rbHamlib32">
+            <property name="text">
+             <string>32-bit</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <widget class="QPushButton" name="revert_update_button">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Revert the last Hamlib update. &lt;/p&gt;&lt;p&gt;Note: This function is only available on Windows.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Revert Update</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QPushButton" name="hamlib_download_button">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Download the latest libhamlib-4.dll file from https://n0nb.users.sourceforge.net/. &lt;/p&gt;&lt;p&gt;Note: This function is only available on Windows.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Update Hamlib</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="4">
+           <layout class="QGridLayout" name="hamlib_version_gridLayout" columnstretch="0,1">
+            <item row="0" column="0">
+             <widget class="QLabel" name="in_use_text">
+              <property name="text">
+               <string>In use:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLabel" name="in_use">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="backed_up_text">
+              <property name="text">
+               <string>Backed up:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLabel" name="backed_up">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="0">
+           <widget class="QRadioButton" name="rbHamlib64">
+            <property name="text">
+             <string>64-bit</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
        <item row="0" column="0" colspan="3">
         <layout class="QHBoxLayout" name="horizontalLayout_7">
          <item>
@@ -1355,6 +1593,79 @@ radio interface behave as expected.</string>
          </item>
         </layout>
        </item>
+       <item row="11" column="2">
+        <spacer name="verticalSpacer_7">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="12" column="2">
+        <widget class="QGroupBox" name="rig_data_group_box">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="title">
+          <string>Rig Data</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_25">
+          <item row="0" column="3">
+           <widget class="QCheckBox" name="check_SWR_check_box">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Stop transmitting immediately when SWR exceeds 2.5.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Halt Tx when SWR &gt; 2.5</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="PWR_and_SWR_check_box">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Read and display transmit PWR and SWR of your rig.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Read and display PWR and SWR</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
        <item row="9" column="2">
         <spacer name="verticalSpacer_2">
          <property name="orientation">
@@ -1368,80 +1679,39 @@ radio interface behave as expected.</string>
          </property>
         </spacer>
        </item>
-       <item row="12" column="0">
-        <widget class="QGroupBox" name="hamlib_groupBox">
-         <property name="title">
-          <string>Update Hamlib</string>
+       <item row="3" column="2">
+        <widget class="QGroupBox" name="TX_audio_source_group_box">
+         <property name="toolTip">
+          <string>Some radios can select the audio input using a CAT command,
+this setting allows you to select which audio input will be used
+(if it is available then generally the Rear/Data option is best).</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_18">
+         <property name="title">
+          <string>Transmit Audio Source</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_7">
           <item row="0" column="0">
-           <widget class="QRadioButton" name="rbHamlib64">
+           <widget class="QRadioButton" name="TX_source_data_radio_button">
             <property name="text">
-             <string>64-bit</string>
+             <string>Rear&amp;/Data</string>
+            </property>
+            <attribute name="buttonGroup">
+             <string notr="true">TX_audio_source_button_group</string>
+            </attribute>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QRadioButton" name="TX_source_mic_radio_button">
+            <property name="text">
+             <string>&amp;Front/Mic</string>
             </property>
             <property name="checked">
              <bool>true</bool>
             </property>
+            <attribute name="buttonGroup">
+             <string notr="true">TX_audio_source_button_group</string>
+            </attribute>
            </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QRadioButton" name="rbHamlib32">
-            <property name="text">
-             <string>32-bit</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="3">
-           <widget class="QPushButton" name="revert_update_button">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Revert the last Hamlib update. &lt;/p&gt;&lt;p&gt;Note: This function is only available on Windows.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Revert Update</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QPushButton" name="hamlib_download_button">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Download the latest libhamlib-4.dll file from https://n0nb.users.sourceforge.net/. &lt;/p&gt;&lt;p&gt;Note: This function is only available on Windows.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Update Hamlib</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0" colspan="4">
-           <layout class="QGridLayout" name="hamlib_version_gridLayout" columnstretch="0,1">
-            <item row="0" column="0">
-             <widget class="QLabel" name="in_use_text">
-              <property name="text">
-               <string>In use:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="backed_up_text">
-              <property name="text">
-               <string>Backed up:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QLabel" name="in_use">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QLabel" name="backed_up">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
           </item>
          </layout>
         </widget>
@@ -1465,64 +1735,17 @@ radio interface behave as expected.</string>
           <string>Soundcard</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_6">
-          <item row="1" column="1">
-           <widget class="LazyFillComboBox" name="sound_output_combo_box">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>1</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string>Select the audio CODEC to use for transmitting.
-If this is your default device for system sounds then
-ensure that all system sounds are disabled otherwise
-you will broadcast any systems sounds generated during
-transmitting periods.</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QComboBox" name="sound_input_channel_combo_box">
-            <property name="toolTip">
-             <string>Select the channel to use for receiving.</string>
-            </property>
-            <item>
-             <property name="text">
-              <string>Mono</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Left</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Right</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Both</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="LazyFillComboBox" name="sound_input_combo_box">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>1</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string>Select the audio CODEC to use for receiving.</string>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="0">
+           <widget class="QLabel" name="sound_input_label">
+            <property name="text">
+             <string>&amp;Input:</string>
+            </property>
+            <property name="buddy">
+             <cstring>sound_input_combo_box</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
            <widget class="QLabel" name="sound_output_label">
             <property name="text">
              <string>Ou&amp;tput:</string>
@@ -1532,7 +1755,7 @@ transmitting periods.</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
+          <item row="2" column="4">
            <widget class="QComboBox" name="sound_output_channel_combo_box">
             <property name="toolTip">
              <string>Select the audio channel used for transmission.
@@ -1562,15 +1785,147 @@ both here.</string>
             </item>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="sound_input_label">
-            <property name="text">
-             <string>&amp;Input:</string>
+          <item row="1" column="4">
+           <widget class="QComboBox" name="sound_input_channel_combo_box">
+            <property name="toolTip">
+             <string>Select the channel to use for receiving.</string>
             </property>
-            <property name="buddy">
-             <cstring>sound_input_combo_box</cstring>
+            <item>
+             <property name="text">
+              <string>Mono</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Left</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Right</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Both</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="1" column="1" colspan="3">
+           <widget class="LazyFillComboBox" name="sound_input_combo_box">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>1</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>Select the audio CODEC to use for receiving.</string>
             </property>
            </widget>
+          </item>
+          <item row="2" column="1" colspan="3">
+           <widget class="LazyFillComboBox" name="sound_output_combo_box">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>1</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>Select the audio CODEC to use for transmitting.
+If this is your default device for system sounds then
+ensure that all system sounds are disabled otherwise
+you will broadcast any systems sounds generated during
+transmitting periods.</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QPushButton" name="refresh_push_button">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Refresh audio device list.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Refresh</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1" colspan="4">
+           <layout class="QHBoxLayout" name="sound_settings_layout">
+            <item>
+             <widget class="QCheckBox" name="tci_audio_check_box">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use TCI Audio when available.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Use TCI Audio (restart required)</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="TCI_spin_box">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Rx audio level&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+              <property name="suffix">
+               <string> dB</string>
+              </property>
+              <property name="prefix">
+               <string>Rx </string>
+              </property>
+              <property name="minimum">
+               <number>-50</number>
+              </property>
+              <property name="maximum">
+               <number>0</number>
+              </property>
+              <property name="singleStep">
+               <number>5</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_7">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item alignment="Qt::AlignHCenter">
+             <widget class="QCheckBox" name="cbSortAlphabetically">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sort audio device names alphabetically.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Sort alphabetically</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="cbHideCARD">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Hide the usually unusable ALSA CARD subdevices on Linux.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Hide ALSA CARD subdevices (Linux only)</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>
@@ -1638,38 +1993,55 @@ color: rgb(0, 0, 0);</string>
          <property name="title">
           <string>AzEl Directory</string>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_10">
-          <item>
-           <widget class="QLabel" name="azel_path_label">
-            <property name="text">
-             <string>Location:</string>
+         <layout class="QGridLayout" name="gridLayout_27">
+          <item row="0" column="0" colspan="4">
+           <layout class="QHBoxLayout" name="AzEl_Layout">
+            <property name="spacing">
+             <number>6</number>
             </property>
-            <property name="buddy">
-             <cstring>azel_path_select_push_button</cstring>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="azel_path_display_label">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-              <horstretch>1</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">background-color: rgb(255, 255, 255);
+            <item>
+             <widget class="QLabel" name="azel_path_label">
+              <property name="text">
+               <string>Location:</string>
+              </property>
+              <property name="buddy">
+               <cstring>azel_path_select_push_button</cstring>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="azel_path_display_label">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>1</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(255, 255, 255);
 color: rgb(0, 0, 0);</string>
-            </property>
-            <property name="text">
-             <string>TextLabel</string>
-            </property>
-           </widget>
+              </property>
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="azel_path_select_push_button">
+              <property name="text">
+               <string>Select</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
-          <item>
-           <widget class="QPushButton" name="azel_path_select_push_button">
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="checkBoxAzElExtraLines">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enables additional line in azel.dat for Dpol parameter.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="text">
-             <string>Select</string>
+             <string>Enable extra line in azel.dat</string>
             </property>
            </widget>
           </item>
@@ -1819,13 +2191,13 @@ QListView::item:hover {
           <string>Logging</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_14">
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="prompt_to_log_check_box">
+          <item row="6" column="0">
+           <widget class="QCheckBox" name="specOp_in_comments_check_box">
             <property name="toolTip">
-             <string>The program will pop up a partially completed Log QSO dialog when you send a 73 or free text message.</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check this option to note any Special Operating Activity in the comments field.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>Promp&amp;t me to log QSO</string>
+             <string>Special operating activity to comments</string>
             </property>
            </widget>
           </item>
@@ -1842,6 +2214,33 @@ QListView::item:hover {
             </property>
            </spacer>
           </item>
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="prompt_to_log_check_box">
+            <property name="toolTip">
+             <string>The program will pop up a partially completed Log QSO dialog when you send a 73 or free text message.</string>
+            </property>
+            <property name="text">
+             <string>Promp&amp;t me to log QSO</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <widget class="QLineEdit" name="opCallEntry">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The callsign of the operator, if different from the station callsign.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QCheckBox" name="cbZZ00">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Log 'ZZ00' as grid if the other station doesn't send you a grid.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Fill missing grids with 'ZZ00'</string>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="2">
            <widget class="QLabel" name="label_13">
             <property name="text">
@@ -1852,7 +2251,7 @@ QListView::item:hover {
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
+          <item row="5" column="0">
            <widget class="QCheckBox" name="report_in_comments_check_box">
             <property name="toolTip">
              <string>Some logging programs will not accept the type of reports
@@ -1865,18 +2264,44 @@ comments field.</string>
             </property>
            </widget>
           </item>
-          <item row="4" column="0" colspan="2">
-           <widget class="QCheckBox" name="clear_DX_check_box">
-            <property name="toolTip">
-             <string>Check this option to force the clearing of the DX Call
-and DX Grid fields when a 73 or free text message is sent.</string>
-            </property>
-            <property name="text">
-             <string>Clear &amp;DX call and grid after logging</string>
-            </property>
-           </widget>
+          <item row="1" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_12">
+            <item>
+             <widget class="QCheckBox" name="cbAutoLog">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check to have QSOs logged automatically, when complete.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Log automatically</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="cbContestingOnly">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use 'Log automatically' only for special operating activities.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Contesting only</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_14">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
           </item>
-          <item row="2" column="0">
+          <item row="4" column="0">
            <widget class="QCheckBox" name="log_as_RTTY_check_box">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Some logging programs will not accept WSJT-X mode names.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -1886,20 +2311,13 @@ and DX Grid fields when a 73 or free text message is sent.</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="3">
-           <widget class="QLineEdit" name="opCallEntry">
+          <item row="1" column="2" colspan="2">
+           <widget class="QCheckBox" name="cbLog4digitGrids">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The callsign of the operator, if different from the station callsign.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="cbAutoLog">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check to have QSOs logged automatically, when complete.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shorten 6-digit grid entries and log 4-digit grids instead.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>Log automatically (contesting only)</string>
+             <string>Log 4-digit grids</string>
             </property>
            </widget>
           </item>
@@ -1918,8 +2336,8 @@ and DX Grid fields when a 73 or free text message is sent.</string>
          <property name="title">
           <string>Network Services</string>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_22">
-          <item>
+         <layout class="QGridLayout" name="gridLayout_29" columnstretch="0,0">
+          <item row="0" column="0">
            <widget class="QCheckBox" name="psk_reporter_check_box">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The program can send your station details and all decoded signals with grid squares as spots to the http://pskreporter.info web site.&lt;/p&gt;&lt;p&gt;This is used for reverse beacon analysis which is very useful for assessing propagation and system performance.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -1929,7 +2347,7 @@ and DX Grid fields when a 73 or free text message is sent.</string>
             </property>
            </widget>
           </item>
-          <item>
+          <item row="0" column="1">
            <widget class="QCheckBox" name="psk_reporter_tcpip_check_box">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check this option if a reliable connection is needed&lt;/p&gt;&lt;p&gt;Most users do not need this, the default uses UDP which is more efficient. Only check this if you have evidence that UDP traffic from you to PSK Reporter is being lost.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -2010,6 +2428,16 @@ and DX Grid fields when a 73 or free text message is sent.</string>
               </property>
              </widget>
             </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="udp_TTL_label">
+              <property name="text">
+               <string>Multicast TTL:</string>
+              </property>
+              <property name="buddy">
+               <cstring>udp_TTL_spin_box</cstring>
+              </property>
+             </widget>
+            </item>
             <item row="3" column="1">
              <widget class="QSpinBox" name="udp_TTL_spin_box">
               <property name="toolTip">
@@ -2020,16 +2448,6 @@ and DX Grid fields when a 73 or free text message is sent.</string>
               </property>
               <property name="value">
                <number>1</number>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="udp_TTL_label">
-              <property name="text">
-               <string>Multicast TTL:</string>
-              </property>
-              <property name="buddy">
-               <cstring>udp_TTL_spin_box</cstring>
               </property>
              </widget>
             </item>
@@ -2366,20 +2784,24 @@ Right click for insert and delete options.</string>
           <string>Decode Highlightling</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_5">
-          <item row="2" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_15">
+          <item row="1" column="0" colspan="2">
+           <layout class="QHBoxLayout" name="horizontalLayout_20">
             <item>
-             <spacer name="horizontalSpacer_5">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+             <widget class="QPushButton" name="reset_highlighting_to_defaults_push_button">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Push to reset all highlight items above to default values and priorities.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
+              <property name="text">
+               <string>Reset Highlighting to Default 1</string>
               </property>
-             </spacer>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="reset_highlighting_to_defaults2_push_button">
+              <property name="text">
+               <string>Reset Highlighting to Default 2</string>
+              </property>
+             </widget>
             </item>
             <item>
              <widget class="QPushButton" name="rescan_log_push_button">
@@ -2392,33 +2814,6 @@ Right click for insert and delete options.</string>
              </widget>
             </item>
            </layout>
-          </item>
-          <item row="1" column="0" colspan="2">
-           <widget class="QPushButton" name="reset_highlighting_to_defaults_push_button">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Push to reset all highlight items above to default values and priorities.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Reset Highlighting</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QCheckBox" name="include_WAE_check_box">
-            <property name="text">
-             <string>Include extra WAE entities</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QCheckBox" name="only_fields_check_box">
-            <property name="toolTip">
-             <string>Check to for grid highlighting to only apply to unworked grid fields</string>
-            </property>
-            <property name="text">
-             <string>Only grid Fields sought</string>
-            </property>
-           </widget>
           </item>
           <item row="0" column="0" colspan="2">
            <widget class="DecodeHighlightingListView" name="highlighting_list_view">
@@ -2457,22 +2852,93 @@ Right click for insert and delete options.</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QCheckBox" name="highlight_by_mode_check_box">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check to indicate new DXCC entities, grid squares, and callsigns per mode.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Highlight by Mode</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QCheckBox" name="highlight_73_check_box">
-            <property name="text">
-             <string>Highlight also messages with 73 or RR73</string>
-            </property>
-           </widget>
+          <item row="3" column="0" colspan="2">
+           <layout class="QGridLayout" name="gridLayout_23">
+            <item row="1" column="0">
+             <widget class="QCheckBox" name="only_fields_check_box">
+              <property name="toolTip">
+               <string>Check to for grid highlighting to only apply to unworked grid fields</string>
+              </property>
+              <property name="text">
+               <string>Only grid Fields sought</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <spacer name="horizontalSpacer_5">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="2" column="0">
+             <widget class="QCheckBox" name="include_WAE_check_box">
+              <property name="text">
+               <string>Include extra WAE entities</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QCheckBox" name="highlight_73_check_box">
+              <property name="text">
+               <string>Highlight also messages with 73 or RR73</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QCheckBox" name="highlight_by_mode_check_box">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check to indicate new DXCC entities, grid squares, and callsigns per mode.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Highlight by Mode</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="QCheckBox" name="highlight_orange_check_box">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Highlight callsigns or grids with orange background color. Callsigns and/or grids must be separated by a comma, and there must be a comma after each callsign.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Highlight orange:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="2">
+             <widget class="QCheckBox" name="highlight_blue_check_box">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Highlight callsigns or grids with blue background color. Callsigns and/or grids must be separated by a comma, and there must be a comma after each callsign.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Highlight blue:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="2">
+             <widget class="QLineEdit" name="highlight_orange_callsigns">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Highlight callsigns or grids with orange background color. Callsigns and/or grids must be separated by a comma, and there must be a comma after each callsign.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="2">
+             <widget class="QLineEdit" name="highlight_blue_callsigns">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Highlight callsigns or grids with blue background color. Callsigns and/or grids must be separated by a comma, and there must be a comma after each callsign.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>
@@ -2485,14 +2951,8 @@ Right click for insert and delete options.</string>
          <property name="title">
           <string>Logbook of the World User Validation</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_13">
-          <property name="topMargin">
-           <number>4</number>
-          </property>
-          <property name="bottomMargin">
-           <number>4</number>
-          </property>
-          <item row="0" column="0">
+         <layout class="QFormLayout" name="formLayout_18">
+          <item row="1" column="0">
            <widget class="QLabel" name="label_15">
             <property name="text">
              <string>Users CSV file URL:</string>
@@ -2502,8 +2962,8 @@ Right click for insert and delete options.</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_20">
+          <item row="1" column="1">
+           <layout class="QHBoxLayout" name="LotW_Layout">
             <item>
              <widget class="QLineEdit" name="LotW_CSV_URL_line_edit">
               <property name="toolTip">
@@ -2529,18 +2989,8 @@ Right click for insert and delete options.</string>
             </item>
            </layout>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_14">
-            <property name="text">
-             <string>Age of last upload less than:</string>
-            </property>
-            <property name="buddy">
-             <cstring>LotW_days_since_upload_spin_box</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_23">
+          <item row="2" column="1">
+           <layout class="QHBoxLayout" name="LotW_Layout_2">
             <item>
              <widget class="QSpinBox" name="LotW_days_since_upload_spin_box">
               <property name="toolTip">
@@ -2564,7 +3014,7 @@ Right click for insert and delete options.</string>
              </widget>
             </item>
             <item>
-             <spacer name="horizontalSpacer_13">
+             <spacer name="horizontalSpacer_2">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -2591,6 +3041,16 @@ Right click for insert and delete options.</string>
             </item>
            </layout>
           </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_14">
+            <property name="text">
+             <string>Age of last upload less than:</string>
+            </property>
+            <property name="buddy">
+             <cstring>LotW_days_since_upload_spin_box</cstring>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -2608,25 +3068,19 @@ Right click for insert and delete options.</string>
         </spacer>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_8">
+        <widget class="QGroupBox" name="cty_groupBox">
          <property name="title">
           <string>CTY File Download</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_17">
-          <property name="topMargin">
-           <number>4</number>
-          </property>
-          <property name="bottomMargin">
-           <number>4</number>
-          </property>
-          <item row="0" column="0">
+         <layout class="QHBoxLayout" name="cty_horizontalLayout">
+          <item>
            <widget class="QLabel" name="CTY_file_label">
             <property name="text">
              <string>CTY File Version: </string>
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
+          <item>
            <widget class="QPushButton" name="CTY_download_button">
             <property name="text">
              <string>Download Latest CTY.dat</string>
@@ -2637,17 +3091,40 @@ Right click for insert and delete options.</string>
         </widget>
        </item>
        <item>
-        <spacer name="verticalSpacer_6">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
+        <widget class="QGroupBox" name="call3_groupBox">
+         <property name="title">
+          <string>CALL3 File Download</string>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
+         <layout class="QHBoxLayout" name="call3_horizontalLayout">
+          <item>
+           <widget class="QLabel" name="CALL3_file_label">
+            <property name="text">
+             <string>CALL3 File Version:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="CALL3_download_button">
+            <property name="toolTip">
+             <string>Dowload latest CALL3.TXT file.</string>
+            </property>
+            <property name="text">
+             <string>Download CALL3.TXT for terrestrial use</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="CALL3_EME_download_button">
+            <property name="toolTip">
+             <string>Dowload latest CALL3.TXT file for EME. This version is suitable for JT65 Deep Search.</string>
+            </property>
+            <property name="text">
+             <string>Download CALL3.TXT for EME</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -2656,7 +3133,139 @@ Right click for insert and delete options.</string>
        <string>Advanced</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_9">
-       <item row="0" column="1">
+       <item row="3" column="0">
+        <widget class="QGroupBox" name="gbCloudlog">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Upload logged QSOs to Cloudlog or Wavelog.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="title">
+          <string>Upload QSOs to Cloudlog or Wavelog</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_22">
+          <item row="0" column="0">
+           <layout class="QGridLayout" name="cloudlog_gridLayout">
+            <item row="0" column="0">
+             <widget class="QLabel" name="api_url_label">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;API URL for Cloudlog or Wavelog.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>API URL: </string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="api_key_label">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Your API key.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>API Key: </string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="station_id_label">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Your Station ID.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Station ID: </string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QSpinBox" name="sbCloudlogStationID">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Your Station ID.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>999999</number>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1" colspan="3">
+             <widget class="QLineEdit" name="leCloudlogApiKey">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Your API key.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1" colspan="3">
+             <widget class="QLineEdit" name="leCloudlogApiUrl">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;API URL for Cloudlog or Wavelog.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="3">
+             <widget class="QPushButton" name="pbTestCloudlog">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Test the Cloudlog or Wavelog API key.&lt;/p&gt;&lt;p&gt;The button will turn green if the API key is writable. It will turn orange if the API key is read-only. If the API key is invalid it will turn red.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Test API Key</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="2">
+             <spacer name="horizontalSpacer_13">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="1" rowspan="2">
         <widget class="QGroupBox" name="groupBox_5">
          <property name="title">
           <string>Miscellaneous</string>
@@ -2896,7 +3505,121 @@ Right click for insert and delete options.</string>
          </layout>
         </widget>
        </item>
-       <item row="1" column="0" colspan="2">
+       <item row="3" column="1">
+        <widget class="QGroupBox" name="gbEQSL">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Upload logged QSOs to eqsl.cc.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="title">
+          <string>Upload QSOs to eQSL.cc</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_220">
+          <item row="0" column="0">
+           <layout class="QGridLayout" name="eqsl_gridLayout" columnstretch="0,1">
+            <item row="0" column="0">
+             <widget class="QLabel" name="eqsluser_label">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Your username.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Username:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="eqslpasswd_label">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Your logon password.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Password:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="eqslnick_label">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Your QTH nickname, if you have more than one QTH.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>QTH:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLineEdit" name="eqslnick_edit">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Your QTH nickname, if you have more than one QTH.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="eqslpasswd_edit">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Your logon password.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLineEdit" name="eqsluser_edit">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Your username.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QGroupBox" name="groupBox_8">
+         <property name="title">
+          <string>GUI tweaks for high-resolution monitors</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_26">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="cbHighDPI">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HighDPI scaling enables a larger and more proportionally correct display of the controls on 4K monitors (if supported by the OS).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>HighDPI scaling (restart required)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="cbLargerTabWidget">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Increased height of some control elements.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Increased height of the tab widget (restart required)</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="2" column="0" colspan="2">
         <widget class="QGroupBox" name="gbSpecialOpActivity">
          <property name="title">
           <string>Special operating activity</string>
@@ -2907,7 +3630,52 @@ Right click for insert and delete options.</string>
          <property name="checked">
           <bool>false</bool>
          </property>
-         <layout class="QGridLayout" name="gridLayout_15" columnstretch="1,1,0,2">
+         <layout class="QGridLayout" name="gridLayout_15" columnstretch="1,0,0,0">
+          <item row="4" column="3">
+           <widget class="QRadioButton" name="rbARRL_Digi">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;ARRL International Digital Contest&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>ARRL Digi Contest</string>
+            </property>
+            <attribute name="buttonGroup">
+             <string notr="true">special_op_activity_button_group</string>
+            </attribute>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QRadioButton" name="rbWW_DIGI">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>18</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;World-Wide Digi-mode contest&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="accessibleName">
+             <string>WW Digital Contest</string>
+            </property>
+            <property name="text">
+             <string>WW Digi Contest</string>
+            </property>
+            <attribute name="buttonGroup">
+             <string notr="true">special_op_activity_button_group</string>
+            </attribute>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QCheckBox" name="cb_NCCC_Sprint">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle the NCCC Sprint FT4 short message protocol On/Off.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>NCCC Sprint</string>
+            </property>
+           </widget>
+          </item>
           <item row="2" column="3">
            <layout class="QHBoxLayout" name="horizontalLayout_17" stretch="2,1,1">
             <item>
@@ -2977,102 +3745,110 @@ Right click for insert and delete options.</string>
             </item>
            </layout>
           </item>
-          <item row="1" column="3">
-           <layout class="QHBoxLayout" name="OTP_Layout_2" stretch="0,0,0,1">
+          <item row="0" column="3">
+           <layout class="QHBoxLayout" name="foxLayout_23" stretch="0,1">
             <item>
-             <widget class="QCheckBox" name="cbShowOTP">
+             <widget class="QRadioButton" name="rbHound">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show OTP messages in the Band Activity window.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;FT8 DXpedition mode:  Hound operator calling the DX.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="accessibleName">
+               <string>Hound</string>
               </property>
               <property name="text">
-               <string>Show OTP messages</string>
+               <string>Hound</string>
               </property>
               <property name="checked">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
+              <attribute name="buttonGroup">
+               <string notr="true">special_op_activity_button_group</string>
+              </attribute>
              </widget>
             </item>
             <item>
-             <spacer name="horizontalSpacer_17">
+             <spacer name="horizontalSpacer_16">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item row="3" column="3">
+           <layout class="QHBoxLayout" name="horizontalLayout_18" stretch="2,1,1">
+            <item>
+             <widget class="QRadioButton" name="rbRTTY_Roundup">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;FT Roundup and similar contests. Exchange is US state, Canadian province, or &amp;quot;DX&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="accessibleName">
+               <string>R T T Y Roundup</string>
+              </property>
+              <property name="text">
+               <string>FT Roundup messages</string>
+              </property>
+              <attribute name="buttonGroup">
+               <string notr="true">special_op_activity_button_group</string>
+              </attribute>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_10">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>10</width>
+                <width>40</width>
                 <height>20</height>
                </size>
               </property>
              </spacer>
             </item>
             <item>
-             <widget class="QLabel" name="lblOTPUrl">
-              <property name="text">
-               <string>OTP URL:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="OTPUrl">
-              <property name="minimumSize">
-               <size>
-                <width>110</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;URL used to verify OTP codes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>https://www.9dx.cc</string>
-              </property>
-             </widget>
+             <layout class="QFormLayout" name="formLayout_17">
+              <item row="0" column="0">
+               <widget class="QLabel" name="labRTTY">
+                <property name="accessibleName">
+                 <string>RTTY Roundup exchange</string>
+                </property>
+                <property name="text">
+                 <string>FT RU Exch:</string>
+                </property>
+                <property name="buddy">
+                 <cstring>RTTY_Exchange</cstring>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLineEdit" name="RTTY_Exchange">
+                <property name="minimumSize">
+                 <size>
+                  <width>70</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;FT Roundup and similar contests. Exchange is US state, Canadian province, or &amp;quot;DX&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>NJ</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
-          </item>
-          <item row="5" column="0">
-           <widget class="QRadioButton" name="rbQ65pileup">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>18</height>
-             </size>
-            </property>
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Exchange 4-character locator instead of signal report.  Provides q3-level sensitivities for the DX operator.  Especially useful for 6m EME DXpeditions.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Q65 Pileup</string>
-            </property>
-            <attribute name="buttonGroup">
-             <string notr="true">special_op_activity_button_group</string>
-            </attribute>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QRadioButton" name="rbNA_VHF_Contest">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;North American VHF/UHF/Microwave contests and others in which a 4-character grid locator is the required exchange.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="accessibleName">
-             <string>NA VHF Contest</string>
-            </property>
-            <property name="text">
-             <string>NA VHF</string>
-            </property>
-            <attribute name="buttonGroup">
-             <string notr="true">special_op_activity_button_group</string>
-            </attribute>
-           </widget>
           </item>
           <item row="3" column="0">
            <widget class="QRadioButton" name="rbEU_VHF_Contest">
@@ -3106,6 +3882,100 @@ Right click for insert and delete options.</string>
             </property>
            </widget>
           </item>
+          <item row="1" column="3">
+           <layout class="QHBoxLayout" name="OTP_Layout_2" stretch="0,0,0,0,1">
+            <item>
+             <widget class="QCheckBox" name="cbShowOTP">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show OTP messages in the Band Activity window.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Show OTP messages</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_18">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblOTPUrl">
+              <property name="text">
+               <string>OTP URL:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_15">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>5</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="OTPUrl">
+              <property name="minimumSize">
+               <size>
+                <width>110</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;URL used to verify OTP codes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>https://www.9dx.cc</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="0">
+           <widget class="QRadioButton" name="rbNA_VHF_Contest">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;North American VHF/UHF/Microwave contests and others in which a 4-character grid locator is the required exchange.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="accessibleName">
+             <string>NA VHF Contest</string>
+            </property>
+            <property name="text">
+             <string>NA VHF</string>
+            </property>
+            <attribute name="buttonGroup">
+             <string notr="true">special_op_activity_button_group</string>
+            </attribute>
+           </widget>
+          </item>
           <item row="0" column="0">
            <widget class="QRadioButton" name="rbFox">
             <property name="toolTip">
@@ -3125,25 +3995,124 @@ Right click for insert and delete options.</string>
             </attribute>
            </widget>
           </item>
-          <item row="4" column="3">
-           <widget class="QRadioButton" name="rbARRL_Digi">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;ARRL International Digital Contest&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>ARRL Digi Contest</string>
-            </property>
-            <attribute name="buttonGroup">
-             <string notr="true">special_op_activity_button_group</string>
-            </attribute>
-           </widget>
+          <item row="1" column="0" colspan="3">
+           <layout class="QHBoxLayout" name="OTP_Layout" stretch="0,0,0,1,0,0,0,1">
+            <item>
+             <widget class="QCheckBox" name="cbOTP">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click to enable OTP method of Fox verification. Requires internet.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>OTP</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_11">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>5</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblOTPSeed">
+              <property name="text">
+               <string>Key:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="OTPSeed">
+              <property name="minimumSize">
+               <size>
+                <width>110</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fox's key to generate OTP Codes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>M2ZUU5CW6EVOY2HU</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_19">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblOTPEvery">
+              <property name="text">
+               <string>Interval</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="sbOTPinterval">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Interval at which the OTP messages are sent. Select 1 to sign every message.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="maximum">
+               <number>20</number>
+              </property>
+              <property name="value">
+               <number>1</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_17">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
           </item>
           <item row="5" column="3">
            <layout class="QHBoxLayout" name="horizontalLayout_24">
             <item>
              <widget class="QCheckBox" name="cbContestName">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Call CQ with an individual contest name instead of TEST, RU, or WW. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Call CQ with an individual contest name instead of TEST, RU, or WW (for example CQ PACC).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+</string>
               </property>
               <property name="text">
                <string>CQ with individual contest name</string>
@@ -3198,77 +4167,8 @@ Right click for insert and delete options.</string>
             </item>
            </layout>
           </item>
-          <item row="3" column="3">
-           <layout class="QHBoxLayout" name="horizontalLayout_18" stretch="2,1,1">
-            <item>
-             <widget class="QRadioButton" name="rbRTTY_Roundup">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;FT Roundup and similar contests. Exchange is US state, Canadian province, or &amp;quot;DX&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="accessibleName">
-               <string>R T T Y Roundup</string>
-              </property>
-              <property name="text">
-               <string>FT Roundup</string>
-              </property>
-              <attribute name="buttonGroup">
-               <string notr="true">special_op_activity_button_group</string>
-              </attribute>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_10">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <layout class="QFormLayout" name="formLayout_17">
-              <item row="0" column="0">
-               <widget class="QLabel" name="labRTTY">
-                <property name="accessibleName">
-                 <string>RTTY Roundup exchange</string>
-                </property>
-                <property name="text">
-                 <string>FT RU Exch:</string>
-                </property>
-                <property name="buddy">
-                 <cstring>RTTY_Exchange</cstring>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QLineEdit" name="RTTY_Exchange">
-                <property name="minimumSize">
-                 <size>
-                  <width>70</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;FT Roundup and similar contests.  Exchange is US state, Canadian province, or &amp;quot;DX&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="text">
-                 <string>NJ</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </item>
-          <item row="4" column="0">
-           <widget class="QRadioButton" name="rbWW_DIGI">
+          <item row="5" column="0">
+           <widget class="QRadioButton" name="rbQ65pileup">
             <property name="minimumSize">
              <size>
               <width>0</width>
@@ -3276,175 +4176,747 @@ Right click for insert and delete options.</string>
              </size>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;World-Wide Digi-mode contest&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="accessibleName">
-             <string>WW Digital Contest</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Exchange 4-character locator instead of signal report.  Provides q3-level sensitivities for the DX operator.  Especially useful for 6m EME DXpeditions.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>WW Digi Contest</string>
+             <string>Q65 Pileup</string>
             </property>
             <attribute name="buttonGroup">
              <string notr="true">special_op_activity_button_group</string>
             </attribute>
            </widget>
           </item>
-          <item row="0" column="3">
-           <layout class="QHBoxLayout" name="horizontalLayout_27" stretch="0,1">
-            <item>
-             <widget class="QRadioButton" name="rbHound">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;FT8 DXpedition mode:  Hound operator calling the DX.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="accessibleName">
-               <string>Hound</string>
-              </property>
-              <property name="text">
-               <string>Hound</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-              <attribute name="buttonGroup">
-               <string notr="true">special_op_activity_button_group</string>
-              </attribute>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_15">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </item>
-          <item row="1" column="0" colspan="3">
-           <layout class="QHBoxLayout" name="OTP_Layout" stretch="0,0,0,1,0,0,0,1">
-            <item>
-             <widget class="QCheckBox" name="cbOTP">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click to enable OTP method of Fox verification. Requires internet.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>OTP</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_11">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>7</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QLabel" name="lblOTPSeed">
-              <property name="text">
-               <string>Key:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="OTPSeed">
-              <property name="minimumSize">
-               <size>
-                <width>110</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fox's key to generate OTP Codes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>M2ZUU5CW6EVOY2HU</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_14">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>10</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QLabel" name="lblOTPEvery">
-              <property name="text">
-               <string>Interval</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="sbOTPinterval">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Interval at which the OTP messages are sent. Select 1 to sign every message.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="maximum">
-               <number>20</number>
-              </property>
-              <property name="value">
-               <number>1</number>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_15">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </item>
          </layout>
         </widget>
        </item>
-       <item row="2" column="0" colspan="2">
-        <spacer name="verticalSpacer_8">
+       <item row="4" column="0" colspan="2">
+        <spacer name="verticalSpacer_9">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>0</width>
-           <height>0</height>
+           <width>20</width>
+           <height>10</height>
           </size>
          </property>
         </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="alerts_tab">
+      <attribute name="title">
+       <string>Alerts</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_20">
+       <item row="12" column="0">
+        <widget class="QLabel" name="label_23">
+         <property name="text">
+          <string>Ensure that you have made meaningful settings on the Colors tab, so that you see which message triggered the alert.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <spacer name="verticalSpacer_11">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>10</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="11" column="0">
+        <widget class="QLabel" name="label_25">
+         <property name="text">
+          <string>NOTES</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_19">
+         <property name="text">
+          <string>Ensure that your rig is NOT connected via &quot;Default Device&quot;.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_21">
+         <property name="text">
+          <string>Audio Alerts will be played on the default audio device (usually the loudspeaker of your PC).</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="0">
+        <spacer name="verticalSpacer_8">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>10</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="7" column="0">
+        <spacer name="verticalSpacer_6">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>10</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="14" column="0">
+        <widget class="QLabel" name="label_24">
+         <property name="text">
+          <string>&quot;Wanted callsigns, grids, prefixes and directional calls&quot; uses the entries from &quot;Highlight orange&quot; and &quot;Highlight blue&quot;.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_20">
+         <property name="text">
+          <string>This requirement is fulfilled when your rig is connected via USB audio.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="0">
+        <widget class="QGroupBox" name="groupBox_9">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>1</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>Audio Alerts</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_18">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <property name="spacing">
+           <number>6</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="cbContinent">
+            <property name="toolTip">
+             <string>New Continent</string>
+            </property>
+            <property name="text">
+             <string>New Continent</string>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="0">
+           <widget class="QCheckBox" name="cbMyCall">
+            <property name="toolTip">
+             <string>My Call in message</string>
+            </property>
+            <property name="text">
+             <string>My Call</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="cbCQZ">
+            <property name="toolTip">
+             <string>New CQ Zone</string>
+            </property>
+            <property name="text">
+             <string>New CQ Zone</string>
+            </property>
+           </widget>
+          </item>
+          <item row="11" column="1">
+           <widget class="QCheckBox" name="cbQSYmessage">
+            <property name="text">
+             <string>Message received</string>
+            </property>
+           </widget>
+          </item>
+          <item row="11" column="0">
+           <widget class="QCheckBox" name="cbDXcall">
+            <property name="toolTip">
+             <string>DX Call or DX Grid in message</string>
+            </property>
+            <property name="text">
+             <string>DX Call or DX Grid in message</string>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="1">
+           <widget class="QCheckBox" name="cbWanted">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Wanted callsigns, grids, prefixes and directional calls. This alert category uses the entries from &amp;quot;Highlight orange&amp;quot; and &amp;quot;Highlight blue&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Wanted callsigns, grids, prefixes and directional calls</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QCheckBox" name="cbDXCCOB">
+            <property name="toolTip">
+             <string>New DXCC on Band</string>
+            </property>
+            <property name="text">
+             <string>New DXCC on Band</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QCheckBox" name="cbContinentOB">
+            <property name="toolTip">
+             <string>New Continent on Band</string>
+            </property>
+            <property name="text">
+             <string>New Continent on Band</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QCheckBox" name="cbGridOB">
+            <property name="toolTip">
+             <string>New Grid on Band</string>
+            </property>
+            <property name="text">
+             <string>New Grid on Band</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QCheckBox" name="cbGrid">
+            <property name="toolTip">
+             <string>New Grid</string>
+            </property>
+            <property name="text">
+             <string>New Grid</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="cbDXCC">
+            <property name="toolTip">
+             <string>New DXCC</string>
+            </property>
+            <property name="text">
+             <string>New DXCC</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QCheckBox" name="cbITUZ">
+            <property name="toolTip">
+             <string>New ITU Zone</string>
+            </property>
+            <property name="text">
+             <string>New ITU Zone</string>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="0" colspan="2">
+           <widget class="Line" name="line_9">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QCheckBox" name="cbITUZOB">
+            <property name="toolTip">
+             <string>New ITU Zone on Band</string>
+            </property>
+            <property name="text">
+             <string>New ITU Zone on Band</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QCheckBox" name="cbCQZOB">
+            <property name="toolTip">
+             <string>New CQ Zone on Band</string>
+            </property>
+            <property name="text">
+             <string>New CQ Zone on Band</string>
+            </property>
+           </widget>
+          </item>
+          <item row="12" column="0">
+           <widget class="QCheckBox" name="cbCQ">
+            <property name="toolTip">
+             <string>CQ in message</string>
+            </property>
+            <property name="text">
+             <string>CQ in message</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_16">
+         <property name="text">
+          <string>IMPORTANT </string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <layout class="QHBoxLayout" name="voiceSelectLayout" stretch="1,2,1,1,3">
+         <item>
+          <widget class="QLabel" name="voicesLabel">
+           <property name="text">
+            <string>Voices:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="voices_combo_box">
+           <property name="currentText">
+            <string notr="true">default</string>
+           </property>
+           <property name="maxVisibleItems">
+            <number>15</number>
+           </property>
+           <item>
+            <property name="text">
+             <string>default</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item>
+          <spacer name="voiceSpacer_1">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>10</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pb_test_alerts">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Test the alert sounds.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string>Test</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="voiceSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_17">
+         <property name="text">
+          <string>Use of this feature requires that your computer is equipped with two sound cards.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="13" column="0">
+        <widget class="QLabel" name="label_22">
+         <property name="text">
+          <string>Alert categories above the line require to have the box &quot;Show DXCC, grid, and worked-before status&quot; on the General tab checked.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_21">
+         <item>
+          <spacer name="horizontalSpacer_20">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>15</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pbAlerts">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>35</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Toggle Audio Alerts on/off. Alerts will be played on &quot;DefaultAudioDevice&quot;. DON'T ENABLE AUDIO ALERTS WHEN YOUR RIG IS CONNECTED VIA THIS SOUNDCARD !!!</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QPushButton:checked {
+    color: #000000;
+	background-color: #00ff00;
+    border-style: outset;
+	border-width: 1px;
+	border-radius: 5px;
+    border-color: black;
+	min-width: 5em;
+	padding: 3px;
+}</string>
+           </property>
+           <property name="text">
+            <string>Enable Audio Alerts</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_21">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>15</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="filters_tab">
+      <attribute name="title">
+       <string>Filters</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_13">
+       <item row="0" column="0">
+        <layout class="QGridLayout" name="gridLayout_19">
+         <item row="7" column="1">
+          <widget class="QLineEdit" name="Blacklist10"/>
+         </item>
+         <item row="10" column="2">
+          <widget class="QLineEdit" name="Whitelist3"/>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLineEdit" name="Blacklist5"/>
+         </item>
+         <item row="1" column="0" colspan="4" alignment="Qt::AlignBottom">
+          <widget class="QLabel" name="territory_label">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Territories 1-4 for the Hide checkboxes in the View menu</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0" colspan="4">
+          <widget class="QLabel" name="blacklist_label">
+           <property name="text">
+            <string>Blacklist</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="2">
+          <widget class="QLineEdit" name="Blacklist11"/>
+         </item>
+         <item row="5" column="2">
+          <widget class="QLineEdit" name="Blacklist3"/>
+         </item>
+         <item row="0" column="0" colspan="4">
+          <widget class="QLabel" name="label_18">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Filters for the Band Activity window</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+           </property>
+          </widget>
+         </item>
+         <item row="22" column="0">
+          <spacer name="verticalSpacer_10">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="15" column="1">
+          <widget class="QLineEdit" name="Pass2"/>
+         </item>
+         <item row="12" column="2">
+          <widget class="QLineEdit" name="Whitelist11"/>
+         </item>
+         <item row="6" column="3">
+          <widget class="QLineEdit" name="Blacklist8"/>
+         </item>
+         <item row="11" column="2">
+          <widget class="QLineEdit" name="Whitelist7"/>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLineEdit" name="Blacklist1"/>
+         </item>
+         <item row="4" column="0" colspan="4">
+          <widget class="QCheckBox" name="cbBlacklist">
+           <property name="text">
+            <string>Hide messages containing the following callsigns or keywords:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="17" column="3">
+          <widget class="QLineEdit" name="Pass12"/>
+         </item>
+         <item row="7" column="0">
+          <widget class="QLineEdit" name="Blacklist9"/>
+         </item>
+         <item row="11" column="0">
+          <widget class="QLineEdit" name="Whitelist5"/>
+         </item>
+         <item row="15" column="2">
+          <widget class="QLineEdit" name="Pass3"/>
+         </item>
+         <item row="9" column="0" colspan="4">
+          <widget class="QCheckBox" name="cbWhitelist">
+           <property name="text">
+            <string>Show only messages containing the following callsigns or keywords:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="0">
+          <widget class="QLineEdit" name="Whitelist1"/>
+         </item>
+         <item row="12" column="3">
+          <widget class="QLineEdit" name="Whitelist12"/>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLineEdit" name="Territory1"/>
+         </item>
+         <item row="20" column="0" colspan="4">
+          <widget class="QCheckBox" name="cb_filters_for_Wait_and_Pounce_only">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use filters for Wait and Pounce, CQ: First, etc. only (all messages are still displayed).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string>Use filters for Wait and Pounce, CQ: First, etc. only (all messages are still displayed)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="3">
+          <widget class="QLineEdit" name="Territory4"/>
+         </item>
+         <item row="17" column="0">
+          <widget class="QLineEdit" name="Pass9"/>
+         </item>
+         <item row="12" column="1">
+          <widget class="QLineEdit" name="Whitelist10"/>
+         </item>
+         <item row="17" column="1">
+          <widget class="QLineEdit" name="Pass10"/>
+         </item>
+         <item row="6" column="2">
+          <widget class="QLineEdit" name="Blacklist7"/>
+         </item>
+         <item row="10" column="3">
+          <widget class="QLineEdit" name="Whitelist4"/>
+         </item>
+         <item row="16" column="1">
+          <widget class="QLineEdit" name="Pass6"/>
+         </item>
+         <item row="15" column="3">
+          <widget class="QLineEdit" name="Pass4"/>
+         </item>
+         <item row="7" column="3">
+          <widget class="QLineEdit" name="Blacklist12"/>
+         </item>
+         <item row="12" column="0">
+          <widget class="QLineEdit" name="Whitelist9"/>
+         </item>
+         <item row="5" column="1">
+          <widget class="QLineEdit" name="Blacklist2"/>
+         </item>
+         <item row="16" column="3">
+          <widget class="QLineEdit" name="Pass8"/>
+         </item>
+         <item row="18" column="0">
+          <spacer name="verticalSpacer_12">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="10" column="1">
+          <widget class="QLineEdit" name="Whitelist2"/>
+         </item>
+         <item row="6" column="1">
+          <widget class="QLineEdit" name="Blacklist6"/>
+         </item>
+         <item row="14" column="0" colspan="4">
+          <widget class="QCheckBox" name="cbPass">
+           <property name="text">
+            <string>Always pass messages with the following keywords:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="15" column="0">
+          <widget class="QLineEdit" name="Pass1"/>
+         </item>
+         <item row="16" column="2">
+          <widget class="QLineEdit" name="Pass7"/>
+         </item>
+         <item row="8" column="0" colspan="4" alignment="Qt::AlignBottom">
+          <widget class="QLabel" name="whitelist_label">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Whitelist</string>
+           </property>
+          </widget>
+         </item>
+         <item row="16" column="0">
+          <widget class="QLineEdit" name="Pass5"/>
+         </item>
+         <item row="11" column="3">
+          <widget class="QLineEdit" name="Whitelist8"/>
+         </item>
+         <item row="19" column="0" colspan="4">
+          <widget class="QCheckBox" name="cb_filters_for_word2">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Apply filters only to the callsigns of the calling stations. Usually the second word of the messages is analyzed, for directional calls the third word.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string>Apply filters only to the callsigns of the calling stations</string>
+           </property>
+          </widget>
+         </item>
+         <item row="17" column="2">
+          <widget class="QLineEdit" name="Pass11"/>
+         </item>
+         <item row="5" column="3">
+          <widget class="QLineEdit" name="Blacklist4"/>
+         </item>
+         <item row="13" column="0" colspan="4">
+          <widget class="QLabel" name="always_pass_label">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Always Pass</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="Territory2"/>
+         </item>
+         <item row="2" column="2">
+          <widget class="QLineEdit" name="Territory3"/>
+         </item>
+         <item row="11" column="1">
+          <widget class="QLineEdit" name="Whitelist6"/>
+         </item>
+         <item row="21" column="0" colspan="4">
+          <widget class="QCheckBox" name="cb_twoDays">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use “worked today and yesterday” instead of “worked today” for the 3 related Quick Filters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string>Quick Filters: Hide/Ignore/Highlight &quot;worked today and yesterday&quot; instead of &quot;worked today&quot; (UTC)</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>
@@ -3490,25 +4962,10 @@ Right click for insert and delete options.</string>
   <tabstop>region_combo_box</tabstop>
   <tabstop>type_2_msg_gen_combo_box</tabstop>
   <tabstop>decodes_from_top_check_box</tabstop>
-  <tabstop>insert_blank_check_box</tabstop>
   <tabstop>miles_check_box</tabstop>
-  <tabstop>TX_messages_check_box</tabstop>
   <tabstop>DXCC_check_box</tabstop>
-  <tabstop>ppfx_check_box</tabstop>
-  <tabstop>font_push_button</tabstop>
-  <tabstop>decoded_text_font_push_button</tabstop>
   <tabstop>monitor_off_check_box</tabstop>
-  <tabstop>monitor_last_used_check_box</tabstop>
-  <tabstop>quick_call_check_box</tabstop>
-  <tabstop>disable_TX_on_73_check_box</tabstop>
-  <tabstop>force_call_1st_check_box</tabstop>
-  <tabstop>alternate_bindings_check_box</tabstop>
-  <tabstop>CW_id_after_73_check_box</tabstop>
   <tabstop>enable_VHF_features_check_box</tabstop>
-  <tabstop>tx_QSY_check_box</tabstop>
-  <tabstop>single_decode_check_box</tabstop>
-  <tabstop>decode_at_52s_check_box</tabstop>
-  <tabstop>tx_watchdog_spin_box</tabstop>
   <tabstop>CW_id_interval_spin_box</tabstop>
   <tabstop>rig_combo_box</tabstop>
   <tabstop>CAT_poll_interval_spin_box</tabstop>
@@ -3546,7 +5003,6 @@ Right click for insert and delete options.</string>
   <tabstop>sound_output_combo_box</tabstop>
   <tabstop>sound_output_channel_combo_box</tabstop>
   <tabstop>save_path_select_push_button</tabstop>
-  <tabstop>azel_path_select_push_button</tabstop>
   <tabstop>checkBoxPwrBandTxMemory</tabstop>
   <tabstop>checkBoxPwrBandTuneMemory</tabstop>
   <tabstop>add_macro_line_edit</tabstop>
@@ -3554,13 +5010,10 @@ Right click for insert and delete options.</string>
   <tabstop>delete_macro_push_button</tabstop>
   <tabstop>macros_list_view</tabstop>
   <tabstop>prompt_to_log_check_box</tabstop>
-  <tabstop>cbAutoLog</tabstop>
   <tabstop>log_as_RTTY_check_box</tabstop>
   <tabstop>report_in_comments_check_box</tabstop>
-  <tabstop>clear_DX_check_box</tabstop>
   <tabstop>opCallEntry</tabstop>
   <tabstop>psk_reporter_check_box</tabstop>
-  <tabstop>psk_reporter_tcpip_check_box</tabstop>
   <tabstop>udp_server_line_edit</tabstop>
   <tabstop>udp_server_port_spin_box</tabstop>
   <tabstop>udp_interfaces_combo_box</tabstop>
@@ -3576,14 +5029,8 @@ Right click for insert and delete options.</string>
   <tabstop>frequencies_table_view</tabstop>
   <tabstop>stations_table_view</tabstop>
   <tabstop>highlighting_list_view</tabstop>
-  <tabstop>reset_highlighting_to_defaults_push_button</tabstop>
-  <tabstop>highlight_by_mode_check_box</tabstop>
-  <tabstop>only_fields_check_box</tabstop>
-  <tabstop>include_WAE_check_box</tabstop>
-  <tabstop>rescan_log_push_button</tabstop>
   <tabstop>LotW_CSV_URL_line_edit</tabstop>
   <tabstop>LotW_CSV_fetch_push_button</tabstop>
-  <tabstop>LotW_days_since_upload_spin_box</tabstop>
   <tabstop>sbNtrials</tabstop>
   <tabstop>sbAggressive</tabstop>
   <tabstop>cbTwoPass</tabstop>
@@ -3596,9 +5043,55 @@ Right click for insert and delete options.</string>
   <tabstop>rbMaxSensitivity</tabstop>
   <tabstop>gbSpecialOpActivity</tabstop>
   <tabstop>rbField_Day</tabstop>
+  <tabstop>rbEU_VHF_Contest</tabstop>
   <tabstop>rbRTTY_Roundup</tabstop>
   <tabstop>Field_Day_Exchange</tabstop>
   <tabstop>RTTY_Exchange</tabstop>
+  <tabstop>Territory1</tabstop>
+  <tabstop>Territory2</tabstop>
+  <tabstop>Territory3</tabstop>
+  <tabstop>Territory4</tabstop>
+  <tabstop>cbBlacklist</tabstop>
+  <tabstop>Blacklist1</tabstop>
+  <tabstop>Blacklist2</tabstop>
+  <tabstop>Blacklist3</tabstop>
+  <tabstop>Blacklist4</tabstop>
+  <tabstop>Blacklist5</tabstop>
+  <tabstop>Blacklist6</tabstop>
+  <tabstop>Blacklist7</tabstop>
+  <tabstop>Blacklist8</tabstop>
+  <tabstop>Blacklist9</tabstop>
+  <tabstop>Blacklist10</tabstop>
+  <tabstop>Blacklist11</tabstop>
+  <tabstop>Blacklist12</tabstop>
+  <tabstop>cbWhitelist</tabstop>
+  <tabstop>Whitelist1</tabstop>
+  <tabstop>Whitelist2</tabstop>
+  <tabstop>Whitelist3</tabstop>
+  <tabstop>Whitelist4</tabstop>
+  <tabstop>Whitelist5</tabstop>
+  <tabstop>Whitelist6</tabstop>
+  <tabstop>Whitelist7</tabstop>
+  <tabstop>Whitelist8</tabstop>
+  <tabstop>Whitelist9</tabstop>
+  <tabstop>Whitelist10</tabstop>
+  <tabstop>Whitelist11</tabstop>
+  <tabstop>Whitelist12</tabstop>
+  <tabstop>cbPass</tabstop>
+  <tabstop>Pass1</tabstop>
+  <tabstop>Pass2</tabstop>
+  <tabstop>Pass3</tabstop>
+  <tabstop>Pass4</tabstop>
+  <tabstop>Pass5</tabstop>
+  <tabstop>Pass6</tabstop>
+  <tabstop>Pass7</tabstop>
+  <tabstop>Pass8</tabstop>
+  <tabstop>Pass9</tabstop>
+  <tabstop>Pass10</tabstop>
+  <tabstop>Pass11</tabstop>
+  <tabstop>Pass12</tabstop>
+  <tabstop>cb_filters_for_word2</tabstop>
+  <tabstop>cb_filters_for_Wait_and_Pounce_only</tabstop>
  </tabstops>
  <resources/>
  <connections>
@@ -3668,13 +5161,13 @@ Right click for insert and delete options.</string>
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="CAT_handshake_button_group"/>
-  <buttongroup name="special_op_activity_button_group"/>
-  <buttongroup name="TX_audio_source_button_group"/>
-  <buttongroup name="PTT_method_button_group"/>
-  <buttongroup name="TX_mode_button_group"/>
-  <buttongroup name="CAT_stop_bits_button_group"/>
   <buttongroup name="CAT_data_bits_button_group"/>
+  <buttongroup name="PTT_method_button_group"/>
+  <buttongroup name="CAT_handshake_button_group"/>
+  <buttongroup name="CAT_stop_bits_button_group"/>
+  <buttongroup name="TX_audio_source_button_group"/>
+  <buttongroup name="special_op_activity_button_group"/>
   <buttongroup name="split_mode_button_group"/>
+  <buttongroup name="TX_mode_button_group"/>
  </buttongroups>
 </ui>

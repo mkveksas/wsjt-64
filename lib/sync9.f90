@@ -47,7 +47,7 @@ subroutine sync9(ss,nzhsym,lag1,lag2,ia,ib,ccfred,red2,ipkbest)
         enddo
         if(sum1.gt.smax) then
            smax=sum1
-           ipk=i 
+           ipk=i
         endif
         rms=sqrt(sq2/(nsum-1))
      enddo
@@ -60,7 +60,7 @@ subroutine sync9(ss,nzhsym,lag1,lag2,ia,ib,ccfred,red2,ipkbest)
 
   call pctile(ccfred(ia),ib-ia+1,50,xmed)
   if(xmed.le.0.0) xmed=1.0
-  ccfred=2.0*ccfred/xmed 
+  ccfred=2.0*ccfred/xmed
 
   savg=0.
   do j=1,nzhsym

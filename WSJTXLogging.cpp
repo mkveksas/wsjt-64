@@ -155,9 +155,9 @@ namespace
     // Per channel severity level filter
     using min_severity_filter = expr::channel_severity_filter_actor<std::string, trivial::severity_level>;
     min_severity_filter min_severity = expr::channel_severity_filter (channel, severity);
-    min_severity["SYSLOG"] = trivial::info;
-    min_severity["RIGCTRL"] = trivial::info;
-    min_severity["DATALOG"] = trivial::info;
+    min_severity["SYSLOG"] = trivial::error;
+    min_severity["RIGCTRL"] = trivial::warning;
+    min_severity["DATALOG"] = trivial::error;
     sys_sink->set_filter (min_severity || severity >= trivial::fatal);
 
     sys_sink->set_formatter
@@ -185,7 +185,7 @@ WSJTXLogging::WSJTXLogging ()
     (
      logging::make_exception_handler<std::runtime_error, std::logic_error> (exception_handler {})
      );
- 
+
   // Check for a user-defined logging configuration settings file.
   QFile log_config {QStandardPaths::locate (QStandardPaths::ConfigLocation, "wsjtx_log_config.ini")};
   if (log_config.exists () && log_config.open (QFile::ReadOnly) && log_config.isReadable ())

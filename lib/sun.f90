@@ -83,6 +83,6 @@ subroutine sun(y,m,DD,UT,lon,lat,RA,Dec,LST,Az,El,mjd,day)
   Az = mod(rad*atan2(yhor,xhor) + 180.0 + 360.0,360.0)
   El = rad*asin(zhor)
   day=d-1.5
-  
+
   return
 end subroutine sun

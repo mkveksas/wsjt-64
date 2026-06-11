@@ -52,11 +52,11 @@ subroutine decode65a(dd,npts,newdat,nqd,f0,nflip,mode65,ntrials,     &
   call timer('afc65b  ',1)
   dtbest=dtbest+0.003628 !Remove decimation filter and coh. integrator delay
   dt=dtbest              !Return new, improved estimate of dt
-  sync2=3.7e-4*ccfbest/sq0                    !Constant is empirical 
+  sync2=3.7e-4*ccfbest/sq0                    !Constant is empirical
   if(mode65.eq.4) cx=cx1
 
 ! Apply AFC corrections to the time-domain signal
-! Now we are back to using the 1378.125 Hz sample rate, enough to 
+! Now we are back to using the 1378.125 Hz sample rate, enough to
 ! accommodate the full JT65C bandwidth.
   a(3)=0
   call twkfreq65(cx,n5,a)

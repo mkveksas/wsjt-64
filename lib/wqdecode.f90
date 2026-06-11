@@ -3,7 +3,7 @@
 ! This file is part of the WSPR application, Weak Signal Propagation Reporter
 !
 ! File Name:    wqdecode.f90
-! Description:  
+! Description:
 !
 ! Copyright (C) 2001-2014 Joseph Taylor, K1JT
 ! License: GPL-3
@@ -36,7 +36,7 @@ subroutine wqdecode(data0,message,ntype)
   data first/.true./
   save first,dcall
 
-! May want to have a timeout (say, one hour?) on calls fetched 
+! May want to have a timeout (say, one hour?) on calls fetched
 ! from the hash table.
 
   if(first) then
@@ -101,7 +101,7 @@ end subroutine wqdecode
 ! This file is part of the WSPR application, Weak Signal Propagation Reporter
 !
 ! File Name:    unpack50.f90
-! Description:  
+! Description:
 !
 ! Copyright (C) 2001-2014 Joseph Taylor, K1JT
 ! License: GPL-3
@@ -156,7 +156,7 @@ end subroutine unpack50
 ! This file is part of the WSPR application, Weak Signal Propagation Reporter
 !
 ! File Name:    unpackcall.f90
-! Description:  
+! Description:
 !
 ! Copyright (C) 2001-2014 Joseph Taylor, K1JT
 ! License: GPL-3
@@ -217,7 +217,7 @@ end subroutine unpackcall
 ! This file is part of the WSPR application, Weak Signal Propagation Reporter
 !
 ! File Name:    unpackgrid.f90
-! Description:  
+! Description:
 !
 ! Copyright (C) 2001-2014 Joseph Taylor, K1JT
 ! License: GPL-3
@@ -277,7 +277,7 @@ end subroutine unpackgrid
 ! This file is part of the WSPR application, Weak Signal Propagation Reporter
 !
 ! File Name:    unpackpfx.f90
-! Description:  
+! Description:
 !
 ! Copyright (C) 2001-2014 Joseph Taylor, K1JT
 ! License: GPL-3

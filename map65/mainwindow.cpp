@@ -21,6 +21,10 @@
 #include "sleep.h"
 #include <portaudio.h>
 
+#include <QApplication>
+#include <QDebug>
+#include <QDateTime>
+
 #define NFFT 32768
 
 short int iwave[2*60*12000];          //Wave file for Tx audio
@@ -40,6 +44,13 @@ QSharedMemory mem_m65("mem_m65");
 extern const int RxDataFrequency = 96000;
 extern const int TxDataFrequency = 11025;
 
+QString guiDate;         //liveCQ
+QStringList allDecodes;  //liveCQ
+QStringList allDecodes2;  //liveCQ
+QString m_otherUrl;
+bool m_w3szUrl;
+bool m_spot_to_psk_reporter;
+
 //-------------------------------------------------- MainWindow constructor
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
@@ -48,7 +59,7 @@ MainWindow::MainWindow(QWidget *parent) :
   m_settings_filename {m_appDir + "/map65.ini"},
   m_astro_window {new Astro {m_settings_filename}},
   m_band_map_window {new BandMap {m_settings_filename}},
-  m_messages_window {new Messages {m_settings_filename}},
+  m_messages_window(nullptr),
   m_wide_graph_window {new WideGraph {m_settings_filename}},
   m_gui_timer {new QTimer {this}}
 {
@@ -226,9 +237,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
   on_actionAstro_Data_triggered();           //Create the other windows
   on_actionWide_Waterfall_triggered();
-  on_actionMessages_triggered();
+
   on_actionBand_Map_triggered();
-  if (m_messages_window) m_messages_window->setColors(m_colors);
   m_band_map_window->setColors(m_colors);
   if (m_astro_window) m_astro_window->setFontSize (m_astroFont);
 
@@ -264,7 +274,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
   // Assign output device and start output thread
   soundOutThread.setOutputDevice(m_paOutDevice);
-//  soundOutThread.start(QThread::HighPriority);
 
   m_monitoring=true;                           // Start with Monitoring ON
   soundInThread.setMonitoring(m_monitoring);
@@ -301,14 +310,25 @@ MainWindow::MainWindow(QWidget *parent) :
   if(ui->actionAFMHot->isChecked()) on_actionAFMHot_triggered();
   if(ui->actionBlue->isChecked()) on_actionBlue_triggered();
 
-  connect (m_messages_window.get (), &Messages::click2OnCallsign, this, &MainWindow::doubleClickOnMessages);
   connect (m_wide_graph_window.get (), &WideGraph::freezeDecode2, this, &MainWindow::freezeDecode);
   connect (m_wide_graph_window.get (), &WideGraph::f11f12, this, &MainWindow::bumpDF);
 
+  QTimer::singleShot (0, this,[this]() {
+    m_messages_window = new Messages(m_settings_filename);
+    m_messages_window->show();
+    on_actionMessages_triggered();
+    connect (m_messages_window, &Messages::click2OnCallsign, this, &MainWindow::doubleClickOnMessages);
+    if (m_messages_window) m_messages_window->setColors(m_colors);
+  });
+
+  //default freq at startup for Doppler and Tsky
+  datcom_.fcenter = m_wide_graph_window->m_dForceCenterFreq;
+  if(datcom_.fcenter == 0) datcom_.fcenter = 144.125;
+
   // only start the guiUpdate timer after this constructor has finished
   QTimer::singleShot (0, [=] {
-                           m_gui_timer->start(100); //Don't change the 100 ms!
-                         });
+           m_gui_timer->start(100); //Don't change the 100 ms!
+         });
 }
 
   //--------------------------------------------------- MainWindow destructor
@@ -401,6 +421,9 @@ void MainWindow::writeSettings()
   settings.setValue("TxOffset",m_TxOffset);
   settings.setValue("Colors",m_colors);
   settings.setValue("MaxDrift",ui->sbMaxDrift->value());
+  settings.setValue("w3szUrl",m_w3szUrl); //liveCQ
+  settings.setValue("otherUrl",m_otherUrl); //liveCQ
+  settings.setValue("spotPSK",m_spot_to_psk_reporter);
 }
 
 //---------------------------------------------------------- readSettings()
@@ -507,6 +530,10 @@ void MainWindow::readSettings()
   if(m_ndepth==0) ui->actionNo_Deep_Search->setChecked(true);
   if(m_ndepth==1) ui->actionNormal_Deep_Search->setChecked(true);
   if(m_ndepth==2) ui->actionAggressive_Deep_Search->setChecked(true);
+  m_w3szUrl=settings.value("w3szUrl",true).toBool();
+  m_otherUrl=settings.value("otherUrl","").toString();
+  m_spot_to_psk_reporter=settings.value("spotPSK",true).toBool();
+  qDebug() << "In mainwindow m_spot_to_psk_reporter is: " << m_spot_to_psk_reporter;
 }
 
 //-------------------------------------------------------------- dataSink()
@@ -707,6 +734,9 @@ void MainWindow::on_actionDeviceSetup_triggered()               //Setup Dialog
   dlg.m_mult570=m_mult570;
   dlg.m_mult570Tx=m_mult570Tx;
   dlg.m_colors=m_colors;
+  dlg.m_w3szUrl = m_w3szUrl; //liveCQ
+  dlg.m_otherUrl=m_otherUrl; //liveCQ
+  dlg.m_spot_to_psk_reporter = m_spot_to_psk_reporter;
 
   dlg.initDlg();
   if(dlg.exec() == QDialog::Accepted) {
@@ -750,6 +780,36 @@ void MainWindow::on_actionDeviceSetup_triggered()               //Setup Dialog
     m_wide_graph_window->m_cal570=m_cal570;
     soundInThread.setSwapIQ(m_IQswap);
     soundInThread.setScale(m_dB);
+    m_w3szUrl=dlg.m_w3szUrl;
+    m_otherUrl=dlg.m_otherUrl;
+    m_spot_to_psk_reporter=dlg.m_spot_to_psk_reporter;
+    QSettings settings(m_settings_filename, QSettings::IniFormat);
+    {
+        SettingsGroup g {&settings, "MainWindow"};
+    }
+    SettingsGroup g {&settings, "Common"};
+    settings.setValue("w3szUrl",m_w3szUrl); //liveCQ
+    settings.setValue("otherUrl",m_otherUrl); //liveCQ
+    settings.setValue("spotPSK",m_spot_to_psk_reporter);
+    settings.setValue("MyCall",m_myCall);
+    settings.setValue("MyGrid",m_myGrid);
+    settings.setValue("IDint",m_idInt);
+    settings.setValue("PTTport",m_pttPort);
+    settings.setValue("AstroFont",m_astroFont);
+    settings.setValue("Xpol",m_xpol);
+    settings.setValue("XpolX",m_xpolx);
+    settings.setValue("SaveDir",m_saveDir);
+    settings.setValue("AzElDir",m_azelDir);
+    settings.setValue("Editor",m_editorCommand);
+    settings.setValue("DXCCpfx",m_dxccPfx);
+    settings.setValue("Timeout",m_timeout);
+    settings.setValue("TxPower",txPower);
+    settings.setValue("IQamp",iqAmp);
+    settings.setValue("IQphase",iqPhase);
+    settings.setValue("ApplyIQcal",m_applyIQcal);
+    settings.setValue("dPhi",m_dPhi);
+    settings.setValue("Fcal",m_fCal);
+    settings.setValue("Fadd",m_fAdd);
 
     if(dlg.m_restartSoundIn) {
       soundInThread.quit();
@@ -988,7 +1048,10 @@ void MainWindow::closeEvent (QCloseEvent * e)
   mem_m65.detach();
   if (m_astro_window) m_astro_window->close ();
   if (m_band_map_window) m_band_map_window->close ();
-  if (m_messages_window) m_messages_window->close ();
+  if (m_messages_window) {
+    m_messages_window->setClosingForShutdown(true);
+    m_messages_window->close(); // Now closeEvent runs fully
+  }
   if (m_wide_graph_window) m_wide_graph_window->close ();
   QMainWindow::closeEvent (e);
 }
@@ -997,7 +1060,7 @@ void MainWindow::on_stopButton_clicked()                       //stopButton
 {
   m_monitoring=false;
   soundInThread.setMonitoring(m_monitoring);
-  m_loopall=false;  
+  m_loopall=false;
 }
 
 void MainWindow::msgBox(QString t)                             //msgBox
@@ -1057,7 +1120,7 @@ void MainWindow::on_actionBand_Map_triggered()              //Display BandMap
 
 void MainWindow::on_actionMessages_triggered()              //Display Messages
 {
-  m_messages_window->show();
+    m_messages_window->show();
 }
 
 void MainWindow::on_actionOpen_triggered()                     //Open File
@@ -1729,11 +1792,13 @@ void MainWindow::guiUpdate()
 
     QDateTime t = QDateTime::currentDateTimeUtc();
     int fQSO=m_wide_graph_window->QSOfreq();
+    if (m_wide_graph_window->m_bLockTxRx) m_txFreq=fQSO;
     m_astro_window->astroUpdate(t, m_myGrid, m_hisGrid, fQSO, m_setftx,
                           m_txFreq, m_azelDir, m_xavg);
     m_setftx=0;
     QString utc = t.date().toString(" yyyy MMM dd \n") + t.time().toString();
     ui->labUTC->setText(utc);
+    guiDate = ui->labUTC->text().trimmed().mid(0,12); //liveCQ
     if((!m_monitoring and !m_diskData) or (khsym==m_hsym0)) {
       xSignalMeter->setValue(0);
       ySignalMeter->setValue(0);
@@ -2055,7 +2120,7 @@ void MainWindow::on_addButton_clicked()                       //Add button
     } while(!s.isNull());
     if(hc>hc1 && !m_call3Modified) out << newEntry + "\n";
   }
-  
+
   if(m_call3Modified) {
     auto const& old_path = m_appDir + "/CALL3.OLD";
     QFile f0 {old_path};

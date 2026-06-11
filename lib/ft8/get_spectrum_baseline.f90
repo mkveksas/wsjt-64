@@ -22,9 +22,9 @@ subroutine get_spectrum_baseline(dd,nfa,nfb,sbase)
     window=window/sum(window)*NSPS*2/300.0
   endif
 
-! Compute symbol spectra, stepping by NSTEP steps.  
+! Compute symbol spectra, stepping by NSTEP steps.
   savg=0.
-  df=12000.0/NFFT1  
+  df=12000.0/NFFT1
   do j=1,NF
      ia=(j-1)*NST + 1
      ib=ia+NFFT1-1
@@ -39,12 +39,12 @@ subroutine get_spectrum_baseline(dd,nfa,nfb,sbase)
   if(nfa.lt.100) then
      nfa=100
      if(nwin.lt.100) then ! nagain
-        nfb=nfa+nwin  
+        nfb=nfa+nwin
      endif
   endif
   if(nfb.gt.4910) then
      nfb=4910
-     if(nwin.lt.100) then 
+     if(nwin.lt.100) then
         nfa=nfb-nwin
      endif
   endif

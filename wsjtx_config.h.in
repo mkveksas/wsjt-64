@@ -43,6 +43,8 @@ extern "C"  {
 #cmakedefine HAVE_DEV_PPBUS_PPI_H 1
 
 #cmakedefine01 WSJT_SHARED_RUNTIME
+#cmakedefine01 WSJT_TRACE_CAT
+#cmakedefine01 WSJT_TRACE_CAT_POLLS
 #cmakedefine01 WSJT_SOFT_KEYING
 #cmakedefine01 WSJT_ENABLE_EXPERIMENTAL_FEATURES
 #cmakedefine01 WSJT_HAVE_OMNIRIG
@@ -59,20 +61,15 @@ extern "C"  {
 #endif
 
   /* typedef for consistent gfortran ABI for charlen type hidden arguments */
-#if __GNUC__ > 7
-   #ifdef __cplusplus
-      #include <cstddef>
-   #else
-      #include <stddef.h>
-   #endif
-   typedef size_t fortran_charlen_t;
+#if __GNUC__ > 7         ||  defined(__clang__)
+#if defined(__cplusplus) && !defined(__clang__)
+#include <cstddef>
 #else
-   #if defined(__clang__)
-      #include <stddef.h>
-      typedef size_t fortran_charlen_t;
-   #else
-      typedef int fortran_charlen_t;
-   #endif
+#include <stddef.h>
+#endif
+  typedef size_t fortran_charlen_t;
+#else
+  typedef int fortran_charlen_t;
 #endif
 
 #ifdef __cplusplus

@@ -17,6 +17,14 @@
 #include "widegraph.h"
 #include "sleep.h"
 
+#include <QCoreApplication>  //liveCQ
+#include <QNetworkAccessManager>  //liveCQ
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QUrl>
+#include <QUrlQuery>
+#include <QEventLoop>
+
 #define NFFT 32768
 
 qint16 id[2*60*96000];
@@ -118,6 +126,9 @@ MainWindow::MainWindow(QWidget *parent) :
   m_pbmonitor_style="QPushButton{background-color: #00ff00; \
       border-style: outset; border-width: 1px; border-radius: 5px; \
       border-color: black; min-width: 5em; padding: 3px;}";
+  m_pbmonitor_style2="QPushButton{background-color: #ffff00; \
+      border-style: outset; border-width: 1px; border-radius: 5px; \
+      border-color: black; min-width: 5em; padding: 3px;}";
   m_pbAutoOn_style="QPushButton{background-color: red; \
       border-style: outset; border-width: 1px; border-radius: 5px; \
       border-color: black; min-width: 5em; padding: 3px;}";
@@ -168,6 +179,20 @@ MainWindow::MainWindow(QWidget *parent) :
     f.close();
   }
 
+// Read items for fAddComboBox
+  ui->fAddComboBox->addItem (0);
+  ui->fAddComboBox->setItemText(0, QString::number(m_fAdd));
+  QFile g("fadd.txt");
+  QTextStream stream(&g);
+  if(g.open (QIODevice::ReadOnly | QIODevice::Text)) {
+    while (!stream.atEnd()) {
+      QString fAddline = stream.readLine();
+      if (fAddline != "") ui->fAddComboBox->addItem (fAddline);
+    }
+    stream.flush();
+    g.close();
+  }
+
   if(ui->actionLinrad->isChecked()) on_actionLinrad_triggered();
   if(ui->actionCuteSDR->isChecked()) on_actionCuteSDR_triggered();
   if(ui->actionAFMHot->isChecked()) on_actionAFMHot_triggered();
@@ -175,6 +200,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
   connect (m_wide_graph_window.get (), &WideGraph::freezeDecode2, this, &MainWindow::freezeDecode);
   connect (m_wide_graph_window.get (), &WideGraph::f11f12, this, &MainWindow::bumpDF);
+
+  //default freq at startup for Doppler and Tsky
+  datcom_.fcenter = 1296.150;
 
   // only start the guiUpdate timer after this constructor has finished
   QTimer::singleShot (0, [=] {
@@ -228,11 +256,14 @@ void MainWindow::writeSettings()
   settings.setValue("SaveAll",ui->actionSave_all->isChecked());
   settings.setValue("SaveDecoded",ui->actionSave_decoded->isChecked());
   settings.setValue("ContinuousWaterfall",ui->continuous_waterfall->isChecked());
+  settings.setValue("FaddControls",ui->actionFadd_controls->isChecked());
   settings.setValue("NB",m_NB);
   settings.setValue("NBslider",m_NBslider);
   settings.setValue("MaxDrift",ui->sbMaxDrift->value());
   settings.setValue("Offset",ui->sbOffset->value());
   settings.setValue("Also30",m_bAlso30);
+  settings.setValue("w3szUrl",m_w3szUrl);  //liveCQ
+  settings.setValue("otherUrl",m_otherUrl);  //liveCQ
 }
 
 //---------------------------------------------------------- readSettings()
@@ -276,6 +307,7 @@ void MainWindow::readSettings()
   ui->actionSave_all->setChecked(settings.value("SaveAll",false).toBool());
   ui->actionSave_decoded->setChecked(settings.value("SaveDecoded",false).toBool());
   ui->continuous_waterfall->setChecked(settings.value("ContinuousWaterfall",false).toBool());
+  ui->actionFadd_controls->setChecked(settings.value("FaddControls",false).toBool());
   m_saveAll=ui->actionSave_all->isChecked();
   m_saveDecoded=ui->actionSave_decoded->isChecked();
   if(m_saveAll) {
@@ -302,6 +334,12 @@ void MainWindow::readSettings()
     on_actionLinrad_triggered();
     ui->actionLinrad->setChecked(true);
   }
+  m_w3szUrl=settings.value("w3szUrl",true).toBool();    //liveCQ
+  m_otherUrl=settings.value("otherUrl","").toString();  //liveCQ
+  ui->fAddComboBox->setVisible(ui->actionFadd_controls->isChecked());
+  ui->fAdd_label->setVisible(ui->actionFadd_controls->isChecked());
+  ui->pbSet->setVisible(ui->actionFadd_controls->isChecked());
+  ui->pbAdd->setVisible(ui->actionFadd_controls->isChecked());
 }
 
 //-------------------------------------------------------------- dataSink()
@@ -441,6 +479,8 @@ void MainWindow::on_actionSettings_triggered()
   dlg.m_network=m_network;
   dlg.m_udpPort=m_udpPort;
   dlg.m_dB=m_dB;
+  dlg.m_w3szUrl = m_w3szUrl;  //liveCQ
+  dlg.m_otherUrl=m_otherUrl;  //liveCQ
   dlg.initDlg();
   if(dlg.exec() == QDialog::Accepted) {
     m_myCall=dlg.m_myCall;
@@ -458,6 +498,8 @@ void MainWindow::on_actionSettings_triggered()
     m_network=dlg.m_network;
     m_udpPort=dlg.m_udpPort;
     m_dB=dlg.m_dB;
+    m_w3szUrl=dlg.m_w3szUrl;
+    m_otherUrl=dlg.m_otherUrl;
     soundInThread.setScale(m_dB);
 
     if(dlg.m_restartSoundIn) {
@@ -467,6 +509,11 @@ void MainWindow::on_actionSettings_triggered()
       soundInThread.setRate(96000.0);
       soundInThread.setNrx(1);
       soundInThread.start(QThread::HighestPriority);
+    }
+
+    if (ui->fAddComboBox->isVisible()) {
+      ui->fAddComboBox->setItemText(0, QString::number(m_fAdd));
+      ui->fAddComboBox->setCurrentIndex(0);
     }
   }
 }
@@ -982,16 +1029,298 @@ void MainWindow::decodeBusy(bool b)                             //decodeBusy()
   ui->actionDecode_remaining_files_in_directory->setEnabled(!b);
 }
 
+void MainWindow::CreateLiveCQ(QStringList cqliveText)
+{
+//return if cqliveText is empty or data were read from disk.
+  if ((m_diskData && m_myCall.toUpper() != "W3SZ" && m_myCall.toUpper() != "DL3WDG") or (cqliveText.size() == 0)) return;
+
+  QStringList cqliveFinalText;
+  QStringList oldFile;
+  bool ok;
+  int freqOffset = ui->sbOffset->value();
+  QStringList bandInfo;
+  bandInfo = ui->labFreq->text().split(".",SkipEmptyParts);
+  QString bandFreq = bandInfo.at(0);
+  QString theDate = ui->labUTC->text().trimmed().mid(0,12);
+  QList<QStringList> decodeList;
+  bool strOK = false;
+
+  for (const QString &item : cqliveText) {
+    QString line = " ";
+    QStringList thePostLine;
+    line = line.repeated(100);  //.replace("<","").replace(">","");
+    QStringList thePieces;
+    qDebug () << "item is: " << item;
+    thePieces = item.split(" ",SkipEmptyParts);
+    int rxFreq = 0.0;
+    if((thePieces.at(6) == "CQ" || thePieces.at(6) == "QRZ" || thePieces.at(6) == "CQV" ||  thePieces.at(6) == "CQH" ||  thePieces.at(6) == "QRT") && m_myCall.length() >=3 && m_myGrid.length()>=4  ) {
+      try {
+        //extract Fsked freq and format to 3 digits no decimals
+        qDebug() << "entered try";
+        QString theMsg;
+        QString theCall;
+        QString theGrid;
+        QStringList thekHz;
+        int nWords=thePieces.length();
+        if(nWords==9) {
+          // Handle CQ CALL messages that do not include a locator
+          if(thePieces.at(6)==NULL or thePieces.at(7)==NULL or thePieces.at(8)==NULL) continue;
+          theCall = thePieces.at(7);
+          bool isCall = testCall(theCall);
+          qDebug() << "theCall is: " << theCall << " and isCall is: " << isCall;
+          if(!isCall) continue;
+          theGrid = "--";
+          theMsg = thePieces.at(6) + " " + theCall;
+          thekHz = thePieces.at(8).split(".");
+          rxFreq = freqOffset + thekHz.at(1).toInt(&ok);
+        // int rxFreq = freqOffset + 100 * thekHz.at(1).toInt(&ok);
+          if (!ok) continue;
+        } else if(nWords==10) {
+          // Handle CQ CALL GRID --or-- CQ XXX CALL
+          if(thePieces.at(6)==NULL or thePieces.at(7)==NULL or thePieces.at(8)==NULL or thePieces.at(9)==NULL) continue;
+          // Test for callsign at thePieces.at(7)
+          theCall = thePieces.at(7);
+          bool isCall = testCall(theCall);
+          qDebug() << "theCall is: " << theCall << " and isCall is: " << isCall;
+          // Handle CQ CALL GRID
+          if(isCall) {
+            theGrid = thePieces.at(8);
+            theMsg = thePieces.at(6) + " " + theCall + " " + theGrid;
+          }
+          // Handle CQ XXX CALL
+          else {
+            theCall = thePieces.at(8);
+            isCall = testCall(theCall);
+          qDebug() << "theCall is: " << theCall << " and isCall is: " << isCall;
+            if(!isCall) continue;
+            theGrid = "--";
+            theMsg = thePieces.at(6) + " " + theCall;
+          }
+          thekHz = thePieces.at(9).split(".");
+          rxFreq = freqOffset + thekHz.at(1).toInt(&ok);
+        // int rxFreq = freqOffset + 100 * thekHz.at(1).toInt(&ok);
+          if (!ok) continue;
+          // Handle CQ XXX CALL GRID
+        } else if (nWords==11) {
+           if(thePieces.at(6)==NULL or thePieces.at(7)==NULL or thePieces.at(8)==NULL or thePieces.at(9)==NULL or thePieces.at(10)==NULL) continue;
+          theCall = thePieces.at(8);
+          bool isCall = testCall(theCall);
+          qDebug() << "theCall is: " << theCall << " and isCall is: " << isCall;
+          if(!isCall) continue;
+          theGrid = thePieces.at(9);
+          theMsg = thePieces.at(6) + " " + theCall + " " + theGrid;
+          thekHz = thePieces.at(10).split(".");
+          rxFreq = freqOffset + thekHz.at(1).toInt(&ok);
+        // int rxFreq = freqOffset + 100 * thekHz.at(1).toInt(&ok);
+          if (!ok) continue;
+        }
+        strOK = true;
+        int skedFreq;
+        QString skedFreqString;
+        if (rxFreq <= freqOffset + 500) {
+          skedFreq = thekHz.at(0).toInt(&ok);
+        } else {
+          skedFreq = thekHz.at(0).toInt(&ok) + 1;
+          rxFreq=rxFreq - 1000;
+        }
+        skedFreqString = QString::number(skedFreq).rightJustified(3,'0');
+        QString mode = "0 Q65-" + thePieces.at(5);
+        line.insert(0,bandFreq + "." + skedFreqString);
+        line.insert(10,QString::number(rxFreq));
+        line.insert(15,"0");
+        line.insert(18,thePieces.at(0));
+        line.insert(26,thePieces.at(3));
+        line.insert(32,thePieces.at(4));
+        line.insert(36,theMsg);
+        line.insert(55,mode);
+        line.insert(67,m_myGrid.toUpper());
+        line.insert(74,"Q");
+        line.insert(76,theDate);
+        line.insert(88,m_myCall.toUpper());
+        cqliveFinalText << line.trimmed();
+        //qDebug () << "cqliveFinalText is: " << cqliveFinalText;
+
+        thePostLine.insert(0, bandFreq + "." + skedFreqString);  //skedfreq
+        thePostLine.insert(1, QString::number(rxFreq)); //rxfreq
+        thePostLine.insert(2, "--"); //rpol
+        thePostLine.insert(3,thePieces.at(0)); //utc HHmmSS
+        thePostLine.insert(4,thePieces.at(3)); //dt
+        thePostLine.insert(5, thePieces.at(4)); //dB
+        thePostLine.insert(6, "Q65-" + thePieces.at(5)); //Q65 submode
+        thePostLine.insert(7, thePieces.at(6)); //msg type
+        thePostLine.insert(8, theCall); //dx call
+        thePostLine.insert(9, theGrid); //dx grid
+        thePostLine.insert(10, m_myGrid.toUpper()); //myGrid
+        thePostLine.insert(11, theDate);  //the date
+        thePostLine.insert(12, m_myCall.toUpper()); //myCall
+        thePostLine.insert(13, "--"); //txpol
+        decodeList.append(thePostLine);
+        qDebug () << "thePostLine is: " << thePostLine;
+      }
+      catch (const std::exception& e) {
+          // Handle standard C++ exceptions
+          QMessageBox::critical(this, "Exception", "Exception at line 1116 MainWindow::CreateLiveCQ " + QString::fromStdString(e.what()));
+      }
+      catch (...) {
+          // Handle any other type of exception
+          QMessageBox::critical(this, "Exception", "Unknown Exception at line 1121 MainWindow::CreateLiveCQ");
+      }
+  }
+}
+  if(strOK) {
+  sendLiveCQData(decodeList);
+  }
+}
+
+bool MainWindow::testCall(QString w)
+{
+// Check "callsign" to see if it could be a valid standard callsign or a valid
+// compound callsign.
+// Return a logical "call ok" indicator.
+  if(w.indexOf('.') >= 0) return false;
+  if(w.indexOf('+') >= 0) return false;
+  if(w.indexOf('-') >= 0) return false;
+  if(w.indexOf('?') >= 0) return false;
+  w = w.replace('<',"");
+  w = w.replace('>',"");
+  int i0=w.indexOf('/');
+  int n1=w.length();
+  if(n1 > 11) return false;
+  qDebug() << "Line 1186 w is: " << w << " and i0 is: " << i0 << " and n1 is: " << n1 << " and call is: " << w;
+  QString bc = QString();
+  QStringList wSplit = w.split("/");
+  if(wSplit.length() > 1) {
+    if(wSplit.at(0).length() > wSplit.at(1).length()) {
+      bc = wSplit.at(0);
+    }
+    else {
+      bc = wSplit.at(1);
+    }
+  }
+  else {
+    bc = w;
+  }
+  int nbc=bc.trimmed().length();
+  if(nbc > 8) return false;  //Base call should have no more than 8 characters  e.g. YW18FIFA
+  qDebug() << "reached line 1201";
+
+// One of first two characters (c1 or c2) must be a letter
+  if((!bc[0].isLetter()) && (!bc[1].isLetter())) return false;
+  qDebug() << "reached line 1206";
+// Real calls don't start with Q, but we'll allow the placeholder
+// callsign QU1RK to be considered a standard call:
+  if(bc[0]=='Q' && bc.mid(0,5) != "QU1RK") return false;
+  qDebug() << "reached line 1209";
+
+// Must have a digit in 2nd or 3rd or 4th position
+  int i1=0;
+  if(bc[1].isDigit()) i1=1;
+  if(bc[2].isDigit()) i1=2;
+  if(bc[3].isDigit()) i1=3;
+  if(i1==0) return false;
+  qDebug() << "reached line 1217";
+
+// Callsign must have a suffix of 1-4 letters e.g. YW18FIFA
+  if(i1==nbc) return false;
+  qDebug() << "reached line 1221";
+  int n=0;
+  QChar j=QChar();
+  for (int i=i1+1; i<=nbc-1; ++i) {
+     j=bc[i];
+     if(j<QChar('A') || j > QChar('Z')) return false;
+  qDebug() << "reached line 1227 and n = " << n ;
+     n=n+1;
+  }
+  qDebug() << "reached line 1230";
+  if(n >= 1 && n <= 4) return true;
+  qDebug() << "reached line 1232";
+
+  return false;
+}
+
+void MainWindow::sendLiveCQData(QList<QStringList>decodeList)
+{
+  if (decodeList.size() == 0) return;
+  QString theUrl;
+  if(m_w3szUrl) {
+    theUrl = w3szUrlAddr;
+  } else {
+    theUrl = m_otherUrl;
+  }
+
+  QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+  QUrl url(theUrl);
+  QNetworkRequest request(url);
+  request.setRawHeader("User-Agent", "QMAP v0.5");
+  request.setRawHeader("X-Custom-User-Agent", "QMAP v0.5");
+  request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+
+  for (const QStringList &thePostLine : decodeList) {
+
+    QString utcdatetimestringOriginal = thePostLine.at(11) + " " + thePostLine.at(3);
+    QDateTime utcdatetimeUTC = QDateTime::fromString(utcdatetimestringOriginal, "yyyy MMM dd  HHmmss");
+    utcdatetimeUTC.setTimeSpec((Qt::UTC));
+    QString utcdatetimeUTCString = utcdatetimeUTC.toString("yyyy-MM-ddTHH:mm:ss");
+    utcdatetimeUTCString = utcdatetimeUTCString + "Z";
+
+    QString postString =  "skedfreq=" + thePostLine.at(0) + "&rxfreq=" + thePostLine.at(1) + "&rpol=" + thePostLine.at(2) + "&dt="  +  thePostLine.at(4) + "&dB="  + thePostLine.at(5) + "&msgtype="  +  thePostLine.at(7) + "&callsign="  +  thePostLine.at(8) + "&grid="  +  thePostLine.at(9) + "&mode="  +  thePostLine.at(6) + "&utcdatetime="  +  utcdatetimeUTCString + "&spotter="  +  thePostLine.at(12) + "&spottergrid=" +  thePostLine.at(10)  + "&txpol=" + thePostLine.at(13) + "&apptype=QMAP";
+
+    QByteArray postByteArray = postString.toUtf8();
+    request.setRawHeader("Content-Length",QByteArray::number(postByteArray.size()));
+
+
+    try {
+	  QNetworkReply *reply = manager->post(request,postByteArray);
+	  QObject::connect(reply, &QNetworkReply::finished, this, &MainWindow::handleReply);
+    }
+    catch (const std::exception& e) {
+        // Handle standard C++ exceptions
+        QMessageBox::critical(this, "Exception", "Exception at line 1165 MainWindow::sendLiveCQData " + QString::fromStdString(e.what()));
+    }
+    catch (...) {
+        // Handle any other type of exception
+        QMessageBox::critical(this, "Exception", "Unknown Exception at line 1170 MainWindow::sendLiveCQData");
+    }
+  }
+}
+
+void MainWindow::handleReply()
+{
+  try {
+    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+    if (reply->error() == QNetworkReply::NoError) {
+		qDebug() << reply->readAll();
+    } else {
+		qDebug() << reply->errorString();
+    }
+  }
+    catch (const std::exception& e) {
+        // Handle standard C++ exceptions
+        QMessageBox::critical(this, "Exception", "Exception at line 1188 MainWindow::handleReply " + QString::fromStdString(e.what()));
+    }
+    catch (...) {
+        // Handle any other type of exception
+        QMessageBox::critical(this, "Exception", "Unknown Exception at line 1193 MainWindow::handleReply");
+    }
+}
+
+
 //------------------------------------------------------------- //guiUpdate()
 void MainWindow::guiUpdate()
 {
   int khsym=0;
 
+  QStringList cqliveText;  //liveCQ
+
   qint64 ms = QDateTime::currentMSecsSinceEpoch() % 86400000;
   int nsec=ms/1000;
 
   if(m_monitoring) {
-    ui->monitorButton->setStyleSheet(m_pbmonitor_style);
+    if(m_saveAll or m_saveDecoded) {
+      ui->monitorButton->setStyleSheet(m_pbmonitor_style2);
+    } else {
+      ui->monitorButton->setStyleSheet(m_pbmonitor_style);
+    }
   } else {
     ui->monitorButton->setStyleSheet("");
   }
@@ -1005,8 +1334,10 @@ void MainWindow::guiUpdate()
 
   QString t1;
   if(decodes_.ndecodes > m_fetched) {
+    doLiveCQ = true;
     while(m_fetched<decodes_.ndecodes) {
       QString t=QString::fromLatin1(decodes_.result[m_fetched]);
+      QString t2=QString::fromLatin1(decodes2_.result2[m_fetched]);
       if(m_UTC0!="" and m_UTC0!=t.left(4)) {
         t1="-";
         ui->decodedTextBrowser->append(t1.repeated(60));
@@ -1018,6 +1349,9 @@ void MainWindow::guiUpdate()
       }
       m_UTC0=t.left(4);
       t=t.trimmed();
+      t2=t2.trimmed();            //liveCQ
+      QString t3 = t + " " + t2;  //liveCQ
+      cqliveText.append(t3);      //liveCQ
       ui->decodedTextBrowser->append(t);
       m_fetched++;
       m_nline++;
@@ -1029,6 +1363,12 @@ void MainWindow::guiUpdate()
       if(t.indexOf(m_myCall)>10 and m_myCallColor==2) f.setBackground(QBrush(Qt::green));
       if(t.indexOf(m_myCall)>10 and m_myCallColor==3) f.setBackground(QBrush(Qt::cyan));
       cursor.setBlockFormat(f);
+    }
+  }
+  if(doLiveCQ) {
+    if(cqliveText.size() != 0) {
+      CreateLiveCQ(cqliveText);  //liveCQ
+      doLiveCQ = false;
     }
   }
 
@@ -1211,4 +1551,58 @@ void MainWindow::on_actionExport_wav_file_at_fQSO_30b_triggered()
 {
   datcom_.newdat=0;
   datcom_.nagain=4;
-  decode();}
+  decode();
+}
+
+void MainWindow::on_actionFadd_controls_triggered()
+{
+  if (ui->actionFadd_controls->isChecked()) {
+    ui->fAddComboBox->setVisible(true);
+    ui->fAdd_label->setVisible(true);
+    ui->pbSet->setVisible(true);
+    ui->pbAdd->setVisible(true);
+  } else {
+    ui->fAddComboBox->setVisible(false);
+    ui->fAdd_label->setVisible(false);
+    ui->pbSet->setVisible(false);
+    ui->pbAdd->setVisible(false);
+  }
+}
+
+void MainWindow::on_fAddComboBox_activated()
+{
+  if (ui->fAddComboBox->isVisible() && ui->fAddComboBox->currentText() != "") {
+    m_fAdd=ui->fAddComboBox->currentText().toDouble();
+    soundInThread.setFadd(m_fAdd);
+    ui->decodedTextBrowser->append("Setting Fadd to " + QString::number(m_fAdd) + " MHz");
+  }
+}
+
+void MainWindow::on_pbSet_clicked()
+{
+  m_fAdd=ui->fAddComboBox->currentText().toDouble();
+  soundInThread.setFadd(m_fAdd);
+  ui->decodedTextBrowser->append("Setting Fadd to " + QString::number(m_fAdd) + " MHz");
+}
+
+void MainWindow::on_pbAdd_clicked()
+{
+  m_fAdd=ui->fAddComboBox->currentText().toDouble();
+  if (ui->fAddComboBox->currentText() != "") {
+    QFile g("fadd.txt");
+    if(g.open(QIODevice::Text | QIODevice::Append)) {
+      QString addedEntry = (ui->fAddComboBox->currentText());
+      QTextStream out(&g);
+      out << addedEntry <<
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+          endl
+#else
+          Qt::endl
+#endif
+          ;
+      g.close();
+      if (ui->fAddComboBox->findText(addedEntry) < 0) ui->fAddComboBox->addItem (QString::number(m_fAdd));
+      ui->decodedTextBrowser->append("Adding " + QString::number(m_fAdd) + " to file fadd.txt");
+    }
+  }
+}

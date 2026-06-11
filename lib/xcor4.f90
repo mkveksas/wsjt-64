@@ -1,8 +1,8 @@
 subroutine xcor4(s2,ipk,nsteps,nsym,lag1,lag2,ich,mode4,ccf,ccf0,   &
      lagpk,flip)
 
-! Computes ccf of the 4_FSK spectral array s2 and the pseudo-random 
-! array pr2.  Returns peak of CCF and the lag at which peak occurs.  
+! Computes ccf of the 4_FSK spectral array s2 and the pseudo-random
+! array pr2.  Returns peak of CCF and the lag at which peak occurs.
 ! The CCF peak may be either positive or negative, with negative
 ! implying the "OOO" message.
 

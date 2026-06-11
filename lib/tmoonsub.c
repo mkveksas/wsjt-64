@@ -32,7 +32,7 @@ void libration(double day, double lambda, double beta, double alpha, double *l, 
 void illumination(double day, double lra, double ldec, double dr, double sra, double sdec, double *pabl, double *ill);
 int daysinmonth(int y, int m);
 int isleap(int y);
-void tmoonsub_(double *day, double *glat, double *glong, double *moonalt, 
+void tmoonsub_(double *day, double *glat, double *glong, double *moonalt,
    double *mrv, double *l, double *b, double *paxis);
 
 static const char
@@ -81,7 +81,7 @@ void getargs(int argc, char *argv[], int *y, int *m, double *tz,
   if (fabs((float) *tz) > 12) tzflag = 1;
 
   /* print all the errors found */
-  
+
   if (dflag == 1) {
     fprintf(stderr, "date: dates must be in form yyyymm, gregorian, and later than 1500 AD\n");
   }
@@ -112,7 +112,7 @@ void getargs(int argc, char *argv[], int *y, int *m, double *tz,
   if (dflag + mflag + yflag + longflag + latflag + tzflag + longminflag + latminflag > 0) {
     exit(EXIT_FAILURE);
   }
-  
+
 }
 
 /*
@@ -137,7 +137,7 @@ double getcoord(int coord) {
 double days(int y, int m, int d, double h) {
   int a, b;
   double day;
-  
+
   /*
     The lines below work from 1900 march to feb 2100
     a = 367 * y - 7 * (y + (m + 9) / 12) / 4 + 275 * m / 9 + d;
@@ -155,7 +155,7 @@ double days(int y, int m, int d, double h) {
     + d + b - 1524.5 - 2451545 + h/24;
   return(day);
 }
-double days_(int *y0, int *m0, int *d0, double *h0) 
+double days_(int *y0, int *m0, int *d0, double *h0)
 {
   return days(*y0,*m0,*d0,*h0);
 }
@@ -488,7 +488,7 @@ double gst( double d) {
   return(theta * RADS);
 }
 
-void tmoonsub_(double *day, double *glat, double *glong, double *moonalt, 
+void tmoonsub_(double *day, double *glat, double *glong, double *moonalt,
    double *mrv, double *l, double *b, double *paxis)
 {
   double mlambda, mbeta;
@@ -497,7 +497,7 @@ void tmoonsub_(double *day, double *glat, double *glong, double *moonalt,
   double tlambda, tbeta, trv;
 
   lst = gst(*day) + *glong;
-      
+
   /* find Moon topocentric coordinates for libration calculations */
 
   moonpos(*day, &mlambda, &mbeta, mrv);
@@ -507,7 +507,7 @@ void tmoonsub_(double *day, double *glat, double *glong, double *moonalt,
   topo(lst, *glat, &malpha, &mdelta, mrv);
   mhr = rangerad(lst - malpha);
   *moonalt = alt(*glat, mhr, mdelta);
-      
+
   /* Optical libration and Position angle of the Pole */
 
   tlambda = malpha;

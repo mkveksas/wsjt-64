@@ -75,7 +75,7 @@ subroutine astro(nyear,month,nday,uth,freq8,Mygrid,                    &
   dBMoon=-40.0*log10(dist/356903.)
   sd=16.23*370152.0/dist
 
-!      if(NStation.eq.1 .and. MoonDX.ne.0 .and. 
+!      if(NStation.eq.1 .and. MoonDX.ne.0 .and.
 !     +    (mode.eq.2 .or. mode.eq.5)) then
   if(NStation.eq.1 .and. MoonDX.ne.0) then
      poloffset=mod(poloffset2-poloffset1+720.0,180.0)

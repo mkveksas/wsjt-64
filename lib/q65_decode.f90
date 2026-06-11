@@ -56,7 +56,7 @@ contains
     use q65                               !Shared variables
     use prog_args
     use types
- 
+
     parameter (NMAX=300*12000)  !Max TRperiod is 300 s
     parameter (MAX_CALLERS=40)  !For multiple q3 decodes in NA VHf Contest mode
 
@@ -83,9 +83,9 @@ contains
     integer time
     logical lclearave,lnewdat0,lapcqonly,unpk77_success
     logical single_decode,lagain
-    complex, allocatable :: c00(:)        !Analytic signal, 6000 Sa/s
-    complex, allocatable :: c0(:)         !Analytic signal, 6000 Sa/s
+    complex c00(0:3600000)                !Analytic signal, 6000 Sa/s
     type(q3list) callers(MAX_CALLERS)
+    save c00
 
 ! Start by setting some parameters and allocating storage for large arrays
     call sec0(0,tdecode)
@@ -143,8 +143,6 @@ contains
 
     if(lclearave) call q65_clravg
     allocate(dd(npts))
-    allocate (c00(0:nfft1-1))
-    allocate (c0(0:nfft1-1))
 
     if(lagain) then
        call q65_hist(nfqso,dxcall=hiscall,dxgrid=hisgrid)

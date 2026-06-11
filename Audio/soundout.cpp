@@ -151,7 +151,7 @@ void SoundOutput::stop ()
 #ifdef __APPLE__
   // this code is here to help certain rigs not drop audio, however on Sequoia this causes audio to drop, so we don't do it!
   if( QOperatingSystemVersion::current() < QOperatingSystemVersion(QOperatingSystemVersion::MacOS, 15) )
-  m_stream.reset ();
+    m_stream.reset ();
 #endif
 }
 

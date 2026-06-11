@@ -14,6 +14,7 @@ LiveFrequencyValidator::LiveFrequencyValidator (QComboBox * combo_box
                                                 , Bands const * bands
                                                 , FrequencyList_v2_101 const * frequencies
                                                 , Frequency const * nominal_frequency
+                                                , bool kHz_without_k
                                                 , QWidget * parent)
   : QRegExpValidator {
       QRegExp {       // frequency in MHz or band
@@ -33,6 +34,7 @@ LiveFrequencyValidator::LiveFrequencyValidator (QComboBox * combo_box
   , frequencies_ {frequencies}
   , nominal_frequency_ {nominal_frequency}
   , combo_box_ {combo_box}
+  , kHz_without_k_ {kHz_without_k}
 {
 }
 
@@ -49,7 +51,7 @@ void LiveFrequencyValidator::fixup (QString& input) const
   QRegExpValidator::fixup (input);
   if (!bands_->oob ().startsWith (input))
     {
-      if (input.contains ('m', Qt::CaseInsensitive))
+      if (input.contains ('m', Qt::CaseSensitive))
         {
           input = input.toLower ();
 
@@ -70,7 +72,7 @@ void LiveFrequencyValidator::fixup (QString& input) const
               input = QString {};
             }
         }
-      else if (input.contains (QChar {'k'}, Qt::CaseInsensitive))
+      else if ((input.contains (QChar {'k'}, Qt::CaseInsensitive)) or (kHz_without_k_ && !input.contains (QChar {'M'}, Qt::CaseSensitive)))
         {
           // kHz in current MHz input
           auto f = Radio::frequency (input.remove (QChar {'k'}, Qt::CaseInsensitive), 3);
@@ -81,7 +83,7 @@ void LiveFrequencyValidator::fixup (QString& input) const
       else
         {
           // frequency input
-          auto f = Radio::frequency (input, 6);
+          auto f = Radio::frequency (input.remove (QChar {'M'}, Qt::CaseSensitive), 6);
           input = bands_->find (f);
           Q_EMIT valid (f);
         }

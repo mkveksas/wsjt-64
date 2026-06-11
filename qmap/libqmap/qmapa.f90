@@ -33,10 +33,12 @@ subroutine qmapa(dd,ss,savg,newdat,nutc,fcenter,ntol,nfa,nfb,         &
   character mycall*12,hiscall*12,hisgrid*6
   type(candidate) :: cand(MAX_CANDIDATES)
   type(good_decode) found(MAX_CANDIDATES)
-  character*64 result
+  character*72 result
+  character*8 result2                !liveCQ
   character*20 datetime
   common/decodes/ndecodes,ncand2,nQDecoderDone,nWDecoderBusy,              &
        nWTransmitting,kHzRequested,result(50)
+  common/decodes2/result2(50)        !liveCQ
   save
 
   tsec0=sec_midn()

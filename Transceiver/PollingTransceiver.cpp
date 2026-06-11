@@ -5,7 +5,9 @@
 #include <QObject>
 #include <QString>
 #include <QTimer>
-
+#include <QThread>
+#include <QDir>
+#include <QStandardPaths>
 #include "moc_PollingTransceiver.cpp"
 
 namespace
@@ -52,6 +54,7 @@ void PollingTransceiver::stop_timer ()
 
 void PollingTransceiver::do_post_start ()
 {
+  interval_ = 500;  // needed for displaying PWR and SWR
   start_timer ();
   if (!next_state_.online ())
     {

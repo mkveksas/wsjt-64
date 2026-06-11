@@ -2,7 +2,7 @@ subroutine to_contest_msg(msg0,msg)
 
 ! If the message has "R grid4" istead of "grid4", remove the "R "
 ! and substitute the diametrically opposite grid.
-  
+
   character*6 g1,g2
   character*22 msg0,msg
   logical isgrid

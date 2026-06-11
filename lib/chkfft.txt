@@ -19,7 +19,7 @@ path shown here for libfftw3f-3.dll):
   /JTSDK-QT/appsupport/runtime/libfftw3f-3.dll
 
 To see a brief usage message, type chkfft at the command prompt:
- 
+
 $ chkfft
  Usage: chkfft <nfft | infile> nr nw nc np
         nfft:   length of FFT
@@ -47,9 +47,9 @@ forward (or inverse) transform of length N=131072 is about 2.2 ms,
 corresponding to slightly over 5 GFlops computing speed.  The planning
 time in FFTW was 2.9 s.
 
-Running the command again with parameter nr=1 will use the 
+Running the command again with parameter nr=1 will use the
 "wisdom" already accumulated for complex N=131072 FFTs.  The execution
-speed will be essentially the same, but no planning time is required:  
+speed will be essentially the same, but no planning time is required:
 
 #######################################################################
 $ chkfft 131072 1 1 1 2
@@ -117,7 +117,7 @@ back-transfmred data.
 File nfft.dat contains all numbers between 2^3 and 2^23 with no factor
 greater than 7, followed by their factors.  These numbers are good
 choices for FFT lengths.  File all_fft.out gives the result on one
-machine of running the command 
+machine of running the command
 
 $ chkfft nfft.dat 0 1 1 2
 

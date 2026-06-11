@@ -8,10 +8,10 @@ subroutine chkcall(w,bc,cok)
   character bc*6                            !Base call (tentative)
   character c*1
   logical cok,isdigit,isletter
-  
+
   isdigit(c)=(ichar(c).ge.ichar('0')) .and. (ichar(c).le.ichar('9'))
   isletter(c)=(ichar(c).ge.ichar('A')) .and. (ichar(c).le.ichar('Z'))
-  
+
   cok=.true.
   bc=w(1:6)
   n1=len_trim(w)
@@ -55,6 +55,6 @@ subroutine chkcall(w,bc,cok)
   if(n.ge.1 .and. n.le.3) go to 200
 
 100 cok=.false.
-     
+
 200 return
 end subroutine chkcall

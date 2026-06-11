@@ -3,6 +3,8 @@
 
 #define NFFT 32768
 
+#include <QString>
+
 extern "C" {
 
 extern struct {                     //This is "common/datcom/..." in Fortran
@@ -44,5 +46,13 @@ extern struct {                     //This is "common/datcom/..." in Fortran
   int junk2;
 } datcom_;
 }
+
+extern QStringList allDecodes;
+extern QStringList allDecodes2;
+extern QString guiDate;
+
+extern bool m_w3szUrl;
+extern QString m_otherUrl;
+extern bool m_spot_to_psk_reporter;
 
 #endif // COMMONS_H

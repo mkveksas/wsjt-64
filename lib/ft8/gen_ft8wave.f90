@@ -31,10 +31,10 @@ subroutine gen_ft8wave(itone,nsym,nsps,bt,fsample,f0,cwave,wave,icmplx,nwave)
   endif
 
 ! Compute the smoothed frequency waveform.
-! Length = (nsym+2)*nsps samples, first and last symbols extended 
+! Length = (nsym+2)*nsps samples, first and last symbols extended
   dphi_peak=twopi*hmod/real(nsps)
-  dphi=0.0 
-  do j=1,nsym         
+  dphi=0.0
+  do j=1,nsym
      ib=(j-1)*nsps
      ie=ib+3*nsps-1
      dphi(ib:ie) = dphi(ib:ie) + dphi_peak*pulse(1:3*nsps)*itone(j)
@@ -49,7 +49,6 @@ subroutine gen_ft8wave(itone,nsym,nsps,bt,fsample,f0,cwave,wave,icmplx,nwave)
   if(icmplx .eq. 0) wave=0.
   if(icmplx .ne. 0) cwave=0. !Avoid writing to memory we may not have access to
 
-  call timer('gen_loop',0)
   k=0
   do j=nsps,nsps+nwave-1                         !Don't include dummy symbols
      k=k+1
@@ -61,7 +60,6 @@ subroutine gen_ft8wave(itone,nsym,nsps,bt,fsample,f0,cwave,wave,icmplx,nwave)
      endif
      phi=mod(phi+dphi(j),twopi)
   enddo
-  call timer('gen_loop',1)
 
 ! Apply envelope shaping to the first and last symbols
   nramp=nint(nsps/8.0)

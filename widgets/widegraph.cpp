@@ -33,6 +33,8 @@ WideGraph::WideGraph(QSettings * settings, QWidget *parent) :
   ui->widePlot->setCursor(Qt::CrossCursor);
   ui->widePlot->setMaximumHeight(800);
   ui->widePlot->setCurrent(false);
+  ui->cbControls->setCursor(Qt::ArrowCursor);
+  ui->cbBars->setCursor(Qt::ArrowCursor);
 
   connect(ui->widePlot, SIGNAL(freezeDecode1(int)),this,
           SLOT(wideFreezeDecode(int)));
@@ -52,7 +54,17 @@ WideGraph::WideGraph(QSettings * settings, QWidget *parent) :
     ui->gainSlider->setValue(ui->widePlot->plotGain());
     ui->gain2dSlider->setValue(ui->widePlot->plot2dGain());
     ui->zero2dSlider->setValue(ui->widePlot->plot2dZero());
-    int n = m_settings->value("BinsPerPixel",2).toInt();
+    m_timestamp = 1; int itstamp=m_settings->value("Timestamp",1).toInt();
+    QString ststamp=m_settings->value("Timestamp","1").toString();
+    if(ststamp == "0" || ststamp == "1" || ststamp == "2") m_timestamp = itstamp;
+    ui->timestampComboBox->setCurrentIndex(m_timestamp); ui->widePlot->setTimestamp(m_timestamp);
+    m_bars=m_settings->value("Bars",true).toBool();
+    ui->cbBars->setChecked(m_bars);
+    ui->widePlot->setBars(m_bars);
+    m_freq=m_settings->value("Freq",true).toBool();
+    ui->cbFreq->setChecked(m_freq);
+    ui->widePlot->showFreq(m_freq);
+    int n = m_settings->value("BinsPerPixel",5).toInt();
     m_bFlatten=m_settings->value("Flatten",true).toBool();
     m_bRef=m_settings->value("UseRef",false).toBool();
     ui->cbFlatten->setChecked(m_bFlatten);
@@ -63,7 +75,7 @@ WideGraph::WideGraph(QSettings * settings, QWidget *parent) :
     m_nsmo=m_settings->value("SmoothYellow",1).toInt();
     ui->smoSpinBox->setValue(m_nsmo);
     m_Percent2DScreen=m_settings->value("Percent2D",30).toInt();
-    m_waterfallAvg = m_settings->value("WaterfallAvg",5).toInt();
+    m_waterfallAvg = m_settings->value("WaterfallAvg",2).toInt();
     ui->waterfallAvgSpinBox->setValue(m_waterfallAvg);
     ui->widePlot->setWaterfallAvg(m_waterfallAvg);
     ui->widePlot->setCurrent(m_settings->value("Current",false).toBool());
@@ -78,7 +90,7 @@ WideGraph::WideGraph(QSettings * settings, QWidget *parent) :
     if(ui->widePlot->Reference()) ui->spec2dComboBox->setCurrentIndex(3);
     if(ui->widePlot->Q65_Sync()) ui->spec2dComboBox->setCurrentIndex(4);
     if(ui->widePlot->TotalPower()) ui->spec2dComboBox->setCurrentIndex(5);
-    int nbpp=m_settings->value("BinsPerPixel",2).toInt();
+    int nbpp=m_settings->value("BinsPerPixel",4).toInt();
     ui->widePlot->setBinsPerPixel(nbpp);
     ui->sbPercent2dPlot->setValue(m_Percent2DScreen);
     ui->widePlot->setStartFreq(m_settings->value("StartFreq",0).toInt());
@@ -143,6 +155,9 @@ void WideGraph::saveSettings()                                           //saveS
   m_settings->setValue("Flatten",m_bFlatten);
   m_settings->setValue("UseRef",m_bRef);
   m_settings->setValue ("HideControls", ui->controls_widget->isHidden ());
+  m_settings->setValue ("Timestamp",m_timestamp);
+  m_settings->setValue ("Bars", m_bars);
+  m_settings->setValue ("Freq", m_freq);
   m_settings->setValue ("FminPerBand", m_fMinPerBand);
 }
 
@@ -218,7 +233,7 @@ void WideGraph::on_waterfallAvgSpinBox_valueChanged(int n)                  //Na
 }
 
 void WideGraph::keyPressEvent(QKeyEvent *e)                                 //F11, F12
-{  
+{
   switch(e->key())
   {
   int n;
@@ -296,7 +311,10 @@ void WideGraph::setTxFreq(int n)                                   //setTxFreq
 void WideGraph::setMode(QString mode)                              //setMode
 {
   m_mode=mode;
+  ui->fSplitSpinBox->setVisible(m_mode.startsWith("FST4"));
   ui->fSplitSpinBox->setEnabled(m_mode.startsWith("FST4"));
+  ui->labTime->setVisible(!m_mode.startsWith("FST4"));
+  ui->timestampComboBox->setVisible(!m_mode.startsWith("FST4"));
   ui->widePlot->setMode(mode);
   ui->widePlot->DrawOverlay();
   ui->widePlot->update();
@@ -434,6 +452,24 @@ void WideGraph::on_cbControls_toggled(bool b)
   ui->controls_widget->setVisible(b);
 }
 
+void WideGraph::on_timestampComboBox_currentIndexChanged(int n)
+{
+  m_timestamp = n;
+  ui->widePlot->setTimestamp(n);
+}
+
+void WideGraph::on_cbBars_toggled(bool b)
+{
+  m_bars = b;
+  ui->widePlot->setBars(m_bars);
+}
+
+void WideGraph::on_cbFreq_toggled(bool b)
+{
+  m_freq = b;
+  ui->widePlot->showFreq(m_freq);
+}
+
 void WideGraph::on_adjust_palette_push_button_clicked (bool)   //Adjust Palette
 {
   try
@@ -559,6 +595,11 @@ void WideGraph::setRedFile(QString fRed)
 void WideGraph::setDiskUTC(int nutc)
 {
   ui->widePlot->setDiskUTC(nutc);
+}
+
+void WideGraph::setDarkStyle(bool b)
+{
+  ui->widePlot->setDarkStyle(b);
 }
 
 void WideGraph::restartTotalPower()

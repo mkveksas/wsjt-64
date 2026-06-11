@@ -10,7 +10,7 @@ subroutine analytic(d,npts,nfft,c,pc,beq)
   real*8 ac(5),aclast(5)    ! amp coeffs
   real*8 fp
 
-  complex corr(NFFTMAX/2)  ! complex frequency-dependent correction 
+  complex corr(NFFTMAX/2)  ! complex frequency-dependent correction
   complex c(NFFTMAX)        ! analytic signal
 
   logical*1 beq            ! boolean static equalizer flag
@@ -19,7 +19,7 @@ subroutine analytic(d,npts,nfft,c,pc,beq)
   data aclast/0.0,0.0,0.0,0.0,0.0/
   data pclast/0.0,0.0,0.0,0.0,0.0/
 !  data ac/1.0,0.05532,0.11438,0.12918,0.09274/ ! amp coeffs for TS2000
-  data ac/1.0,0.0,0.0,0.0,0.0/ 
+  data ac/1.0,0.0,0.0,0.0,0.0/
 
   save corr,nfft0,h,ac,aclast,pclast,pi,t,beta
 

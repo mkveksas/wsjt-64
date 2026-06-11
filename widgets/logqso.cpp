@@ -4,9 +4,12 @@
 #include <QString>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QStringList>
 #include <QDir>
+#include <QTimer>
 #include <QPushButton>
 
+#include "HelpTextWindow.hpp"
 #include "logbook/logbook.h"
 #include "MessageBox.hpp"
 #include "Configuration.hpp"
@@ -19,6 +22,7 @@
 
 namespace
 {
+  auto const sat_file_name = "sat.dat";
   struct PropMode
   {
     char const * id_;
@@ -44,7 +48,35 @@ namespace
      , {"RS", QT_TRANSLATE_NOOP ("LogQSO", "Rain scatter")}
      , {"SAT", QT_TRANSLATE_NOOP ("LogQSO", "Satellite")}
      , {"TEP", QT_TRANSLATE_NOOP ("LogQSO", "Trans-equatorial")}
-     , {"TR", QT_TRANSLATE_NOOP ("LogQSO", "Troposheric ducting")}
+     , {"TR", QT_TRANSLATE_NOOP ("LogQSO", "Tropospheric ducting")}
+    };
+  struct SatMode
+  {
+    char const * id_;
+    char const * name_;
+  };
+  constexpr SatMode sat_modes[] =
+    {
+      {"", ""}
+      , {"A", QT_TRANSLATE_NOOP ("LogQSO", "A")}
+      , {"B", QT_TRANSLATE_NOOP ("LogQSO", "B")}
+      , {"BS", QT_TRANSLATE_NOOP ("LogQSO", "BS")}
+      , {"JA", QT_TRANSLATE_NOOP ("LogQSO", "JA")}
+      , {"JD", QT_TRANSLATE_NOOP ("LogQSO", "JD")}
+      , {"K", QT_TRANSLATE_NOOP ("LogQSO", "K")}
+      , {"KA", QT_TRANSLATE_NOOP ("LogQSO", "KA")}
+      , {"KT", QT_TRANSLATE_NOOP ("LogQSO", "KT")}
+      , {"L", QT_TRANSLATE_NOOP ("LogQSO", "L")}
+      , {"LS", QT_TRANSLATE_NOOP ("LogQSO", "LS")}
+      , {"LU", QT_TRANSLATE_NOOP ("LogQSO", "LU")}
+      , {"LX", QT_TRANSLATE_NOOP ("LogQSO", "LX")}
+      , {"S", QT_TRANSLATE_NOOP ("LogQSO", "S")}
+      , {"SX", QT_TRANSLATE_NOOP ("LogQSO", "SX")}
+      , {"T", QT_TRANSLATE_NOOP ("LogQSO", "T")}
+      , {"US", QT_TRANSLATE_NOOP ("LogQSO", "US")}
+      , {"UV", QT_TRANSLATE_NOOP ("LogQSO", "UV")}
+      , {"VS", QT_TRANSLATE_NOOP ("LogQSO", "VS")}
+      , {"VU", QT_TRANSLATE_NOOP ("LogQSO", "VU")}
     };
 }
 
@@ -58,11 +90,34 @@ LogQSO::LogQSO(QString const& programTitle, QSettings * settings
 {
   ui->setupUi(this);
   setWindowTitle(programTitle + " - Log QSO");
+  ui->comboBoxSatellite->addItem ("", "");
+  QString sat_file_location;
+  QDir dataPath {QStandardPaths::writableLocation (QStandardPaths::DataLocation)};
+  sat_file_location = dataPath.exists(sat_file_name) ? dataPath.absoluteFilePath(sat_file_name) : m_config->data_dir ().absoluteFilePath (sat_file_name);
+  QFile file {sat_file_location};
+  QStringList wordList;
+  QTextStream stream(&file);
+  if(file.open (QIODevice::ReadOnly | QIODevice::Text)) {
+      while (!stream.atEnd()) {
+          QString line = stream.readLine();
+          wordList = line.split('|');
+          ui->comboBoxSatellite->addItem (wordList[1], wordList[0]);
+      }
+      stream.flush();
+      file.close();
+  }
   for (auto const& prop_mode : prop_modes)
     {
       ui->comboBoxPropMode->addItem (prop_mode.name_, prop_mode.id_);
     }
+  for (auto const& sat_mode : sat_modes)
+    {
+      ui->comboBoxSatMode->addItem (sat_mode.name_, sat_mode.id_);
+    }
   loadSettings ();
+  connect (ui->comboBoxPropMode, &QComboBox::currentTextChanged, this, &LogQSO::propModeChanged);
+  connect (ui->comments, &QComboBox::currentTextChanged, this, &LogQSO::commentsChanged);
+  connect (ui->addButton, &QPushButton::clicked, this, &LogQSO::on_addButton_clicked);
   auto date_time_format = QLocale {}.dateFormat (QLocale::ShortFormat) + " hh:mm:ss";
   ui->start_date_time->setDisplayFormat (date_time_format);
   ui->end_date_time->setDisplayFormat (date_time_format);
@@ -80,14 +135,56 @@ void LogQSO::loadSettings ()
   ui->cbTxPower->setChecked (m_settings->value ("SaveTxPower", false).toBool ());
   ui->cbComments->setChecked (m_settings->value ("SaveComments", false).toBool ());
   ui->cbPropMode->setChecked (m_settings->value ("SavePropMode", false).toBool ());
-  m_txPower = m_settings->value ("TxPower", "").toString ();
+  ui->cbSatellite->setChecked (m_settings->value ("SaveSatellite", false).toBool ());
+  ui->cbSatMode->setChecked (m_settings->value ("SaveSatMode", false).toBool ());
   m_comments = m_settings->value ("LogComments", "").toString();
+  m_txPower = m_settings->value ("TxPower", "").toString ();
+
   int prop_index {0};
   if (ui->cbPropMode->isChecked ())
     {
       prop_index = ui->comboBoxPropMode->findData (m_settings->value ("PropMode", "").toString());
     }
   ui->comboBoxPropMode->setCurrentIndex (prop_index);
+  int sat_mode_index {0};
+  if (ui->cbSatMode->isChecked ())
+    {
+      sat_mode_index = ui->comboBoxSatMode->findData (m_settings->value ("SatMode", "").toString());
+    }
+  ui->comboBoxSatMode->setCurrentIndex (sat_mode_index);
+  int satellite {0};
+  if (ui->cbSatellite->isChecked ())
+    {
+      satellite = ui->comboBoxSatellite->findData (m_settings->value ("Satellite", "").toString());
+    }
+  ui->comboBoxSatellite->setCurrentIndex (satellite);
+  if (m_settings->value ("PropMode", "") != "SAT")
+  {
+      ui->cbSatellite->setDisabled(true);
+      ui->comboBoxSatellite->setDisabled(true);
+      ui->cbSatMode->setDisabled(true);
+      ui->comboBoxSatMode->setDisabled(true);
+  }
+  m_freqRx = m_settings->value ("FreqRx", "").toString ();
+  ui->cbFreqRx->setChecked (m_settings->value ("SaveFreqRx", false).toBool ());
+
+  QString comments_location;  // load the content of comments.txt file to the comments combo box
+  QDir dataPath {QStandardPaths::writableLocation (QStandardPaths::DataLocation)};
+  comments_location = dataPath.exists("comments.txt") ? dataPath.absoluteFilePath("comments.txt") : m_config->data_dir ().absoluteFilePath ("comments.txt");
+  QFile file2 {comments_location};
+  QTextStream stream2(&file2);
+  if(file2.open (QIODevice::ReadOnly | QIODevice::Text)) {
+      while (!stream2.atEnd()) {
+          QString line = stream2.readLine();
+          ui->comments->addItem (line);
+      }
+      stream2.flush();
+      file2.close();
+  } else {
+      ui->comments->addItem ("");
+  }
+  if (ui->cbComments->isChecked ()) ui->comments->setItemText(ui->comments->currentIndex(), m_comments);
+
   m_settings->endGroup ();
 }
 
@@ -98,9 +195,19 @@ void LogQSO::storeSettings () const
   m_settings->setValue ("SaveTxPower", ui->cbTxPower->isChecked ());
   m_settings->setValue ("SaveComments", ui->cbComments->isChecked ());
   m_settings->setValue ("SavePropMode", ui->cbPropMode->isChecked ());
+  m_settings->setValue ("SaveSatellite", ui->cbSatellite->isChecked ());
+  m_settings->setValue ("SaveSatMode", ui->cbSatMode->isChecked ());
+  m_settings->setValue ("SaveFreqRx", ui->cbFreqRx->isChecked ());
   m_settings->setValue ("TxPower", m_txPower);
-  m_settings->setValue ("LogComments", m_comments);
+  if (ui->cbComments->isChecked ()) {
+    m_settings->setValue ("LogComments", m_comments);
+  } else {
+    m_settings->setValue ("LogComments", "");
+  }
   m_settings->setValue ("PropMode", ui->comboBoxPropMode->currentData ());
+  m_settings->setValue ("Satellite", ui->comboBoxSatellite->currentData ());
+  m_settings->setValue ("SatMode", ui->comboBoxSatMode->currentData ());
+  m_settings->setValue ("FreqRx", m_freqRx);
   m_settings->endGroup ();
 }
 
@@ -120,7 +227,12 @@ void LogQSO::initLogQSO(QString const& hisCall, QString const& hisGrid, QString 
   caBtn->setDefault(false);
 
   ui->call->setText (hisCall);
-  ui->grid->setText (hisGrid);
+  if (m_config->log4digitGrids()) {
+    ui->grid->setText (hisGrid.left(4));
+  } else {
+    ui->grid->setText (hisGrid);
+  }
+  if (hisGrid == "" && m_config->ZZ00()) ui->grid->setText("ZZ00");
   ui->name->clear ();
   if (ui->cbTxPower->isChecked ())
     {
@@ -130,19 +242,29 @@ void LogQSO::initLogQSO(QString const& hisCall, QString const& hisGrid, QString 
     {
       ui->txPower->clear ();
     }
-  if (ui->cbComments->isChecked ())
+  if (ui->cbFreqRx->isChecked ())
     {
-      ui->comments->setText (m_comments);
+      ui->freqRx->setText (m_freqRx);
     }
   else
     {
-      ui->comments->clear ();
+      ui->freqRx->clear ();
+    }
+  if (ui->cbComments->isChecked ())
+    {
+      ui->comments->setItemText(ui->comments->currentIndex(), m_comments);
+    }
+  else
+    {
+      ui->comments->setCurrentIndex(0);
+      ui->comments->setItemText(ui->comments->currentIndex(), "");
     }
   if (m_config->report_in_comments()) {
     auto t=mode;
     if(rptSent!="") t+="  Sent: " + rptSent;
     if(rptRcvd!="") t+="  Rcvd: " + rptRcvd;
-    ui->comments->setText(t);
+    ui->comments->setCurrentIndex(0);
+    ui->comments->setItemText(ui->comments->currentIndex(), t);
   }
   if(noSuffix and mode.mid(0,3)=="JT9") mode="JT9";
   if(m_config->log_as_RTTY() and mode.mid(0,3)=="JT9") mode="RTTY";
@@ -162,12 +284,74 @@ void LogQSO::initLogQSO(QString const& hisCall, QString const& hisGrid, QString 
     {
       ui->comboBoxPropMode->setCurrentIndex (-1);
     }
+  if (!ui->cbSatellite->isChecked ())
+    {
+      ui->comboBoxSatellite->setCurrentIndex (-1);
+      ui->comboBoxSatMode->setCurrentIndex (-1);
+    }
 
   using SpOp = Configuration::SpecialOperatingActivity;
   auto special_op = m_config->special_op_id ();
+
+  // put contest name in comments
+  if (SpOp::NONE != special_op && SpOp::HOUND != special_op && SpOp::FOX != special_op
+      && m_config->Individual_Contest_Name() && !m_config->report_in_comments()
+      && m_config->Contest_Name() !="" && !ui->cbComments->isChecked() && m_config->specOp_in_comments()) {
+    QString Contest_Name = (m_config->Contest_Name() + " Contest");
+    ui->comments->setCurrentIndex(0);
+    ui->comments->setItemText(ui->comments->currentIndex(), Contest_Name);
+  }
+  if (SpOp::NA_VHF == special_op && !m_config->Individual_Contest_Name() && !m_config->report_in_comments()
+      && !ui->cbComments->isChecked() && m_config->specOp_in_comments()) {
+    QString Contest_Name = ("NA VHF Contest");
+    ui->comments->setCurrentIndex(0);
+    ui->comments->setItemText(ui->comments->currentIndex(), Contest_Name);
+  }
+  if (SpOp::EU_VHF == special_op && !m_config->Individual_Contest_Name() && !m_config->report_in_comments()
+      && !ui->cbComments->isChecked() && m_config->specOp_in_comments()) {
+    QString Contest_Name = ("EU VHF Contest");
+    ui->comments->setCurrentIndex(0);
+    ui->comments->setItemText(ui->comments->currentIndex(), Contest_Name);
+  }
+  if (SpOp::WW_DIGI == special_op && !m_config->Individual_Contest_Name() && !m_config->report_in_comments()
+      && !ui->cbComments->isChecked() && m_config->specOp_in_comments()) {
+    QString Contest_Name = ("WW Digi Contest");
+    ui->comments->setCurrentIndex(0);
+    ui->comments->setItemText(ui->comments->currentIndex(), Contest_Name);
+  }
+  if (SpOp::FIELD_DAY == special_op && !m_config->Individual_Contest_Name() && !m_config->report_in_comments()
+      && !ui->cbComments->isChecked() && m_config->specOp_in_comments()) {
+    QString Contest_Name = ("ARRL Field Day");
+    ui->comments->setCurrentIndex(0);
+    ui->comments->setItemText(ui->comments->currentIndex(), Contest_Name);
+  }
+  if (SpOp::RTTY == special_op && !m_config->Individual_Contest_Name() && !m_config->report_in_comments()
+      && !ui->cbComments->isChecked() && m_config->specOp_in_comments()) {
+    QString Contest_Name = ("FT Roundup messages");
+    ui->comments->setCurrentIndex(0);
+    ui->comments->setItemText(ui->comments->currentIndex(), Contest_Name);
+  }
+  if (SpOp::ARRL_DIGI == special_op && !m_config->Individual_Contest_Name() && !m_config->report_in_comments()
+      && !ui->cbComments->isChecked() && m_config->specOp_in_comments()) {
+    QString Contest_Name = ("ARRL Digi Contest");
+    ui->comments->setCurrentIndex(0);
+    ui->comments->setItemText(ui->comments->currentIndex(), Contest_Name);
+  }
+  if (SpOp::HOUND == special_op && !m_config->report_in_comments()
+      && !ui->cbComments->isChecked() && m_config->specOp_in_comments()) {
+    QString Contest_Name = ("F/H mode");
+    if (m_config->superFox()) Contest_Name = ("SF/H mode");
+    ui->comments->setCurrentIndex(0);
+    ui->comments->setItemText(ui->comments->currentIndex(), Contest_Name);
+  }
+  if (SpOp::NONE == special_op && !m_config->report_in_comments()
+      && !ui->cbComments->isChecked() && m_config->specOp_in_comments()) {
+    m_comments = "";
+  }
+
   if (SpOp::FOX == special_op
-      || (m_config->autoLog ()
-          && ((SpOp::NONE < special_op && special_op < SpOp::FOX) || SpOp::ARRL_DIGI == special_op)))
+      || (m_config->autoLog () && ((SpOp::NONE < special_op && special_op < SpOp::FOX)
+          || SpOp::ARRL_DIGI == special_op || !m_config->contestingOnly ())))
     {
       // allow auto logging in Fox mode and contests
       accept();
@@ -190,7 +374,6 @@ void LogQSO::accept()
   auto band = ui->band->text ();
   auto name = ui->name->text ();
   m_txPower = ui->txPower->text ();
-  m_comments = ui->comments->text ();
   auto strDialFreq = QString::number (m_dialFreq / 1.e6,'f',6);
   auto operator_call = ui->loggedOperator->text ();
   auto xsent = ui->exchSent->text ();
@@ -241,6 +424,14 @@ void LogQSO::accept()
     }
 
   auto const& prop_mode = ui->comboBoxPropMode->currentData ().toString ();
+  auto satellite = ui->comboBoxSatellite->currentData ().toString ();
+  auto sat_mode = ui->comboBoxSatMode->currentData ().toString ();
+  // Add sat name and sat mode tags only if "Satellite" is selected as prop mode
+  if (prop_mode != "SAT") {
+    satellite = "";
+    sat_mode = "";
+  }
+  m_freqRx = ui->freqRx->text ();
   //Log this QSO to file "wsjtx.log"
   static QFile f {QDir {QStandardPaths::writableLocation (QStandardPaths::DataLocation)}.absoluteFilePath ("wsjtx.log")};
   if(!f.open(QIODevice::Text | QIODevice::Append)) {
@@ -254,7 +445,8 @@ void LogQSO::accept()
       dateTimeOff.time().toString("hh:mm:ss,") + hisCall + "," +
       hisGrid + "," + strDialFreq + "," + mode +
       "," + rptSent + "," + rptRcvd + "," + m_txPower +
-      "," + m_comments + "," + name + "," + prop_mode;
+      "," + m_comments + "," + name + "," + prop_mode +
+      "," + satellite + "," + sat_mode + "," + m_freqRx;
     QTextStream out(&f);
     out << logEntry <<
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
@@ -284,6 +476,9 @@ void LogQSO::accept()
                     , xsent
                     , xrcvd
                     , prop_mode
+                    , satellite
+                    , sat_mode
+                    , m_freqRx
                     , m_log->QSOToADIF (hisCall
                                         , hisGrid
                                         , mode
@@ -301,8 +496,93 @@ void LogQSO::accept()
                                         , operator_call
                                         , xsent
                                         , xrcvd
-                                        , prop_mode));
+                                        , prop_mode
+                                        , satellite
+                                        , sat_mode
+                                        , m_freqRx));
   QDialog::accept();
+}
+
+void LogQSO::propModeChanged()
+{
+  if (ui->comboBoxPropMode->currentData() != "SAT") {
+      ui->comboBoxSatellite->setCurrentIndex(0);
+      ui->comboBoxSatellite->setDisabled(true);
+      ui->cbSatellite->setDisabled(true);
+      ui->comboBoxSatMode->setCurrentIndex(0);
+      ui->comboBoxSatMode->setDisabled(true);
+      ui->cbSatMode->setDisabled(true);
+  } else {
+      ui->comboBoxSatellite->setDisabled(false);
+      ui->cbSatellite->setDisabled(false);
+      ui->comboBoxSatMode->setDisabled(false);
+      ui->cbSatMode->setDisabled(false);
+  }
+}
+
+void LogQSO::commentsChanged(const QString& text)
+{
+  int index = ui->comments->findText(text);
+  if(index != -1)
+  {
+    ui->comments->setCurrentIndex(index);
+  }
+  m_comments = (ui->comments->currentIndex(), text);
+  m_comments_temp = (ui->comments->currentIndex(), text);
+}
+
+void LogQSO::on_addButton_clicked()
+{
+  m_settings->setValue ("LogComments", m_comments_temp);
+  if (m_comments_temp != "") {
+      QString comments_location = m_config->writeable_data_dir().absoluteFilePath("comments.txt");
+      if(QFileInfo::exists(m_config->writeable_data_dir().absoluteFilePath("comments.txt"))) {
+      QFile file2 {comments_location};
+        if (file2.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) {
+            QTextStream out(&file2);
+            out << m_comments_temp              // append new line to comments.txt
+    #if QT_VERSION >= QT_VERSION_CHECK (5, 15, 0)
+            << Qt::endl
+    #else
+            << endl
+    #endif
+            ;
+          file2.close();
+          MessageBox::information_message (this,
+                                           "Your comment has been added to the comments list.\n\n"
+                                           "To edit your comments list, open the file\n"
+                                           "\"comments.txt\" from your log directory");
+        }
+      } else {
+          QFile file2 {comments_location};
+         if (file2.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) {
+             QTextStream out(&file2);
+             out << ("\n" + m_comments_temp)    // create file "comments.txt" and add a blank line
+    #if QT_VERSION >= QT_VERSION_CHECK (5, 15, 0)
+              << Qt::endl
+    #else
+              << endl
+    #endif
+            ;
+          file2.close();
+          MessageBox::information_message (this,
+                                           "Your comment has been added to the comments list.\n\n"
+                                           "To edit your comments list, open the file\n"
+                                           "\"comments.txt\" from your log directory");
+         }
+      }
+      ui->comments->clear();               // clear the comments combo box and reload updated content
+      QFile file2 {comments_location};
+      QTextStream stream2(&file2);
+      if(file2.open (QIODevice::ReadOnly | QIODevice::Text)) {
+          while (!stream2.atEnd()) {
+              QString line = stream2.readLine();
+              ui->comments->addItem (line);
+          }
+          stream2.flush();
+          file2.close();
+      }
+  }
 }
 
 // closeEvent is only called from the system menu close widget for a

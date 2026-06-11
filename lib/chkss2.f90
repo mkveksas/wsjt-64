@@ -17,4 +17,3 @@ subroutine chkss2(ss2,freq,drift,schk)
 
   return
 end subroutine chkss2
-

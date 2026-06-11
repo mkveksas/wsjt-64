@@ -29,9 +29,9 @@ subroutine genmsk40(msg,msgsent,ichk,itone,itype)
 10 irpt=i                                   !Report index, 0-15
   if(ichk.lt.10000) then
      hashmsg=msg(2:i1-1)
-     call hash(hashmsg,37,ihash)          
-     ihash=iand(ihash,4095)                 !12-bit hash 
-     ig=16*ihash + irpt                     !4-bit report 
+     call hash(hashmsg,37,ihash)
+     ihash=iand(ihash,4095)                 !12-bit hash
+     ig=16*ihash + irpt                     !4-bit report
   else
      ig=ichk-10000
   endif
@@ -56,11 +56,10 @@ subroutine genmsk40(msg,msgsent,ichk,itone,itype)
   enddo
 
 ! Flip polarity
-  itone=-itone+1 
+  itone=-itone+1
 
   msgsent=msg
   itype=7
 
 900 return
 end subroutine genmsk40
-

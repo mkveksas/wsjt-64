@@ -1,15 +1,206 @@
- __       __   ______      _____  ________      __    __ 
+ __       __   ______      _____  ________      __    __
 |  \  _  |  \ /      \    |     \|        \    |  \  |  \
 | $$ / \ | $$|  $$$$$$\    \$$$$$ \$$$$$$$$    | $$  | $$
 | $$/  $\| $$| $$___\$$      | $$   | $$ ______ \$$\/  $$
-| $$  $$$\ $$ \$$    \  __   | $$   | $$|      \ >$$  $$ 
-| $$ $$\$$\$$ _\$$$$$$\|  \  | $$   | $$ \$$$$$$/  $$$$\ 
+| $$  $$$\ $$ \$$    \  __   | $$   | $$|      \ >$$  $$
+| $$ $$\$$\$$ _\$$$$$$\|  \  | $$   | $$ \$$$$$$/  $$$$\
 | $$$$  \$$$$|  \__| $$| $$__| $$   | $$       |  $$ \$$\
 | $$$    \$$$ \$$    $$ \$$    $$   | $$       | $$  | $$
  \$$      \$$  \$$$$$$   \$$$$$$     \$$        \$$   \$$
-                                                         
-                                                         
-Copyright 2001 - 2025 by Joe Taylor, K1JT, and the WSJT Development Team
+
+
+Copyright 2001 - 2026 by Joe Taylor, K1JT, and the WSJT Development Team
+
+                        Release: WSJT-X 3.0.1
+                             May 4, 2026
+                      -------------------------
+
+WSJT-X 3.0.1 is a bug-fix release; installation packages include QMAP
+but not MAP65. Code has the following changes since release 3.0.0:
+
+ - In posts sent to PSKReporter, version 3.0.0 incorrectly identified
+   itself as "WSJT-X v3.0.0 i+". Corrected.
+
+ - Uploads to CloudLog are re-enabled.
+
+ - UI Compatibility mode is enabled for better display on macOS Tahoe.
+
+ - A bug sometimes affecting CW transmissions in Echo mode has been
+   fixed.
+
+ - A bug preventing callsign highlighting in some circumstances has
+   been fixed.
+
+ - Corrected band limits for the 2.5 mm and 2 mm bands.
+
+ - Correct faulty repositioning of SWR label in status bar, after a
+   mode switch.
+
+ - Fix stale Band Activity decodes after enabling SuperFox while in
+   Hound mode (reported by AF8C).
+
+
+			Release: WSJT-X 3.0.0
+                            April 8, 2026
+                      -------------------------
+
+WSJT-X 3.0.0 introduces a number of new features and capabilities,
+many of which are already familiar to users of Release Candidate
+WSJT-X 3.0.0-rc1. Among the more important enhancements since version
+2.7.0 are the following:
+
+ - Single-click Band Buttons, enabled from the View menu.
+
+ - FT8 Decoding option for parallel processing in concurrent threads,
+   and other changes that yield improved decoding speed and
+   performance.
+
+ - Optional filters to suppress display of various categories of
+   decoded messages.
+
+ - Options to Wait and Reply, Wait and Call, and Wait and Pounce.
+
+ - Audible Alerts to play a sound alerting you to reception of a
+   message with specified content.
+
+ - Transmitted Power and SWR can be displayed (as reported by the
+   radio) in a Status Bar label. Transmission can be stopped
+   automatically if SWR exceeds 2.5.  These features work with most
+   modern radios controlled via Hamlib or FLRig.
+
+ - Band Hopping checkboxes for FT8, FT4 and MSK144 can activate
+   sequential reception intervals on the main sub-bands, or on up to
+   eight specified dial frequencies.
+
+ - High Resolution Monitors are supported with better scaling of fonts
+   and widget sizes.
+
+ - "Highlight orange" and "Highlight blue" features on the File |
+   Settings | Colors tab can now be used to highlight directional
+   calls (DX, SOTA, POTA, YOTA, etc.).
+
+ - MSK144 operation: "73" messages addressed to MyCall are now also
+   displayed in the right pane. A blank line is inserted between
+   decodes for different TR periods.
+
+ - Moon ephemeris charts can be downloaded from the Help menu.
+
+ - New EME Features include easier ways to select dial frequencies
+   within an EME sub-band and to offset your Tx frequency by an
+   integer number of MHz from the Rx frequency. New buttons are
+   provided for quick access to Echo mode and six popular Q65
+   sub-modes.
+
+ - Echo mode allows you to transmit your callsign (or any other
+   6-character group) to the Moon and decode its echo.
+
+ - QMAP and MAP65 offer spotting to the CQLive and PSKReporter web
+   sites and improved handling of compound callsigns.
+
+
+                        Release: WSJT-X 3.0.0-rc1
+                          September 15, 2025
+                      -------------------------
+
+WSJT-X 3.0.0 introduces a number of new features and capabilities.
+Release Candidates give advanced users an opportunity to exercise
+new features and provide feedback to developers. If you use this
+Release Candidate 1, please send related comments or questions to
+one of our user forums.
+
+The following features will be already familiar to those using one of
+the WSJT-X Improved 2.8.0 i+ editions, but new to users of WSJT-X
+2.7.0 and all earlier versions:
+
+ - Single-click Band Buttons can be enabled from the View menu.
+
+ - Filters can be used to suppress the display of various categories
+   of decoded messages.
+
+ - Options to Wait and Reply, Wait and Call, and Wait and Pounce can
+   help you make QSOs under difficult propagation conditions while
+   minimizing transmitted QRM. These features, Filters, and
+   Auto-Sequencing are now available for all WSJT-X modes.
+
+ - Optional Audible Alerts can play a sound alerting you to reception
+   of a message with speficied content.
+
+ - Full Duplex Mode allows WSJT-X to transmit and receive at the same
+   time.
+
+ - Transceiver Control Interface (TCI) is supported for rig control
+   and audio input/output.
+
+ - SuperHound operators can activate Wait and Call for a SuperFox
+   callsign, even if SuperFox has not yet been decoded. Fox operators
+   receive a warning message if another Fox appears to be on the same
+   frequency.
+
+ - Transmitted Power and SWR can be displayed (as reported by the
+   radio) in a Status Bar label. Transmission can be stopped
+   automatically if SWR exceeds 2.5.  These features work with most
+   modern radios controlled via Hamlib or FLRig.
+
+ - Band Hopping checkboxes for FT8, FT4 and MSK144 can activate
+   sequential reception intervals on the main sub-bands, or on up to
+   eight specified dial frequencies.
+
+ - Saved Audio Files can be scheduled for automatic deletion after 30
+   days.
+
+ - CALL3.TXT files for either terrestrial or EME use can be downloaded
+   by clicking a button on the File | Settings | Colors tab.
+
+ - Logging now supports field type for satellite QSOs, and the "Log
+   Automatically" option is available when not in contest mode. New
+   checkboxes on the File | Settings | Reporting tab provide support
+   for certain contests.
+
+ - The OpenSSL library is now installed automatically with WSJT-X.
+
+ - High Resolution Monitors are supported with better scaling of fonts
+   and widget sizes.
+
+ - New EME Features include easier ways to select dial frequencies
+   within an EME sub-band and to offset your Tx frequency by an
+   integer number of MHz from the Rx frequency. New buttons are
+   provided for quick access to Echo mode and six popular Q65
+   sub-modes.
+
+ - QMAP version 0.5 and MAP65 version 3.1 offer CQLive spotting and
+   some other improvements.
+
+The following features are new for everyone:
+
+ - FT8 Decoding includes an option for parallel processing in
+   concurrent threads, and other changes to yield improved
+   performance.
+
+ - Echo mode allows you to transmit your callsign (or any other
+   6-character group) to the Moon and decode its echo.
+
+ - Quick Filter categories can highlight decoded transmissions
+   from specified territories.
+
+ - Right-click on the Band Hopping button to move you to the next
+   specified band hopping frequency.
+
+ - MSK144 operation: "73" messages addressed to MyCall are now also
+   displayed in the right pane. A bank line is inserted between
+   decodes for different TR periods.
+
+ - Q65 operation at VHF: A new option on the Decode menu disables
+   mouse clicks on the waterfall unless ALT key is held down.
+
+ - "Highlight orange" and "Highlight blue" features on the File |
+   Settings | Colors tab can now be used to highlight directional
+   calls (DX, SOTA, POTA, YOTA, etc.).
+
+ - QMAP and MAP65: Improved handling of long compound messages in Q65
+   mode. Corrected a bug that could cause a crash when receiving a CQ
+   message not containing a grid.
+
+ - A variety of other minor improvements and bug fixes.
 
 
                         Release: WSJT-X 2.7.0
@@ -33,10 +224,10 @@ of a button, and various other improvements.
    many simultaneous callers and very weak signals, such as those
    experienced by 6-meter EME DXpeditions.
 
- - SuperFox mode behaves operationally like the old-style Fox and Hounds 
-   mode but uses a new constant envelope waveform for Fox’s transmissions. 
-   Messages can be transmitted simultaneously to as many as 9 Hounds with 
-   no signal-strength penalty, resulting in a system gain of about +10 dB 
+ - SuperFox mode behaves operationally like the old-style Fox and Hounds
+   mode but uses a new constant envelope waveform for Fox’s transmissions.
+   Messages can be transmitted simultaneously to as many as 9 Hounds with
+   no signal-strength penalty, resulting in a system gain of about +10 dB
    compared to the older Fox-and-Hound operation using 5 slots.
 
  - The new Message System allows structured plain text messages to be
@@ -45,7 +236,7 @@ of a button, and various other improvements.
    especially useful during contests.
 
  - A button labeled "Update Hamlib" lets you download and install the
-   latest version of the rig-control features in Hamlib. 
+   latest version of the rig-control features in Hamlib.
 
  - The cty.dat file can now be updated by clicking a single button.
 
@@ -62,8 +253,8 @@ is currently available only in Windows.
 
 WSJT-X 2.7.0 Release Candidate 8 introduces a new Message System,
 primarily intended for contests. Otherwise, RC8 is primarily a bug-fix
-release of the well-functioning RC7. 
-  
+release of the well-functioning RC7.
+
  - The WSJT-X Message System can be used to invite your QSO partner to
    QSY to another frequency or mode (e.g. during contests), or to
    send some general short messages. It consists of the Message
@@ -71,22 +262,22 @@ release of the well-functioning RC7.
    popups.
 
  - Bug fixes and improvements to SuperFox/Hound mode:
-   
+
    - The user interface now prevents users from setting parameters
      that could lead to a subprocess error in the SuperFox decoder.
 
    - The SuperFox password server is no longer called if the received
-     OTP (one-time password) is 000000. 
+     OTP (one-time password) is 000000.
 
    - Protection against several rare but possible bounds errors.
 
-   - Fixed an inconsistency with the Tx even/1st checkbox when 
+   - Fixed an inconsistency with the Tx even/1st checkbox when
      switching from SuperHound mode to any other mode.
 
-   - For SuperFox, it is now ensured that the transceiver Tx dial 
+   - For SuperFox, it is now ensured that the transceiver Tx dial
      frequency is tracked properly with internal program variables.
 
- - Avoided a potential program crash when Astronomical data window 
+ - Avoided a potential program crash when Astronomical data window
    is not open.
 
  - More intuitive navigation when WSJT-X is used together with QMAP.
@@ -105,7 +296,7 @@ the new SuperFox mode. It introduces a new verification system which
 replaces the previous one, and works for both the SuperFox mode and
 for old-style Fox and Hound operation.  All code for SuperFox
 operation is now open source.
-  
+
 IMPORTANT: OpenSSL v1.1.1 or higher is required for the real-time
 verification of Fox and SuperFox messages.
 
@@ -122,15 +313,15 @@ Enhancements to the SuperFox decoder:
 
 Introduction of a new Fox verification system:
 
- - The new Fox verification system uses one time passwords (OTPs), and 
-   works for the SuperFox mode as well as for old-style Fox and Hound 
+ - The new Fox verification system uses one time passwords (OTPs), and
+   works for the SuperFox mode as well as for old-style Fox and Hound
    operation. It can be enabled by the new OTP checkbox on the Advanced
    tab of the Settings dialog.
 
- - Fox or SuperFox stations send individual OTPs via radio. Hounds 
-   automatically check the validity of the received OTPs in real time 
-   from a server when there is an internet connection. Otherwise, the 
-   validity can also be queried manually later. OTP verifications can 
+ - Fox or SuperFox stations send individual OTPs via radio. Hounds
+   automatically check the validity of the received OTPs in real time
+   from a server when there is an internet connection. Otherwise, the
+   validity can also be queried manually later. OTP verifications can
    only be retrieved once the transmission has already taken place.
 
  - You may optionally display the received OTP values by checking
@@ -140,8 +331,8 @@ Introduction of a new Fox verification system:
    correct OTP, the background color of the Hound or Super Hound label
    switches to green.
 
- - Theoretically, DXpeditions can set up their own OTP server, however, 
-   we recommend using the server at https://www.9dx.cc. 
+ - Theoretically, DXpeditions can set up their own OTP server, however,
+   we recommend using the server at https://www.9dx.cc.
 
  - Use of the new Fox verification system requires an OTP key. The
    system uses open source code and standard encryption
@@ -157,7 +348,7 @@ Improvements to SuperFox/Hound operation:
    QSO rate due to unanswered (Super)Fox replies.)
 
  - Switching to SuperHound mode automatically sets the Rx frequency to
-   750 Hz. The previously selected frequency is saved and restored 
+   750 Hz. The previously selected frequency is saved and restored
    afterwards.
 
  - Right-clicking on the H button now activates/deactivates SuperFox mode.
@@ -170,15 +361,15 @@ Improvements to SuperFox/Hound operation:
 
  - Fields in the SuperFox payload not otherwise used in a particular
    transmission are now set to known nonzero values. Do NOT use RC6 or
-   earlier versions to decode SuperFox transmissions from RC7 or 
+   earlier versions to decode SuperFox transmissions from RC7 or
    later.
 
  - Old-style Fox stations can now transmit free text messages (up to
    13 characters) by using an available stream.
 
- - Some enhancements useful for Fox operators: Active Station Window now 
-   shows band activity. Hound callsigns can be highlighted via UDP API, and 
-   assigned a score for sorting via UDP API. Fox Tx frequency is preserved 
+ - Some enhancements useful for Fox operators: Active Station Window now
+   shows band activity. Hound callsigns can be highlighted via UDP API, and
+   assigned a score for sorting via UDP API. Fox Tx frequency is preserved
    when switching in/out of Fox mode.
 
  - UDP Status Update messages now include information on how many callsigns
@@ -186,7 +377,7 @@ Improvements to SuperFox/Hound operation:
 
 Other enhancements and fixes:
 
- - In FT8 mode, the Settings dialog no longer resets the VFO frequency 
+ - In FT8 mode, the Settings dialog no longer resets the VFO frequency
    to band/mode default unless really needed.
 
  - Several code improvements specifically for macOS.
@@ -261,7 +452,7 @@ SuperFox mode:
 
  - Every SuperFox transmission includes a unique digital signature.
    Hounds receiving a SuperFox message will see a "<callsign> verified"
-   flag if the transmitted signature is valid, and the on-screen 
+   flag if the transmitted signature is valid, and the on-screen
    "Super Hound" label will turn from red to green.
 
  - Hound operation should begin by selecting "Special operating
@@ -286,10 +477,10 @@ Other enhancements:
 
  - Right-click mouse press events are now less error-prone.
 
- - Improved the readability of the first line when "Start new period 
+ - Improved the readability of the first line when "Start new period
    decodes at top" is checked.
 
- - 4-digit grids are now logged for certain contest modes to ensure that 
+ - 4-digit grids are now logged for certain contest modes to ensure that
    the log complies with contest rules.
 
  - The Fox Tx frequency is now saved and restored separately.
@@ -344,24 +535,24 @@ WSJT-X:
                            January 1, 2024
                       -------------------------
 
-WSJT-X 2.7.0 Release Candidate 3 brings some new features, as well as 
+WSJT-X 2.7.0 Release Candidate 3 brings some new features, as well as
 numerous detail improvements and bug fixes, such as:
 
- - Added a new "Update Hamlib" function. On Windows, it allows the user to 
-   update Hamlib directly from the program. The previously used version is 
-   backed up, so the user can easily revert a hamlib update. 
+ - Added a new "Update Hamlib" function. On Windows, it allows the user to
+   update Hamlib directly from the program. The previously used version is
+   backed up, so the user can easily revert a hamlib update.
 
  - The Hamlib version in use is now displayed (also on Linux and macOS).
 
- - The FT Roundup Messages protocol has been enhanced. It now allows also 
-   the exchange of static 4-digit numbers instead of serial numbers. This 
+ - The FT Roundup Messages protocol has been enhanced. It now allows also
+   the exchange of static 4-digit numbers instead of serial numbers. This
    extends the usability of the FT RU protocol for other contest types.
 
- - Improved direct switching between modes. Submode, as well as the status 
+ - Improved direct switching between modes. Submode, as well as the status
    of the "Sh" and "Fast" checkboxes are now saved and restored by mode.
 
- - Some right-click events were made more intuitive and consistent. 
-   - Right-clicking the Q65 button enables Q65 Pileup mode, a left-click 
+ - Some right-click events were made more intuitive and consistent.
+   - Right-clicking the Q65 button enables Q65 Pileup mode, a left-click
      brings you back to the normal Q65 mode.
    - Right-click the JT65 button to switch to JT9 mode.
 
@@ -374,7 +565,7 @@ numerous detail improvements and bug fixes, such as:
  - Some improvements to the Hamlib Transceiver code. Behavior is now
    more stable when Rig Split has been selected.
 
- - Prevented redundant network communication between WSJT-X and DX Lab 
+ - Prevented redundant network communication between WSJT-X and DX Lab
    Suite Commander.
 
  - Download of the LotW file now works without OpenSSL libraries.
@@ -383,7 +574,7 @@ numerous detail improvements and bug fixes, such as:
 
  - Prevented insertion of an individual contest name when in Fox mode.
 
- - WAE entities are now assigned to the correct DXCC when "Include 
+ - WAE entities are now assigned to the correct DXCC when "Include
    extra WAE entities" is not selected.
 
  - Added a utility program 'cablog' which can be used to convert the
@@ -414,22 +605,22 @@ and bug fixes.
 
  - Fixed a flaw that could produce false decodes in Q65 submodes D and E.
 
- - Fixed a flaw with the QSO start time. It is now reset when the DX 
+ - Fixed a flaw with the QSO start time. It is now reset when the DX
    Call changes.
 
  - Fixed a flaw that prevented contest logging of the ARRL Digi Contest.
 
- - Right-clicking the Q65 mode button to toggle the Q65 Pileup mode on/off 
+ - Right-clicking the Q65 mode button to toggle the Q65 Pileup mode on/off
    now also works on macOS.
 
  - Fixed a compilation error on macOS Ventura.
 
  - WSPR and FST4W band hopping now works again.
 
- - It is now ensured that "U.S.A." is displayed when using certain 
+ - It is now ensured that "U.S.A." is displayed when using certain
    cty.dat files.
 
- - Corrected the problem with duplicated FT8 entries in ActiveStations 
+ - Corrected the problem with duplicated FT8 entries in ActiveStations
    window.
 
                       Release: WSJT-X 2.7.0-rc1
@@ -503,10 +694,10 @@ other enhancements and fixes.
                            January 16, 2023
                       -------------------------
 
-WSJT-X 2.6.1 is mostly a bug fix release for Q65.  It has the following  
+WSJT-X 2.6.1 is mostly a bug fix release for Q65.  It has the following
 changes since release 2.6.0:
 
- - Fix a flaw in Q65 mode that prevented proper display of the T/R 
+ - Fix a flaw in Q65 mode that prevented proper display of the T/R
    period spinner.
 
  - Make the initialization of the decoded text font more robust.
@@ -518,7 +709,7 @@ changes since release 2.6.0:
 
  - Fix a compiler warning on macOS.
 
- - Correct the reference to "ARRL International Digital Contest" in the 
+ - Correct the reference to "ARRL International Digital Contest" in the
    Release Notes.
 
                         Release: WSJT-X 2.6.0
@@ -528,12 +719,12 @@ changes since release 2.6.0:
 WSJT-X 2.6.0 is a General Availability (GA) release, the first since
 version 2.5.4.  Its major enhancements include the following:
 
- - Mode selection buttons on main window for FT4, FT8, JT65, MSK144, 
-   Q65, and FT8's Hound mode 
+ - Mode selection buttons on main window for FT4, FT8, JT65, MSK144,
+   Q65, and FT8's Hound mode
  - Support for the ARRL International Digital Contest
  - Performance enhancements for the FT8 and Q65 modes
  - New features for EME Echo mode, including calibrated SNR reports
- - Several new convenience features for Fox operators 
+ - Several new convenience features for Fox operators
  - Save/Restore capability, "Preferred" status, and effective date
    ranges for mode-dependent tables of default frequencies
  - Improved display features for contest log
@@ -541,26 +732,26 @@ version 2.5.4.  Its major enhancements include the following:
 
 Other enhancements and bug fixes since 2.6.0-rc5 include the following:
 
- - PSK Reporter spotting is now also possible for frequencies > 4 GHz. 
+ - PSK Reporter spotting is now also possible for frequencies > 4 GHz.
    This is required for QO-100, for example.
 
- - The minimum width of the main window has been further reduced, and 
+ - The minimum width of the main window has been further reduced, and
    such small sizes are now remembered and properly restored.
 
  - Some further improvements for Fox operators.
 
- - Fix the long-standing flaw that "Start new period decodes at top" 
+ - Fix the long-standing flaw that "Start new period decodes at top"
    didn't work anymore after several hours.
 
- - Fix a flaw that could cause crashes by double-clicking messages 
+ - Fix a flaw that could cause crashes by double-clicking messages
    with <...> in certain QSO situations.
 
- - Fix a flaw that prevented the rig from initializing correctly after 
+ - Fix a flaw that prevented the rig from initializing correctly after
    switching between configurations when connected via HRD.
 
  - Add tooltips to better explain the split operation options.
 
- - Add some additional FT roundup exchanges which can be used for 
+ - Add some additional FT roundup exchanges which can be used for
    local contests or QSO parties.
 
  - Add an option to call CQ with an individual contest name.
@@ -585,27 +776,27 @@ In program WSJT-X:
 
  - Upload FST4W-900 spots to wsprnet with TR code 15 instead of 16.
 
- - Improved FT8 decoding on crowded bands. 
+ - Improved FT8 decoding on crowded bands.
 
  - The Working frequency table now offers the following options:
    - Better handling of more than one frequency per band.
    - Set your preferred frequencies, WSJT-X always comes back to these
      QRGs when changing band or mode.
    - You can label your frequencies with descriptions (e.g. DXp AB0YXZ).
-   - Option to set Start and End Date/Time, so that the frequencies 
-     automatically appear and disappear. Useful for contest or 
+   - Option to set Start and End Date/Time, so that the frequencies
+     automatically appear and disappear. Useful for contest or
      DXpedition QRGs.
-   - Load a frequency table from a file to easily get all such data 
+   - Load a frequency table from a file to easily get all such data
      implemented.
 
- - In Fox mode, there are now a few additional functions that allow 
+ - In Fox mode, there are now a few additional functions that allow
    operators to react even better to different QSO situations:
-   - A new two-column table in Tab 2 provides a better overview of 
+   - A new two-column table in Tab 2 provides a better overview of
      the queue and of the callsigns with QSOs in progress.
    - Fox operator can now change the ordering of callsigns in the
      queue so that he can react if there is only a narrow time slot
      for a particular QSO due to propagation.
-   - Fox now responds for another two cycles to stations whose 
+   - Fox now responds for another two cycles to stations whose
      report was not received, increasing the success rate for a
      difficult QSO.
 
@@ -619,47 +810,47 @@ In program WSJT-X:
      antenna tracking errors, and the like.
    - Several minor bug fixes
 
- - Correct a flaw that prevented WSJT-X from always initializing 
+ - Correct a flaw that prevented WSJT-X from always initializing
    correctly when special operating activities were enabled.
 
- - Correct a flaw that caused wrong Tx frequencies to be written to  
+ - Correct a flaw that caused wrong Tx frequencies to be written to
    ALL.TXT.
 
- - The GUI has been improved regarding some details. The controls now 
-   scale better at different font sizes and on different operating 
+ - The GUI has been improved regarding some details. The controls now
+   scale better at different font sizes and on different operating
    systems.
 
- - When in Hound mode and click the "H" button again, the frequency 
-   is now kept. This gives the user the following two options to return 
+ - When in Hound mode and click the "H" button again, the frequency
+   is now kept. This gives the user the following two options to return
    to normal FT8 mode:
     - Click the "H" button again. Then you will stay on the QRG.
-    - Click the "FT8" button (or use the Settings menu). It brings  
+    - Click the "FT8" button (or use the Settings menu). It brings
       you back to the default FT8 QRG.
 
  - Decodes flagged as 'a7' are now disabled when "Enable AP" is not
    checked, and during the first period after a band change.
 
- - The network address of the UDP server is now checked for errors  
+ - The network address of the UDP server is now checked for errors
    before being accepted.
 
- - Some improvements to the DX Lab Suite Commander interface. 
+ - Some improvements to the DX Lab Suite Commander interface.
 
- - Correct some possible flaws that could cause segfault errors in 
+ - Correct some possible flaws that could cause segfault errors in
    certain unusual situations.
 
- - Warnings on dropped audio have been disabled for now, as detection  
+ - Warnings on dropped audio have been disabled for now, as detection
    has turned out to be not reliable enough.
 
- - Correct a long-standing flaw which caused the "Transmit digital gain" 
+ - Correct a long-standing flaw which caused the "Transmit digital gain"
    overlay to appear somewhere on the screen.
 
  - "Highlight DX Call" now also works when the other station is <...>.
 
  - CQ messages without a grid are now sent to PSK reporter.
 
- - Several other minor corrections (tool tips, etc.). 
+ - Several other minor corrections (tool tips, etc.).
 
-Program MAP65 (Windows only) includes several minor bug fixes and two 
+Program MAP65 (Windows only) includes several minor bug fixes and two
 tentative new features:
  - an aid for measuring antenna pointing errors
  - an ability to read the file wsjtx.log (kept by WSJT-X) to recognize
@@ -670,7 +861,7 @@ tentative new features:
                           September 8, 2022
                       -------------------------
 
-WSJT-X 2.6.0 Release Candidate 4 provides further improvements to Echo 
+WSJT-X 2.6.0 Release Candidate 4 provides further improvements to Echo
 mode, a new File menu item, and several bug fixes.
 
  - New features and fixes for Echo mode
@@ -686,7 +877,7 @@ mode, a new File menu item, and several bug fixes.
  - Fix an RC2 bug that prevented normal use of JT9.
  - Fix a rarely experienced failure when writing to decoded.txt
  - Fix a hamlib bug caused by setting VFO B when Split is not used
- - Rig control interface to Ham Radio deluxe made more robust 
+ - Rig control interface to Ham Radio deluxe made more robust
 
 
 	        Release: WSJT-X 2.6.0-rc3
@@ -729,7 +920,7 @@ several bug fixes.
    is not active when needed.
 
  - Fix a bug that caused a crash when "Reset Cabrillo Log" is
-   selected with Active Stations window not active. 
+   selected with Active Stations window not active.
 
 
 	        Release: WSJT-X 2.6.0-rc2
@@ -814,7 +1005,7 @@ In program WSJT-X:
 
  - Add a 90 s Tune watchdog with optional disable
 
- - Allow auto reply for non-CQ messages via UDP (JTAlert, etc.) when 
+ - Allow auto reply for non-CQ messages via UDP (JTAlert, etc.) when
    Hold Tx Freq is enabled
 
  - Suppress transmission of blank messages
@@ -833,7 +1024,7 @@ In program WSJT-X:
  - Correct a flaw in WSPR mode when handling three-character callsigns
 
  - Correct a flaw that could cause OmniRig 1.19 or later to set
-   incorrect frequencies after initialization 
+   incorrect frequencies after initialization
 
  - Clean up some ToolTips
 
@@ -858,7 +1049,7 @@ This is mostly a bug fix  release.  It has the following changes since
 release 2.5.3:
 
 WSJTX:
- - Repair a defect that caused occasional crashes when in QSO with 
+ - Repair a defect that caused occasional crashes when in QSO with
    stations using nonstandard callsigns.
 
 MAP65:
@@ -878,7 +1069,7 @@ This release has the following changes since release 2.5.2:
    the User Guide accordingly
 
  - Ensure that MAIN VFO is used for receiving on rigs that require it
- 
+
  - Repair a defect in reporting low-confidence decodes to PskReporter
 
  - Updated CTY.DAT database, tnx to Jim AD1C
@@ -934,7 +1125,7 @@ release 2.5.1:
    be  built for  Linux Intel  and is  supported at  least until  some
    prerequisite package is no longer available.
 
-   
+
 	        Release: WSJT-X 2.5.1
 	             Oct 21, 2021
 	        ----------------------
@@ -986,7 +1177,7 @@ and repairs for defects detected since the 2.5.0 GA release.
  - Improved main window layout to ensure TxN messages are fully
    visible.
 
- 
+
 	        Release: WSJT-X 2.5.0
 	              Sept 27, 2021
 	        -------------------------
@@ -1027,7 +1218,7 @@ enhancements and defect repairs:
 
 MAP65:
  - There are no functional changes to MAP65 in this release.
- 
+
 WSJT-X:
  - Repair a file handle leak in wsprd (tnx Phil, KA9Q).
  - Better handling of the Tx1 buttons when changing special operating
@@ -1037,7 +1228,7 @@ WSJT-X:
  - Repair a regression that prevented WSPR band-hopping working when
    the Tx percentage is zero.
 
- 
+
 	        Release: WSJT-X 2.5.0-rc5
 	               Aug 5, 2021
 	        -------------------------
@@ -1047,15 +1238,15 @@ in the package since WSJT-X 2.5.0-rc4 include the following
 enhancements and defect repairs:
 
 MAP65:
- - When you double-click on lower waterfall, Ftol is set to 100 
+ - When you double-click on lower waterfall, Ftol is set to 100
    only if it is currently set to a higher value.
  - Early decoding pass is skipped when data are read from disk.
  - Duplicate decodes are suppressed only when at the same frequency.
- 
+
 WSJT-X:
  - Repair a regression that caused some messages involving compound
    or nonstandard callsigns to be encoded as free text
- 
+
 
 	        Release: WSJT-X 2.5.0-rc4
 	               Aug 1, 2021
@@ -1070,7 +1261,7 @@ MAP65:
  - Increase the length of .tf2 & .iq files to 56 s
  - Implement an early decoding pass at 52 s
  - Clean up the output written to map65_rx.log
- 
+
 WSJT-X:
  - Repair a defect in CALL3.TXT lookups that incorrectly matched
    partial calls
@@ -1113,7 +1304,7 @@ enhancements and defect repairs:
 MAP65:
  - Compute polarization angle for Xpol systems and display to nearest
    degree
- - Compute and display the recommended Tx polarization	
+ - Compute and display the recommended Tx polarization
  - Protect against Fortran bounds errors in several places
  - Insert leading 0 when needed in UTC hours and minutes on waterfall
  - Wideband Q65 synchronization corrected to include single-polarization
@@ -1220,7 +1411,7 @@ discovered in the RC3 and v2.3.0 GA releases.
 
  - For data read from .wav files, display the original UTC (derived
    from file name) on the waterfall instead of current UTC.
-   
+
  - Protect against bounds errors caused by unusual settings on the
    Wide Graph.
 
@@ -1275,7 +1466,7 @@ the RC1 release.
 
  - Repair a defect that caused WSJT-X to crash when launched from an
    icon on macOS.
-   
+
  - Repair a crash when using the JT4 mode.
 
  - Sequencing improvements to hold transmitted signal report fixed
@@ -1300,7 +1491,7 @@ the RC1 release.
  - Better suppression of birdies in the Q65 decoder.
 
  - Blank Q65 decode messages removed.
- 
+
  - Automatic low Tx audio offset for the widest Q65 modes to keep Tx
    signal in transmitter passband, tnx to Charlie, G3WDG.
 
@@ -1689,7 +1880,7 @@ prior v2.2.0 release. Here is a brief summary;
 
  - Italian UI translation, tnx Marco, PY1ZRJ.
 
- - Updated Spanish UI translation, tnx Cédric, EA4AC. 
+ - Updated Spanish UI translation, tnx Cédric, EA4AC.
 
 
 		   Release: WSJT-X 2.2
@@ -1706,7 +1897,7 @@ of course the updated WSJT-X 2.2 User Guide.
 
  - New format for "EU VHF Contest" Tx2 and Tx3 messages
 
-   When "EU VHF Contest" is selected, the Tx2 and Tx3 messages (those  
+   When "EU VHF Contest" is selected, the Tx2 and Tx3 messages (those
    conveying signal report, serial number, and 6-character locator)
    now use hashcodes for both callsigns.  This change is NOT backward
    compatible with earlier versions of _WSJT-X_, so all users of EU
@@ -1852,7 +2043,7 @@ upgrade that provides a number of new features and capabilities.  These
 include:
 
   - Improvements to the decoders for five modes:
- 
+
       FT4: Corrected bugs that prevented AP decoding and/or multi-pass
       decoding in some circumstances.  The algorithm for AP
       decoding has been improved and extended.
@@ -1938,7 +2129,7 @@ better than -32 dB.
 		   Release: WSJT-X 2.1.1
 		     November 25, 2019
 		   ---------------------
-		   
+
 WSJT-X 2.1.1 is a bug fix only release addressing regressions in the
 prior v2.1.0 release.
 
@@ -1965,7 +2156,7 @@ prior v2.1.0 release.
 		   Release: WSJT-X 2.1
 		      July 15, 2019
 		   -------------------
-		   
+
 WSJT-X 2.1 is a major update that introduces FT4, a new protocol
 targeted at HF contesting.  Other improvements have been made in the
 following areas:
@@ -2038,7 +2229,7 @@ QSO Party (June 8-10) or ARRL Field Day (June 22-23).  It will
 permanently cease to function after July 21, 2019.  If all goes
 according to plan, by that time there will be a General
 Availability (GA) release of WSJT-X 2.1.0.
-		   
+
 
 		   Release: WSJT-X 2.1.0-rc5
 		         April 29, 2019
@@ -2153,7 +2344,7 @@ repairs reported since the v2.0.0 GA release.
  - Remove hexadecimal RGB values from color-configuration panel
  - Fix a bounds error by not executing Fox-related code when not
    in Fox mode
- - Allow the logQSO dialog to modify "Exch Sent" or "Rcvd" when 
+ - Allow the logQSO dialog to modify "Exch Sent" or "Rcvd" when
    operating in RTTY or NA VHF Contest mode, and to have any
    changes flow through to N1MM Logger.
  - Fix several problems in handling hashed callsigns
@@ -2279,7 +2470,7 @@ interference.  This means that regenerated replicas cannot be
 subtracted from received data, and consequently second- and third-pass
 decodes may be impeded.  Full performance of the 77-bit decoder will
 not be realized until most signals on a crowded band are using the
-new FT8 protocol.  
+new FT8 protocol.
 
 
 		     Release: WSJT-X 2.0-rc4
@@ -2306,7 +2497,7 @@ Changes from WSJT-X Version 2.0.0-rc3 include the following:
  -  Don't auto-log a QSO with incomplete exchange info
  -  Fix two sequencing flaws after double-clicks on a decoded msg
  -  New facilities for Contest and Fox-mode logging
- 
+
 
 		     Release: WSJT-X 2.0-rc3
 		        October 15, 2018
@@ -2319,7 +2510,7 @@ Changes from WSJT-X Version 2.0.0-rc2 include the following:
  - Auto-generate 77-bit messages for callsigns with /R or /P
  - Fix auto-sequencing for "CQ ABC ...", "CQ ABCD ...", etc.
  - Fix the "CQ RU RU ..." bug
- - Implement AP decoding for contest messages and for Hound 
+ - Implement AP decoding for contest messages and for Hound
  - Check Field Day and RTTY Roundup exchanges for validity
  - Implement "Select next caller" and use of "TU; ..." messages
  - Option to "auto log" in contests
@@ -2378,7 +2569,7 @@ http://physics.princeton.edu/pulsar/k1jt/77bit.txt
 		           May 31, 2018
 		   -----------------------------
 
-This release is a critical bug fix release that removes an unintended 
+This release is a critical bug fix release that removes an unintended
 restriction of FT8 DXpedition mode.
 
 
@@ -2551,7 +2742,7 @@ reset of the default list of suggested operating frequencies.  Go to
 
 Most (but not all) changes since Version 1.8.0-rc2 involve user
 control of the increasingly popular FT8 mode.  The "RC3" release also
-includes minor bug fixes and updates to the WSJT-X User Guide.  
+includes minor bug fixes and updates to the WSJT-X User Guide.
 
 The following list includes all of the more important changes:
 
@@ -2570,7 +2761,7 @@ The following list includes all of the more important changes:
     4. Clicking on the waterfall moves Rx and Tx frequencies as
     before: Rx only on a simple click, Tx only on SHIFT-click, and
     both on CTRL-click.  This happens even if "Hold Tx Freq" is
-    checked. 
+    checked.
 
 - Add a semi-automated "FreqCal" procedure: see *Solve for calibration
 parameters* on the Tools menu.
@@ -2665,10 +2856,10 @@ modes.
 The "RC2" release also includes many minor bug fixes and an
 extensively updated WSJT-X User Guide.
 
-Depending on what code revision you upgrade from, it may be necessary 
-to do a one-time reset of the default list of suggested operating 
-frequencies.  Go to *File->Settings->Frequencies*, right click on 
-the table and select *Reset*. 
+Depending on what code revision you upgrade from, it may be necessary
+to do a one-time reset of the default list of suggested operating
+frequencies.  Go to *File->Settings->Frequencies*, right click on
+the table and select *Reset*.
 
 
 		Release: WSJT-X Version 1.8.0
@@ -2687,17 +2878,17 @@ NEW FEATURES IN WSJT-X Version 1.8.0
 3.  Improved performance of decoders for JT65, QRA64, and MSK144.
     MSK144 includes facilities for amplitide and phase equalization
     and an "SWL" mode for short-format messages.
-    
+
 4.  Options to minimize screen space used by Main and Wide Graph
     windows.
-    
+
 5.  Enhanced management scheme for table of operating frequencies, and
     a new set of default frequencies specific to the three IARU
     Regions.
-    
+
 6.  Improved CAT control for many rigs, including those controlled
     through Commander or OmniRig.
-    
+
 7.  New keyboard shortcuts to set "Tx even/1st" ON or OFF.
 
 8.  A number of (mostly minor) bug fixes and tweaks to the user
@@ -2715,7 +2906,7 @@ be completed:
 5.  Option to Auto-respond to the weakest responder to your CQ.
 
 
-Installation packages for Windows, Linux, OS X, and Raspbian can be 
+Installation packages for Windows, Linux, OS X, and Raspbian can be
 downloaded from the WSJT web site:
 http://physics.princeton.edu/pulsar/K1JT/wsjtx.html
 
@@ -2761,4 +2952,3 @@ We haven't yet finalized what the three extra bits in the message
 payload will be used for.  Suggestions are welcome!
 
 ++++++	-- Joe, K1JT, for the WSJT Development Team
-	

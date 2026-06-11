@@ -12,12 +12,12 @@ subroutine ftninit(appd)
   call pfxdump(appd//'/prefixes.txt')
   open(12,file=appd//'/wb_q65.txt',status='unknown')
   open(13,file=appd//'/map65.log',status='unknown')
-  open(19,file=appd//'/livecq.txt',status='unknown')
+!  open(19,file=appd//'/livecq.txt',status='unknown')  ! not written with new livecq code
   open(21,file=appd//'/map65_rx.log',status='unknown',access='append',err=950)
   open(26,file=appd//'/tmp26.txt',status='unknown')
 
 ! Import FFTW wisdom, if available:
-  iret=fftwf_init_threads()            !Initialize FFTW threading 
+  iret=fftwf_init_threads()            !Initialize FFTW threading
 ! Default to 1 thread, but use nthreads for the big ones
   call fftwf_plan_with_nthreads(1)
 ! Import FFTW wisdom, if available

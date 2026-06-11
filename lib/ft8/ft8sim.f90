@@ -24,7 +24,8 @@ program ft8sim_gfsk
   nargs=iargc()
   if(nargs.ne.7) then
      print*,'Usage:    ft8sim "message"                 f0     DT fdop del nfiles snr'
-     print*,'Examples: ft8sim "K1ABC W9XYZ EN37"       1500.0 0.0  0.1 1.0   10   -18'
+     print*,'Examples: ft8sim "K1ABC W9XYZ EN37"       1500.0 0.0  0.5 1.0   10   -18'
+     print*,'          ft8sim "K1ABC W9XYZ EN37"       1500.0 0.0  MM  1.0   10   -18'
      print*,'          ft8sim "WA9XYZ/R KA1ABC/R FN42" 1500.0 0.0  0.1 1.0   10   -18'
      print*,'          ft8sim "K1ABC RR73; W9XYZ <KH1/KH7Z> -11" 300 0 0 0 25 1 -10'
      print*,'          ft8sim "<G4ABC/P> <PA9XYZ> R 570007 JO22DB" 1500 0 0 0 1 -10'
@@ -36,9 +37,38 @@ program ft8sim_gfsk
   call getarg(3,arg)
   read(arg,*) xdt                        !Time offset from nominal (s)
   call getarg(4,arg)
-  read(arg,*) fspread                    !Watterson frequency spread (Hz)
-  call getarg(5,arg)
-  read(arg,*) delay                      !Watterson delay (ms)
+  if(arg(1:2).eq.'LQ') then              !ITU params for Low Latitude Quiet
+     fspread=0.5
+     delay=0.5
+  else if(arg(1:2).eq.'LM') then         !Low Latitude Moderate
+     fspread=1.5
+     delay=2.0
+  else if(arg(1:2).eq.'LD') then         !Low Latitude Disturbed
+     fspread=10.0
+     delay=6.0
+  else if(arg(1:2).eq.'MQ') then         !Mid Latitude ... etc.
+     fspread=0.1
+     delay=0.5
+  else if(arg(1:2).eq.'MM') then
+     fspread=0.5
+     delay=1.0
+  else if(arg(1:2).eq.'MD') then
+     fspread=1.0
+     delay=2.0
+  else if(arg(1:2).eq.'HQ') then
+     fspread=0.5
+     delay=1.0
+  else if(arg(1:2).eq.'HM') then
+     fspread=10.0
+     delay=3.0
+  else if(arg(1:2).eq.'HD') then
+     fspread=30.0
+     delay=7.0
+  else
+     read(arg,*) fspread                    !Watterson frequency spread (Hz)
+     call getarg(5,arg)
+     read(arg,*) delay                      !Watterson delay (ms)
+  endif
   call getarg(6,arg)
   read(arg,*) nfiles                     !Number of files
   call getarg(7,arg)
@@ -58,7 +88,7 @@ program ft8sim_gfsk
   baud=1.0/tt                            !Keying rate (baud)
   bw=8*baud                              !Occupied bandwidth (Hz)
   txt=NZ*dt                              !Transmission length (s)
-  bt=2.0                         
+  bt=2.0
   bandwidth_ratio=2500.0/(fs/2.0)
   sig=sqrt(2*bandwidth_ratio) * 10.0**(0.05*snrdb)
   if(snrdb.gt.90.0) sig=1.0
@@ -71,23 +101,25 @@ program ft8sim_gfsk
   call genft8(msg37,i3,n3,msgsent37,msgbits,itone)
   call gen_ft8wave(itone,NN,NSPS,bt,fs,f0,cwave,xjunk,1,NWAVE)  !Generate complex cwave
 
-  write(*,*)  
-  write(*,'(a23,a37,3x,a7,i1,a1,i1)') 'Decoded message: ',msgsent37,'i3.n3: ',i3,'.',n3
+  write(*,*)
+  write(*,'(a,a37,3x,a7,i1,a1,i1)') 'Decoded message: ',msgsent37,'i3.n3: ',i3,'.',n3
   write(*,1000) f0,xdt,txt,snrdb,bw
-1000 format('f0:',f9.3,'   DT:',f6.2,'   TxT:',f6.1,'   SNR:',f6.1,    &
-       '  BW:',f4.1)
-  write(*,*)  
+1000 format('f0:',f9.3,'   DT:',f6.2,'   TxT:',f6.1,'   SNR:',f6.1,'  BW:',f4.1)
+  write(*,1001) fspread,delay
+1001 format('Fspread:',f7.3,' Hz   Delay:',f7.3,' ms')
+
+  write(*,*)
   if(i3.eq.1) then
     write(*,*) '         mycall                         hiscall                    hisgrid'
-    write(*,'(28i1,1x,i1,1x,28i1,1x,i1,1x,i1,1x,15i1,1x,3i1)') msgbits(1:77) 
+    write(*,'(28i1,1x,i1,1x,28i1,1x,i1,1x,i1,1x,15i1,1x,3i1)') msgbits(1:77)
   else
     write(*,'(a14)') 'Message bits: '
     write(*,'(77i1)') msgbits
   endif
-  write(*,*) 
+  write(*,*)
   write(*,'(a17)') 'Channel symbols: '
   write(*,'(79i1)') itone
-  write(*,*)  
+  write(*,*)
 
   call sgran()
 
@@ -97,7 +129,7 @@ program ft8sim_gfsk
      c0=cshift(c0,-nint((xdt+0.5)/dt))
      if(fspread.ne.0.0 .or. delay.ne.0.0) call watterson(c0,NMAX,NWAVE,fs,delay,fspread)
      c=sig*c0
-  
+
      wave=imag(c)
      peak=maxval(abs(wave))
      nslots=1
@@ -137,5 +169,5 @@ program ft8sim_gfsk
      close(10)
      write(*,1110) ifile,xdt,f0,snrdb,fname,snr_2500
 1110 format(i4,f7.2,f8.2,f7.1,2x,a17,f8.2)
-  enddo    
+  enddo
 999 end program ft8sim_gfsk

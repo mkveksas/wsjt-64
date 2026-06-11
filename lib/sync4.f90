@@ -1,7 +1,7 @@
 subroutine sync4(dat,jz,ntol,nfqso,mode,mode4,minwidth,dtx,dfx,snrx,    &
      snrsync,flip,width)
 
-! Synchronizes JT4 data, finding the best-fit DT and DF.  
+! Synchronizes JT4 data, finding the best-fit DT and DF.
 
   parameter (NFFTMAX=2520)         !Max length of FFTs
   parameter (NHMAX=NFFTMAX/2)      !Max length of power spectra
@@ -19,7 +19,7 @@ subroutine sync4(dat,jz,ntol,nfqso,mode,mode4,minwidth,dtx,dfx,snrx,    &
   data nch/1,2,4,9,18,36,72/
   save
 
-! Do FFTs of twice symbol length, stepped by half symbols.  Note that 
+! Do FFTs of twice symbol length, stepped by half symbols.  Note that
 ! we have already downsampled the data by factor of 2.
   nsym=207
   nfft=2520
@@ -65,7 +65,7 @@ subroutine sync4(dat,jz,ntol,nfqso,mode,mode4,minwidth,dtx,dfx,snrx,    &
         call xcor4(s2,i,nsteps,nsym,lag1,lag2,ich,mode4,ccfblue,ccf0,   &
              lagpk0,flip)
         ccfred(i)=ccf0
-        
+
 ! Find rms of the CCF, without main peak
         call slope(ccfblue(lag1),lag2-lag1+1,lagpk0-lag1+1.0)
         sync=abs(ccfblue(lagpk0))
@@ -85,9 +85,9 @@ subroutine sync4(dat,jz,ntol,nfqso,mode,mode4,minwidth,dtx,dfx,snrx,    &
   enddo
   if(syncbest.lt.-1.e29) go to 900
   ccfred=red
-  call pctile(ccfred(ia:ib),ib-ia+1,45,base)
+  call pctile(ccfred(iaa:ibb),ibb-iaa+1,45,base)
   ccfred=ccfred-base
-  
+
   dfx=ipk*df
 
 ! Peak up in time, at best whole-channel frequency

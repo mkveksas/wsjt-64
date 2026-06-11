@@ -21,5 +21,3 @@ subroutine flat65(ss,nhsym,maxhsym,nsz,ref)
 
   return
 end subroutine flat65
-
-      
