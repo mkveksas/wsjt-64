@@ -22,7 +22,7 @@ program contest72
 !   5   Type 2 suffix
 !   6   Free text
 !  -1   Does not decode correctly
-  
+
   nargs=iargc()
   if(nargs.eq.0) open(10,file='contest_msgs.txt',status='old')
 
@@ -50,7 +50,7 @@ program contest72
      endif
      if(.not.ok) print*,msg0,msg1
      if(itype.lt.0 .or. itype.eq.6) cycle
-     
+
      if(msg(1:3).eq.'CQ ') then
         m=2
         write(ct1,1010) dat
@@ -65,7 +65,7 @@ program contest72
         m=0
         cycle
      endif
-     
+
      if(i.ge.5) then
         m=3
         cycle
@@ -75,7 +75,7 @@ program contest72
         m=4
         cycle
      endif
-     
+
      call packmsg(msg,dat,itype,.false.)
      write(ct1,1010) dat
      call packtext(msg,nc1,nc2,ng,.false.,'')

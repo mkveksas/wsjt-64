@@ -30,6 +30,9 @@ namespace
     QT_TRANSLATE_NOOP ("MessageAggregatorMainWindow", "Exch Sent"),
     QT_TRANSLATE_NOOP ("MessageAggregatorMainWindow", "Exch Rcvd"),
     QT_TRANSLATE_NOOP ("MessageAggregatorMainWindow", "Prop"),
+    QT_TRANSLATE_NOOP ("MessageAggregatorMainWindow", "Satellite")
+    QT_TRANSLATE_NOOP ("MessageAggregatorMainWindow", "Sat Mode"),
+    QT_TRANSLATE_NOOP ("MessageAggregatorMainWindow", "RX Frequency")
     QT_TRANSLATE_NOOP ("MessageAggregatorMainWindow", "Comments"),
   };
 }
@@ -295,7 +298,8 @@ void MessageAggregatorMainWindow::log_qso (ClientKey const& /*key*/, QDateTime t
                                            , QString const& name, QDateTime time_on, QString const& operator_call
                                            , QString const& my_call, QString const& my_grid
                                            , QString const& exchange_sent, QString const& exchange_rcvd
-                                           , QString const& prop_mode)
+                                           , QString const& prop_mode, QString const& satellite
+                                           , QString const& sat_mode, QString const& freqRx)
 {
   QList<QStandardItem *> row;
   row << new QStandardItem {time_on.toString ("dd-MMM-yyyy hh:mm:ss")}
@@ -314,6 +318,9 @@ void MessageAggregatorMainWindow::log_qso (ClientKey const& /*key*/, QDateTime t
   << new QStandardItem {exchange_sent}
   << new QStandardItem {exchange_rcvd}
   << new QStandardItem {prop_mode}
+  << new QStandardItem {satellite}
+  << new QStandardItem {sat_mode}
+  << new QStandardItem {freqRx}
   << new QStandardItem {comments};
   log_->appendRow (row);
   log_table_view_->resizeColumnsToContents ();

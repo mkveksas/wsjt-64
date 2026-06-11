@@ -27,7 +27,7 @@ subroutine decode65b(s2,nflip,nadd,mode65,ntrials,naggressive,ndepth,      &
   if(decoded(1:7).eq.'000AAA ') ncount=-1
   if(decoded(1:7).eq.'0L6MWK ') ncount=-1
   if(nflip.lt.0 .and. ltext) ncount=-1
-  if(ncount.lt.0) then 
+  if(ncount.lt.0) then
      nft=0
      decoded='                      '
   endif

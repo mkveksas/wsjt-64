@@ -19,7 +19,7 @@ program jt49sim
   real*8 f0,dt,twopi,phi,dphi,baud,fsample,freq,dnsps
   character message*22,fname*11,csubmode*2,arg*12
   character msgsent*22
-  
+
   nargs=iargc()
   if(nargs.ne. 8) then
      print *, 'Usage:   jt49sim        "msg"     nA-nE Nsigs fDop delay DT Nfiles SNR'
@@ -43,7 +43,7 @@ program jt49sim
   call getarg(4,arg)
   read(arg,*) fspread
   call getarg(5,arg)
-  read(arg,*) delay 
+  read(arg,*) delay
   call getarg(6,arg)
   read(arg,*) xdt
   call getarg(7,arg)
@@ -73,8 +73,8 @@ program jt49sim
      baud=12000.d0/dnsps                !Keying rate = 1.736...
   endif
   NZ=nsym*dnsps
- 
-  write(*,1000) 
+
+  write(*,1000)
 1000 format('File  Sig    Freq  Mode   S/N   DT   fDop   delay    Message'/60('-'))
 
   do ifile=1,nfiles                  !Loop over requested number of files
@@ -109,14 +109,14 @@ program jt49sim
         phi=0.d0
         dphi=0.d0
         k=(xdt+1.0)*12000                   !Start audio at t = xdt + 1.0 s
-        isym0=-99        
+        isym0=-99
         do i=1,NMAX                         !Add this signal into cdat()
            isym=i/dnsps + 1
            if(isym.gt.nsym) exit
            if(isym.ne.isym0) then
               if(message(1:1).eq.'@') then
                  read(message(2:),*) freq
-              else 
+              else
                  if(imode.eq.4) freq=f0 + itone(isym)*baud*nch(1+nsubmode) !JT4
                  if(imode.eq.9) freq=f0 + itone(isym)*baud*(2**nsubmode)   !JT9
               endif
@@ -133,10 +133,10 @@ program jt49sim
         if(nsigs.gt.100) exit
      enddo
 
-     c0=cdat 
+     c0=cdat
      if(fspread.ne.0 .or. delay.ne.0) then                  !Apply specified Doppler spread
         fs=12000.0
-        call watterson(c0,NMAX,NZ,fs,delay,fspread) 
+        call watterson(c0,NMAX,NZ,fs,delay,fspread)
      endif
 
      dat=sig*aimag(c0) + xnoise                 !Add the generated noise

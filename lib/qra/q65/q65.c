@@ -1,6 +1,6 @@
 // q65.c
 // q65 modes encoding/decoding functions
-// 
+//
 // (c) 2020 - Nico Palermo, IV3NWV - Microtelecom Srl, Italy
 // ------------------------------------------------------------------------------
 // This file is part of the qracodes project, a Forward Error Control
@@ -16,7 +16,7 @@
 //    GNU General Public License for more details.
 
 //    You should have received a copy of the GNU General Public License
-//    along with qracodes source distribution.  
+//    along with qracodes source distribution.
 //    If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdlib.h>
@@ -24,13 +24,13 @@
 #include <math.h>
 
 #include "q65.h"
-#include "pdmath.h"	
+#include "pdmath.h"
 
 // Minimum codeword loglikelihood for decoding
-#define Q65_LLH_THRESHOLD -260.0f 
+#define Q65_LLH_THRESHOLD -260.0f
 
 // This value produce the same WER performance in decode_fullaplist
-// #define Q65_LLH_THRESHOLD -262.0f 
+// #define Q65_LLH_THRESHOLD -262.0f
 
 
 static int	_q65_crc6(int *x, int sz);
@@ -41,7 +41,7 @@ float q65_llh;
 int q65_init(q65_codec_ds *pCodec, 	const qracode *pqracode)
 {
 	// Eb/No value for which we optimize the decoder metric (AWGN/Rayleigh cases)
-	const float EbNodBMetric = 2.8f;	
+	const float EbNodBMetric = 2.8f;
 	const float EbNoMetric   = (float)pow(10,EbNodBMetric/10);
 
 	float	R;		// code effective rate (after puncturing)
@@ -169,13 +169,13 @@ int q65_encode(const q65_codec_ds *pCodec, int *pOutputCodeword, const int *pInp
 			break;
 		case QRATYPE_CRCPUNCTURED:
 			// strip the single CRC symbol from the encoded codeword
-			memcpy(pOutputCodeword,py,nK*sizeof(int));				// copy the systematic symbols 
+			memcpy(pOutputCodeword,py,nK*sizeof(int));				// copy the systematic symbols
 			memcpy(pOutputCodeword+nK,py+nK+1,(nN-nK)*sizeof(int));	// copy the check symbols skipping the CRC symbol
 			break;
 		case QRATYPE_CRCPUNCTURED2:
 			// strip the 2 CRC symbols from the encoded codeword
 			memcpy(pOutputCodeword,py,nK*sizeof(int));				// copy the systematic symbols
-			memcpy(pOutputCodeword+nK,py+nK+2,(nN-nK)*sizeof(int)); // copy the check symbols skipping the two CRC symbols 
+			memcpy(pOutputCodeword+nK,py+nK+2,(nN-nK)*sizeof(int)); // copy the check symbols skipping the two CRC symbols
 			break;
 		default:
 			return -2;	// code type unsupported
@@ -200,7 +200,7 @@ int q65_intrinsics(q65_codec_ds *pCodec, float *pIntrinsics, const float *pInput
 	// generate the true intrinsic probabilities only when the actual Eb/No ratio is
 	// equal to this constant. As in all the other cases the probabilities are evaluated
 	// with a wrong scaling constant we can expect that the decoder performance at different
-	// Es/No will be worse. Anyway, since the EsNoMetric constant has been chosen so that the 
+	// Es/No will be worse. Anyway, since the EsNoMetric constant has been chosen so that the
 	// decoder error rate is about 50%, we obtain almost optimal error rates down to
 	// any useful Es/No ratio.
 
@@ -238,7 +238,7 @@ int q65_esnodb(const q65_codec_ds *pCodec, float *pEsNodB, const int *ydec, cons
 
 	for (k=0;k<nN;k++)  {
 
-		for (j=0;j<nM;j++) 
+		for (j=0;j<nM;j++)
 			if (j==py[0])
 				sigplusnoise += pIn[j];
 			else
@@ -284,7 +284,7 @@ int q65_esnodb(const q65_codec_ds *pCodec, float *pEsNodB, const int *ydec, cons
 // corresponding to a given B90 must be scaled appropriately.
 // See below.
 
-int q65_intrinsics_fastfading(q65_codec_ds *pCodec, 
+int q65_intrinsics_fastfading(q65_codec_ds *pCodec,
 								float *pIntrinsics,				// intrinsic symbol probabilities output
 								const float *pInputEnergies,	// received energies input
 								const int submode,				// submode idx (0=A ... 4=E)
@@ -305,12 +305,12 @@ int q65_intrinsics_fastfading(q65_codec_ds *pCodec,
 	if (pCodec==NULL)
 		return Q65_DECODE_INVPARAMS;	// invalid pCodec pointer
 
-	
-	if (submode<0 || submode>4)
+
+	if (submode<0 || submode>5)
 		return Q65_DECODE_INVPARAMS;	// invalid submode
 
 	// As the symbol duration in q65 is different than in QRA64,
-	// the fading tables continue to be valid if the B90Ts parameter 
+	// the fading tables continue to be valid if the B90Ts parameter
 	// is properly scaled to the QRA64 symbol interval
 	// Compute index to most appropriate weighting function coefficients
 	B90 = B90Ts/TS_QRA64;
@@ -335,13 +335,13 @@ int q65_intrinsics_fastfading(q65_codec_ds *pCodec,
 		hlen = glen_tab_lorentz[hidx];	 // hlen = (L+1)/2 (where L=(odd) number of taps of w fun)
 		hptr = gptr_tab_lorentz[hidx];   // pointer to the first (L+1)/2 coefficients of w fun
 		}
-	else 
+	else
 		return Q65_DECODE_INVPARAMS;	 // invalid fading model
 
 	// compute (euristically) the optimal decoder metric accordingly the given spread amount
 	// We assume that the decoder 50% decoding threshold is:
 	// Es/No(dB) = Es/No(AWGN)(dB) + 8*log(B90)/log(240)(dB)
-	// that's to say, at the maximum Doppler spread bandwidth (240 Hz for QRA64) 
+	// that's to say, at the maximum Doppler spread bandwidth (240 Hz for QRA64)
 	// there's a ~8 dB Es/No degradation over the AWGN case
 	fTemp = 8.0f*logf(B90)/logf(240.0f); // assumed Es/No degradation for the given fading bandwidth
 	EsNoMetric = pCodec->decoderEsNoMetric*powf(10.0f,fTemp/10.0f);
@@ -370,20 +370,20 @@ int q65_intrinsics_fastfading(q65_codec_ds *pCodec,
 	// 1) compute No - the noise spectral density (or noise variance)
 	// 2) compute the coefficients w(k) given the coefficient g(k) for the given decodeer Es/No metric
 	// 3) compute the logarithm of prob(tone j| en1....enN) which is simply = sum(En(k,j)*w(k)/No
-	// 4) subtract from the logarithm of the probabilities their maximum, 
+	// 4) subtract from the logarithm of the probabilities their maximum,
 	// 5) exponentiate the logarithms
-	// 6) normalize the result to a probability distribution dividing each value 
+	// 6) normalize the result to a probability distribution dividing each value
 	//    by the sum of all of them
 
 
 	// Evaluate the average noise spectral density
 	fNoiseVar = 0;
-	for (k=0;k<nBinsPerCodeword;k++) 
+	for (k=0;k<nBinsPerCodeword;k++)
 		fNoiseVar += pInputEnergies[k];
 	fNoiseVar = fNoiseVar/nBinsPerCodeword;
 	// The noise spectral density so computed includes also the signal power.
 	// Therefore we scale it accordingly to the Es/No assumed by the decoder
-	fNoiseVar = fNoiseVar/(1.0f+EsNoMetric/nBinsPerSymbol); 
+	fNoiseVar = fNoiseVar/(1.0f+EsNoMetric/nBinsPerSymbol);
 	// The value so computed is an overestimate of the true noise spectral density
 	// by the (unknown) factor (1+Es/No(true)/nBinsPerSymbol)/(1+EsNoMetric/nBinsPerSymbol)
 	// We will take this factor in account when computing the true Es/No ratio
@@ -398,7 +398,7 @@ int q65_intrinsics_fastfading(q65_codec_ds *pCodec,
 
 	// compute the fast fading weights accordingly to the Es/No ratio
 	// for which we compute the exact intrinsics probabilities
-	for (k=0;k<hlen;k++) {	
+	for (k=0;k<hlen;k++) {
 		fTemp = hptr[k]*EsNoMetric;
 		//		printf("%d  %d  %f  %f  %f\n",hlen,k,EsNoMetric,hptr[k],fTemp);
 		weight[k] = fTemp/(1.0f+fTemp)/fNoiseVar;
@@ -421,11 +421,11 @@ int q65_intrinsics_fastfading(q65_codec_ds *pCodec,
 		for (k=0;k<nM;k++) {		// for each tone in the current symbol
 			// do a symmetric weighted sum
 			fTemp = 0.0f;
-			for (j=0;j<hhsz;j++) 
-				fTemp += weight[j]*(pCurBin[j] + pCurBin[hlast-j]);	
+			for (j=0;j<hhsz;j++)
+				fTemp += weight[j]*(pCurBin[j] + pCurBin[hlast-j]);
 			fTemp += weight[hhsz]*pCurBin[hhsz];
 
-			if (fTemp>maxlogp)		// keep track of the max 
+			if (fTemp>maxlogp)		// keep track of the max
 				maxlogp = fTemp;
 			pCurIx[k]=fTemp;
 
@@ -445,7 +445,7 @@ int q65_intrinsics_fastfading(q65_codec_ds *pCodec,
 
 		// scale to a probability distribution
 		sumix = 1.0f/sumix;
-		for (k=0;k<nM;k++) 
+		for (k=0;k<nM;k++)
 			pCurIx[k] = pCurIx[k]*sumix;
 
 		pCurSym +=nBinsPerSymbol;	// next symbol input energies
@@ -481,18 +481,18 @@ int q65_esnodb_fastfading(
 	ffEsNoMetric   = pCodec->ffEsNoMetric;
 	nTotWeights    = 2*nWeights-1;
 
-	// compute symbols energy (noise included) summing the 
+	// compute symbols energy (noise included) summing the
 	// energies pertaining to the decoded symbols in the codeword
 
 	EsPlusWNo = 0.0f;
 	pCurSym = pInputEnergies + nM;	// point to first central bin of first symbol tone
-	for (n=0;n<nN;n++) {					
+	for (n=0;n<nN;n++) {
 		pCurTone = pCurSym + ydec[n]*nBinsPerTone;	 // point to the central bin of the current decoded symbol
-		pCurBin  = pCurTone - nWeights+1;			 // point to first bin 
-		
+		pCurBin  = pCurTone - nWeights+1;			 // point to first bin
+
 		// sum over all the pertaining bins
 		for (j=0;j<nTotWeights;j++)
-			EsPlusWNo += pCurBin[j];		
+			EsPlusWNo += pCurBin[j];
 
 		pCurSym +=nBinsPerSymbol;
 
@@ -588,26 +588,26 @@ int q65_decode(q65_codec_ds *pCodec, int* pDecodedCodeword, int *pDecodedMsg,
 						pCodec->qra_v2cmsg,
 						pCodec->qra_c2vmsg);
 
-	if (rc<0) 
+	if (rc<0)
 		// failed to converge to a solution
 		return Q65_DECODE_FAILED;
 
 	// decode the information symbols (punctured information symbols included)
 	qra_mapdecode(pQraCode,px,ex,ix);
 
-	// verify CRC match 
+	// verify CRC match
 
 	switch (pQraCode->type) {
 		case QRATYPE_CRC:
 		case QRATYPE_CRCPUNCTURED:
 			crc6=_q65_crc6(px,nK);			 // compute crc-6
-			if (crc6!=px[nK]) 				
+			if (crc6!=px[nK])
 				return Q65_DECODE_CRCMISMATCH; // crc doesn't match
 			break;
 		case QRATYPE_CRCPUNCTURED2:
 			_q65_crc12(crc12, px,nK);			 // compute crc-12
-			if (crc12[0]!=px[nK] || 
-				crc12[1]!=px[nK+1]) 
+			if (crc12[0]!=px[nK] ||
+				crc12[1]!=px[nK+1])
 				return Q65_DECODE_CRCMISMATCH; // crc doesn't match
 			break;
 		case QRATYPE_NORMAL:
@@ -651,7 +651,7 @@ int q65_decode(q65_codec_ds *pCodec, int* pDecodedCodeword, int *pDecodedMsg,
 
 #ifdef Q65_CHECKLLH
 	if (q65_check_llh(NULL,pDecodedCodeword, nN, nM, pIntrinsics)==0) // llh less than threshold
-		return Q65_DECODE_LLHLOW;	
+		return Q65_DECODE_LLHLOW;
 #endif
 
 	return rc;	// return the number of iterations required to decode
@@ -667,7 +667,7 @@ int q65_check_llh(float *llh, const int* ydec, const int nN, const int nM, const
 
 	for (k=0;k<nN;k++) {
 	  float x=pIntrin[ydec[k]];
-	  if(x < 1.0e-36) x = 1.0e-36; 
+	  if(x < 1.0e-36) x = 1.0e-36;
 	  t+=logf(x);
 	  pIntrin+=nM;
 	}
@@ -681,15 +681,15 @@ int q65_check_llh(float *llh, const int* ydec, const int nN, const int nM, const
 // Full AP decoding from a list of codewords
 int q65_decode_fullaplist(q65_codec_ds *codec,
 						   int *ydec,
-						   int *xdec, 
-						   const float *pIntrinsics, 
-						   const int *pCodewords, 
+						   int *xdec,
+						   const float *pIntrinsics,
+						   const int *pCodewords,
 						   const int nCodewords)
 {
 	int			k;
 	int			nK, nN, nM;
 
-	float llh, maxllh, llh_threshold; 
+	float llh, maxllh, llh_threshold;
 	int   maxcw = -1;					// index of the most likely codeword
 	const int  *pCw;
 
@@ -724,7 +724,7 @@ int q65_decode_fullaplist(q65_codec_ds *codec,
 	q65_llh=maxllh;		// save for Joe's use
 
 	if (maxcw<0) // no llh larger than threshold found
-		return Q65_DECODE_FAILED;	  
+		return Q65_DECODE_FAILED;
 
 	pCw = pCodewords+nN*maxcw;
 	memcpy(ydec,pCw,nN*sizeof(int));
@@ -768,7 +768,7 @@ int _q65_get_codeword_length(const qracode *pCode)
 {
 	// return the actual codeword length (in symbols)
 	// excluding any punctured symbol
-	
+
 	int nCwLength;
 
 	switch (pCode->type) {
@@ -808,15 +808,15 @@ int _q65_get_bits_per_symbol(const qracode *pCode)
 static void _q65_mask(const qracode *pcode, float *ix, const int *mask, const int *x)
 {
 	// mask intrinsic information ix with available a priori knowledge
-	
+
 	int k,kk, smask;
-	const int nM=pcode->M;	
+	const int nM=pcode->M;
 	const int nm=pcode->m;
 	int nK;
 
 	// Exclude from masking the symbols which have been punctured.
-	// nK is the length of the mask and x arrays, which do 
-	// not include any punctured symbol 
+	// nK is the length of the mask and x arrays, which do
+	// not include any punctured symbol
 	nK = _q65_get_message_length(pcode);
 
 	// for each symbol set to zero the probability
@@ -826,7 +826,7 @@ static void _q65_mask(const qracode *pcode, float *ix, const int *mask, const in
 	for (k=0;k<nK;k++) {
 		smask = mask[k];
 		if (smask) {
-			for (kk=0;kk<nM;kk++) 
+			for (kk=0;kk<nM;kk++)
 				if (((kk^x[k])&smask)!=0)
 					// This symbol value is not allowed
 					// by the AP information
@@ -842,11 +842,11 @@ static void _q65_mask(const qracode *pcode, float *ix, const int *mask, const in
 // CRC generation functions
 
 // crc-6 generator polynomial
-// g(x) = x^6 + x + 1  
-#define CRC6_GEN_POL 0x30		// MSB=a0 LSB=a5    
+// g(x) = x^6 + x + 1
+#define CRC6_GEN_POL 0x30		// MSB=a0 LSB=a5
 
 // crc-12 generator polynomial
-// g(x) = x^12 + x^11 + x^3 + x^2 + x + 1  
+// g(x) = x^12 + x^11 + x^3 + x^2 + x + 1
 #define CRC12_GEN_POL 0xF01		// MSB=a0 LSB=a11
 
 // g(x) = x^6 + x^2 + x + 1 (as suggested by Joe. See i.e.:  https://users.ece.cmu.edu/~koopman/crc/)
@@ -884,6 +884,6 @@ static void _q65_crc12(int *y, int *x, int sz)
 			}
 		}
 
-	y[0] = sr&0x3F; 
+	y[0] = sr&0x3F;
 	y[1] = (sr>>6);
 }

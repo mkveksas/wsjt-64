@@ -4,9 +4,9 @@ C
 C
 C++++++++++++++++++++++++
 C
-C   Version 1.0 uses the INQUIRE statement to find out the the record length 
-C   of the direct access file before opening it.  This procedure is non-standard, 
-C   but seems to work for VAX machines. 
+C   Version 1.0 uses the INQUIRE statement to find out the the record length
+C   of the direct access file before opening it.  This procedure is non-standard,
+C   but seems to work for VAX machines.
 C
 C  THE SUBROUTINE ALSO SETS THE VALUES OF  NRECL, NRFILE, AND NAMFIL.
 
@@ -39,14 +39,14 @@ c      NRFILE=12
 
 C  *****************************************************************
 
-C   FIND THE RECORD SIZE USING THE INQUIRE STATEMENT  
+C   FIND THE RECORD SIZE USING THE INQUIRE STATEMENT
 
 
 c      IRECSZ=0
 
       INQUIRE(FILE=NAMFIL,RECL=IRECSZ)
 
-C IF 'INQUIRE' DOES NOT WORK, USUALLY IRECSZ WILL BE LEFT AT 0 
+C IF 'INQUIRE' DOES NOT WORK, USUALLY IRECSZ WILL BE LEFT AT 0
 
       IF(IRECSZ .LE. 0) write(*,*)
      . ' INQUIRE STATEMENT PROBABLY DID NOT WORK'
@@ -62,9 +62,9 @@ C
       SUBROUTINE FSIZER2(NRECL,KSIZE,NRFILE,NAMFIL)
 C
 C++++++++++++++++++++++++
-C  THIS SUBROUTINE OPENS THE FILE, 'NAMFIL', WITH A PHONY RECORD LENGTH, READS 
-C  THE FIRST RECORD, AND USES THE INFO TO COMPUTE KSIZE, THE NUMBER OF SINGLE 
-C  PRECISION WORDS IN A RECORD.  
+C  THIS SUBROUTINE OPENS THE FILE, 'NAMFIL', WITH A PHONY RECORD LENGTH, READS
+C  THE FIRST RECORD, AND USES THE INFO TO COMPUTE KSIZE, THE NUMBER OF SINGLE
+C  PRECISION WORDS IN A RECORD.
 C
 C  THE SUBROUTINE ALSO SETS THE VALUES OF  NRECL, NRFILE, AND NAMFIL.
 
@@ -101,13 +101,13 @@ C  NRFILE IS THE INTERNAL UNIT NUMBER USED FOR THE EPHEMERIS FILE
 
 C  NAMFIL IS THE EXTERNAL NAME OF THE BINARY EPHEMERIS FILE
 
-!      NAMFIL='JPLEPH' 
+!      NAMFIL='JPLEPH'
       NAMFIL=jpleph_file_name
 
 C  *****************************************************************
 C  *****************************************************************
 
-C  **  OPEN THE DIRECT-ACCESS FILE AND GET THE POINTERS IN ORDER TO 
+C  **  OPEN THE DIRECT-ACCESS FILE AND GET THE POINTERS IN ORDER TO
 C  **  DETERMINE THE SIZE OF THE EPHEMERIS RECORD
 
       MRECL=NRECL*1000
@@ -211,7 +211,7 @@ C++++++++++++++++++++++++++
 C  NOTE : Over the years, different versions of PLEPH have had a fifth argument:
 C  sometimes, an error return statement number; sometimes, a logical denoting
 C  whether or not the requested date is covered by the ephemeris.  We apologize
-C  for this inconsistency; in this present version, we use only the four necessary 
+C  for this inconsistency; in this present version, we use only the four necessary
 C  arguments and do the testing outside of the subroutine.
 C
 C     THIS SUBROUTINE READS THE JPL PLANETARY EPHEMERIS
@@ -224,7 +224,7 @@ C       ET = D.P. JULIAN EPHEMERIS DATE AT WHICH INTERPOLATION
 C            IS WANTED.
 C
 C       ** NOTE THE ENTRY DPLEPH FOR A DOUBLY-DIMENSIONED TIME **
-C          THE REASON FOR THIS OPTION IS DISCUSSED IN THE 
+C          THE REASON FOR THIS OPTION IS DISCUSSED IN THE
 C          SUBROUTINE STATE
 C
 C     NTARG = INTEGER NUMBER OF 'TARGET' POINT.
@@ -280,7 +280,7 @@ C
       ET2(2)=0.D0
       GO TO 11
 
-C     ENTRY POINT 'DPLEPH' FOR DOUBLY-DIMENSIONED TIME ARGUMENT 
+C     ENTRY POINT 'DPLEPH' FOR DOUBLY-DIMENSIONED TIME ARGUMENT
 C          (SEE THE DISCUSSION IN THE SUBROUTINE STATE)
 
       ENTRY DPLEPH(ET2Z,NTARG,NCENT,RRD)
@@ -533,7 +533,7 @@ C
 
 C+++++++++++++++++++++++++
 C
-      SUBROUTINE SPLIT(TT,FR)
+      SUBROUTINE SPLIT_DP(TT,FR)
 C
 C+++++++++++++++++++++++++
 C
@@ -627,21 +627,21 @@ C
 C     OUTPUT:
 C
 C          PV   DP 6 X 11 ARRAY THAT WILL CONTAIN REQUESTED INTERPOLATED
-C               QUANTITIES (OTHER THAN NUTATION, STOERD IN PNUT).  
+C               QUANTITIES (OTHER THAN NUTATION, STOERD IN PNUT).
 C               THE BODY SPECIFIED BY LIST(I) WILL HAVE ITS
-C               STATE IN THE ARRAY STARTING AT PV(1,I).  
-C               (ON ANY GIVEN CALL, ONLY THOSE WORDS IN 'PV' WHICH ARE 
+C               STATE IN THE ARRAY STARTING AT PV(1,I).
+C               (ON ANY GIVEN CALL, ONLY THOSE WORDS IN 'PV' WHICH ARE
 C                AFFECTED BY THE  FIRST 10 'LIST' ENTRIES, AND BY LIST(12)
-C                IF LIBRATIONS ARE ON THE FILE, ARE SET.  
-C                THE REST OF THE 'PV' ARRAYIS UNTOUCHED.)  
+C                IF LIBRATIONS ARE ON THE FILE, ARE SET.
+C                THE REST OF THE 'PV' ARRAYIS UNTOUCHED.)
 C               THE ORDER OF COMPONENTS STARTING IN PV(1,I) IS: X,Y,Z,DX,DY,DZ.
 C
 C               ALL OUTPUT VECTORS ARE REFERENCED TO THE EARTH MEAN
 C               EQUATOR AND EQUINOX OF J2000 IF THE DE NUMBER IS 200 OR
-C               GREATER; OF B1950 IF THE DE NUMBER IS LESS THAN 200. 
+C               GREATER; OF B1950 IF THE DE NUMBER IS LESS THAN 200.
 C
-C               THE MOON STATE IS ALWAYS GEOCENTRIC; THE OTHER NINE STATES 
-C               ARE EITHER HELIOCENTRIC OR SOLAR-SYSTEM BARYCENTRIC, 
+C               THE MOON STATE IS ALWAYS GEOCENTRIC; THE OTHER NINE STATES
+C               ARE EITHER HELIOCENTRIC OR SOLAR-SYSTEM BARYCENTRIC,
 C               DEPENDING ON THE SETTING OF COMMON FLAGS (SEE BELOW).
 C
 C               LUNAR LIBRATIONS, IF ON FILE, ARE PUT INTO PV(K,11) IF
@@ -754,11 +754,11 @@ C       ********** MAIN ENTRY POINT **********
       IF(ET2(1) .EQ. 0.D0) RETURN
 
       S=ET2(1)-.5D0
-      CALL SPLIT(S,PJD(1))
-      CALL SPLIT(ET2(2),PJD(3))
+      CALL SPLIT_DP(S,PJD(1))
+      CALL SPLIT_DP(ET2(2),PJD(3))
       PJD(1)=PJD(1)+PJD(3)+.5D0
       PJD(2)=PJD(2)+PJD(4)
-      CALL SPLIT(PJD(2),PJD(3))
+      CALL SPLIT_DP(PJD(2),PJD(3))
       PJD(1)=PJD(1)+PJD(3)
 
 C       ERROR RETURN FOR EPOCH OUT OF RANGE

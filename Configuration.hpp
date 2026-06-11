@@ -23,6 +23,7 @@ class FrequencyList_v2_101;
 class StationList;
 class QStringListModel;
 class LotWUsers;
+class Cloudlog;
 class DecodeHighlightingModel;
 class LogBook;
 
@@ -96,48 +97,126 @@ public:
   // re-opened if they return true.
   bool restart_audio_input () const;
   bool restart_audio_output () const;
+  bool restart_tci () const;
 
   QString my_callsign () const;
   QString my_grid () const;
   QString Field_Day_Exchange() const;
   QString RTTY_Exchange() const;
   QString Contest_Name() const;
+  QString Blacklist1() const;
+  QString Blacklist2() const;
+  QString Blacklist3() const;
+  QString Blacklist4() const;
+  QString Blacklist5() const;
+  QString Blacklist6() const;
+  QString Blacklist7() const;
+  QString Blacklist8() const;
+  QString Blacklist9() const;
+  QString Blacklist10() const;
+  QString Blacklist11() const;
+  QString Blacklist12() const;
+  QString Whitelist1() const;
+  QString Whitelist2() const;
+  QString Whitelist3() const;
+  QString Whitelist4() const;
+  QString Whitelist5() const;
+  QString Whitelist6() const;
+  QString Whitelist7() const;
+  QString Whitelist8() const;
+  QString Whitelist9() const;
+  QString Whitelist10() const;
+  QString Whitelist11() const;
+  QString Whitelist12() const;
+  QString Pass1() const;
+  QString Pass2() const;
+  QString Pass3() const;
+  QString Pass4() const;
+  QString Pass5() const;
+  QString Pass6() const;
+  QString Pass7() const;
+  QString Pass8() const;
+  QString Pass9() const;
+  QString Pass10() const;
+  QString Pass11() const;
+  QString Pass12() const;
+  QString Territory1() const;
+  QString Territory2() const;
+  QString Territory3() const;
+  QString Territory4() const;
+  QString highlight_orange_callsigns() const;
+  QString highlight_blue_callsigns() const;
+  QString voicesPath() const;
+  bool PWR_and_SWR() const;
+  bool check_SWR() const;
+
   void setEU_VHF_Contest();
   QFont text_font () const;
   QFont decoded_text_font () const;
   qint32 id_interval () const;
+  qint32 align_steps () const;
+  qint32 align_steps2 () const;
   qint32 ntrials() const;
+  qint32 volume() const;
   qint32 aggressive() const;
   qint32 RxBandwidth() const;
   double degrade() const;
   double txDelay() const;
+  bool tci_audio() const;
   bool id_after_73 () const;
   bool tx_QSY_allowed () const;
+  bool progressBar_red () const;
   bool spot_to_psk_reporter () const;
   bool psk_reporter_tcpip () const;
+  bool send_to_eqsl () const;
+  QString eqsl_username () const;
+  QString eqsl_passwd () const;
+  QString eqsl_nickname () const;
   bool monitor_off_at_startup () const;
   bool monitor_last_used () const;
   bool log_as_RTTY () const;
   bool report_in_comments () const;
+  bool specOp_in_comments () const;
+  bool cloudlog_enabled () const;
+  QString cloudlog_api_url() const;
+  QString cloudlog_api_key() const;
+  qint32 cloudlog_api_station_id() const;
   bool prompt_to_log () const;
   bool autoLog() const;
+  bool contestingOnly() const;
+  bool ZZ00() const;
+  bool log4digitGrids() const;
   bool decodes_from_top () const;
   bool insert_blank () const;
+  bool detailed_blank () const;
   bool DXCC () const;
+  bool GridMap() const;
+  bool GridMapAll() const;
   bool ppfx() const;
-  bool clear_DX () const;
   bool miles () const;
   bool quick_call () const;
   bool disable_TX_on_73 () const;
   bool force_call_1st() const;
   bool alternate_bindings() const;
   int watchdog () const;
+  int tune_watchdog_time () const;
+  bool tune_watchdog () const;
   bool TX_messages () const;
   bool split_mode () const;
   bool enable_VHF_features () const;
   bool decode_at_52s () const;
+  bool kHz_without_k () const;
+  bool button_coloring_disabled () const;
+  bool Wait_features_enabled () const;
+  bool showDistance() const ;
+  bool showAzimuth() const ;
+  bool align() const;
+  bool repeat_Tx () const;
+  bool auto_astro () const;
   bool single_decode () const;
   bool twoPass() const;
+  bool highDPI() const;
+  bool largerTabWidget() const;
   bool superFox() const;
   bool bFox() const;
   bool bHound() const;
@@ -160,6 +239,7 @@ public:
   port_type n1mm_server_port () const;
   bool valid_n1mm_info () const;
   bool broadcast_to_n1mm() const;
+  bool broadcast_to_cloudlog() const;
   bool lowSidelobes() const;
   bool accept_udp_requests () const;
   bool udpWindowToFront () const;
@@ -177,22 +257,57 @@ public:
   QDir azel_directory () const;
   QString rig_name () const;
   Type2MsgGen type_2_msg_gen () const;
+  bool AzElExtraLines () const;
   bool pwrBandTxMemory () const;
   bool pwrBandTuneMemory () const;
   LotWUsers const& lotw_users () const;
+  Cloudlog const& cloudlog () const;
   DecodeHighlightingModel const& decode_highlighting () const;
   bool highlight_by_mode () const;
   bool highlight_only_fields () const;
   bool include_WAE_entities () const;
   bool highlight_73 () const;
+  bool highlight_orange () const;
+  bool highlight_blue () const;
+  bool bSpecialOp () const;
+  bool show_country_names () const;
+  bool alternate_erase_button () const;
   void setSpecial_Q65_Pileup();
   void setSpecial_Hound();
   void setSpecial_Fox();
   void setSpecial_None();
+  void setSpecial_On();
   void toggle_SF();
   bool highlight_DXcall () const;
+  bool clear_DXcall () const;
   bool highlight_DXgrid () const;
+  bool clear_DXgrid () const;
+  bool erase_BandActivity () const;
+  bool set_RXtoTX () const;
   bool Individual_Contest_Name() const;
+  bool NCCC_Sprint() const;
+  bool Blacklisted() const;
+  bool Whitelisted() const;
+  bool AlwaysPass() const;
+  bool filters_for_Wait_and_Pounce_only() const;
+  bool filters_for_word2() const;
+  bool twoDays() const;
+  bool alert_CQ () const;
+  bool alert_MyCall () const;
+  bool alert_DXCC () const;
+  bool alert_DXCCOB () const;
+  bool alert_Grid () const;
+  bool alert_GridOB () const;
+  bool alert_Continent () const;
+  bool alert_ContinentOB () const;
+  bool alert_CQZ () const;
+  bool alert_CQZOB () const;
+  bool alert_ITUZ () const;
+  bool alert_ITUZOB () const;
+  bool alert_DXcall () const;
+  bool alert_Wanted () const;
+  bool alert_QSYmessage () const;
+  bool alert_Enabled () const;
   bool validate_otp_seed(QString);
   QString OTPSeed() const;
   QString OTPUrl() const;
@@ -239,6 +354,7 @@ public:
 
   // check if a real rig is configured
   bool is_dummy_rig () const;
+  bool is_tci () const;
 
   // Frequency resolution of the rig
   //
@@ -253,6 +369,7 @@ public:
   void transceiver_offline ();
 
   void set_CTY_DAT_version(QString const& version);
+  void read_CALL3_version ();
 
   // Set transceiver frequency in Hertz.
   Q_SLOT void transceiver_frequency (Frequency);
@@ -270,6 +387,43 @@ public:
   // the "Emulate Split" mode requires PTT information to coordinate
   // frequency changes.
   Q_SLOT void transceiver_ptt (bool = true);
+//  Q_SLOT void transceiver_tune (bool = true);
+
+  // Set/unset Audio streaming for TCI.
+  //
+  Q_SLOT void transceiver_audio (bool = false);
+
+  // Set/unset Tune for TCI.
+  //
+  Q_SLOT void transceiver_tune (bool = false);
+
+  // Set period for TCI audio
+  //
+  Q_SLOT void transceiver_period (double = 15.0);
+
+  // Set blocksize for TCI audio.
+  //
+  Q_SLOT void transceiver_blocksize (qint32 = 6912 / 2);
+
+  // Set modulation start TCI audio
+  //
+  Q_SLOT void transceiver_modulator_start (QString="FT8", unsigned = 79, double = 1920.0, double = 1500.0, double = -3.0, bool = true, bool=false, double = 99., double = 60.0);
+
+  // Set modulation start TCI audio
+  //
+  Q_SLOT void transceiver_modulator_stop (bool = false);
+
+  // Set spread for TCI audio
+  //
+  Q_SLOT void transceiver_spread (double = 0.0);
+
+  // Set nsym for TCI audio
+  //
+  Q_SLOT void transceiver_nsym (int = 79);
+
+  // Set trfrequency for TCI audio
+  //
+  Q_SLOT void transceiver_trfrequency (double = 1500.0);
 
   // Attempt to (re-)synchronise transceiver state.
   //
@@ -308,6 +462,9 @@ public:
 
   // signals a change in one of the TransceiverState members
   Q_SIGNAL void transceiver_update (Transceiver::TransceiverState const&) const;
+  Q_SIGNAL void transceiver_TCIframesWritten (qint64) const;
+  Q_SIGNAL void transceiver_TCImodActive (bool) const;
+  Q_SIGNAL void leavingSettings (bool) const;
 
   // Signals a failure of a control rig CAT or PTT connection.
   //
@@ -322,6 +479,10 @@ public:
   // As this can take some time, particularly on Linux, consumers
   // might like to notify the user.
   Q_SIGNAL void enumerating_audio_devices ();
+
+public slots:
+  Q_SLOT void transceiver_volume (double = 0);
+  Q_SLOT void transceiver_txvolume (double = 0);
 
 private:
   class impl;

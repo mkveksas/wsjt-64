@@ -1,6 +1,6 @@
 program fcal
 
-! Compute Intercept (A) and Slope (B) for a series of FreqCal measurements. 
+! Compute Intercept (A) and Slope (B) for a series of FreqCal measurements.
   parameter(NZ=1000)
   implicit real*8 (a-h,o-z)
   real*8 fd(NZ),deltaf(NZ),r(NZ)
@@ -46,10 +46,10 @@ program fcal
   if(iz.lt.2) go to 998
   call fit(fd,deltaf,r,iz,a,b,sigmaa,sigmab,rms)
 
-  write(*,1002) 
+  write(*,1002)
 1002 format('    Freq      DF     Meas Freq     Resid'/        &
             '   (MHz)     (Hz)      (MHz)        (Hz)'/        &
-            '-----------------------------------------')       
+            '-----------------------------------------')
   do i=1,iz
      fm=fd(i) + 1.d-6*deltaf(i)
      calfac=1.d0 + 1.d-6*deltaf(i)/fd(i)

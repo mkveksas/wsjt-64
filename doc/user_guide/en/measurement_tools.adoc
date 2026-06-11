@@ -31,7 +31,7 @@ of WWV at 2.500, 5.000, 10.000, 15.000, and 20.000 MHz, and CHU at
 3.330, 7.850, and 14.670 MHz.  Similar shortwave signals are available
 in other parts of the world.
 
-- In most cases, start by deleting any existing file `fmt.all` in the 
+- In most cases, start by deleting any existing file `fmt.all` in the
 directory where your log files are kept.
 
 - To cycle automatically through your chosen list of calibration
@@ -99,23 +99,25 @@ For a quick visual check of the resulting calibration, stay in
 the adjusted results directly on the waterfall and the displayed
 records.
 
+[[REFERENCE_SPECTRUM]]
 === Reference Spectrum
 
 _WSJT-X_ provides a tool that can be used to determine the detailed
-shape of your receiver's passband.  Disconnect your antenna or tune to
-a quiet frequency with no signals.  With _WSJT-X_ running in one of
-the slow modes, select *Measure reference spectrum* from the *Tools*
-menu.  Wait for about a minute and then click *Stop*.  A file
-named `refspec.dat` appears in your log directory.   When you check
-*Ref Spec* on the *Wide Graph*, the recorded reference spectrum will
-then be used to flatten your overall effective passband.
+shape of your receiver's passband. Tune to a quiet frequency with no
+signals or birdies. With _WSJT-X_ running in one of the slow modes and
+*Monitor* active, make sure that *Flatten* is checked on the *Wide
+Graph* and then select *Measure reference spectrum* from the *Tools*
+menu.  Wait for about a minute and then click *Stop*.  A file named
+`refspec.dat` will appear in your log directory.  When you check *Ref
+Spec* on the *Wide Graph*, the recorded reference spectrum will then
+be used to flatten your overall effective passband.
 
 === Phase Equalization
 
 *Measure phase response* under the *Tools* menu is for advanced MSK144
 users. Phase equalization is used to compensate for group-delay
 variation across your receiver passband. Careful application of this
-facility can reduce intersymbol interference, resulting in improved
+facility can reduce inter-symbol interference, resulting in improved
 decoding sensitivity.  If you use a software-defined receiver with
 linear-phase filters there is no need to apply phase equalization.
 
@@ -173,8 +175,8 @@ light green curve labeled "Current" to indicate that the phase
 equalization curve is now being applied to the received data. Another
 curve labeled "Group Delay" appears. The "Group Delay" curve shows
 the group delay variation across the passband, in ms. Click the
-*Discard Measured*  button to remove the captured data from the plot, 
-leaving only the applied phase equalization curve and corresponding 
+*Discard Measured*  button to remove the captured data from the plot,
+leaving only the applied phase equalization curve and corresponding
 group delay curve.
 
 - To revert to no phase equalization, click the *Restore Defaults*

@@ -1,7 +1,7 @@
 program fox_sim
 
 ! Simulates QSO exchanges using the proposed FT8 "DXpedition" mode.
-  parameter (MAXSIG=5,NCALLS=268)  
+  parameter (MAXSIG=5,NCALLS=268)
   character*6 xcall(NCALLS)
   character*4 xgrid(NCALLS)
   integer isnr(NCALLS)
@@ -18,7 +18,7 @@ program fox_sim
   integer ntot(MAXSIG),irate(MAXSIG),ntimes(MAXSIG)
   logical logit
   common/dxpfifo/nc,isnr,xcall,xgrid
-  
+
   nargs=iargc()
   if(nargs.ne.2 .and. nargs.ne.4) then
      print*,'Usage: fox_sim  nseq maxtimes'
@@ -62,21 +62,21 @@ program fox_sim
      j=mod(i-1,26)
      c1=char(ichar('A')+j)
      k=mod((i-1)/26,26)
-     c2=char(ichar('A')+k)     
+     c2=char(ichar('A')+k)
      n=mod((i-1)/260,10)
-     c3=char(ichar('0')+n)     
+     c3=char(ichar('0')+n)
      xcall(i)='K'//c2//c3//c1//c1//c1
 
      j=mod(i-1,18)
      c1=char(ichar('A')+j)
      k=mod((i-1)/18,18)
-     c2=char(ichar('A')+k)     
+     c2=char(ichar('A')+k)
      n=mod((i-1)/10,10)
-     c4=char(ichar('0')+n)     
+     c4=char(ichar('0')+n)
      n=mod((i-1)/100,10)
-     c3=char(ichar('0')+n)     
+     c3=char(ichar('0')+n)
      xgrid(i)=c1//c2//c3//c4
-     
+
      call random_number(x)
      isnr(i)=-20+int(40*x)
   enddo
@@ -99,7 +99,7 @@ program fox_sim
   MyGrid='AJ10'
 
   do jj=jj1,jj2                        !Loop over Rx failure rates
-     fail=0.1*jj    
+     fail=0.1*jj
      do ii=ii1,ii2                     !Loop over range of nsig
         nc=0                           !Set FIFO pointer to top
         ntimes=1
@@ -133,7 +133,7 @@ program fox_sim
               enddo
               ! call transmit()
            endif
-           
+
            if(iand(iseq,1).eq.1) then
               do j=1,nsig              !Listen for expected responses
                  fm=fmsg(j)
@@ -156,7 +156,7 @@ program fox_sim
 1030    format(/'Nsig:',i3,'   Fail:',f4.1,'   Logged QSOs:',i4,      &
              '   Final nc:',i4)
      enddo
-     
+
 ! Write the summary file
      write(13,1100) fail,ntot,irate
 1100 format(f4.1,2x,5i6,5x,5i6)

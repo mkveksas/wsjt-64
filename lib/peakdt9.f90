@@ -8,7 +8,7 @@ subroutine peakdt9(c2,nsps8,nspsd,c3,xdt)
   include 'jt9sync.f90'
 
   p=0.
-  i0=5*nspsd 
+  i0=5*nspsd
   do i=0,NZ2-1
      z=1.e-3*sum(c2(max(i-(nspsd-1),0):i))
      p(i0+i)=real(z)**2 + aimag(z)**2      !Integrated symbol power at freq=0
@@ -49,6 +49,6 @@ subroutine peakdt9(c2,nsps8,nspsd,c3,xdt)
         c3(i)=0.
      endif
   enddo
- 
+
   return
 end subroutine peakdt9

@@ -8,6 +8,7 @@
 #include <locale>
 #include <fftw3.h>
 
+#include <QApplication>
 #include <QSharedMemory>
 #include <QProcessEnvironment>
 #include <QTemporaryFile>
@@ -113,6 +114,10 @@ int main(int argc, char *argv[])
   // Multiple instances communicate with jt9 via this
   QSharedMemory mem_jt9;
 
+  // Read optional file to disable highDPI scaling
+  QFile f("DisableHighDpiScaling");
+  if (!f.exists()) QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+
   auto const env = QProcessEnvironment::systemEnvironment ();
 
   ExceptionCatchingApplication a(argc, argv);
@@ -197,7 +202,7 @@ int main(int argc, char *argv[])
                   std::cerr << "Invalid rig name - \\ & / not allowed" << std::endl;
                   parser.showHelp (-1);
                 }
-                
+
               a.setApplicationName (a.applicationName () + " - " + temp_name);
             }
 
@@ -418,16 +423,22 @@ int main(int argc, char *argv[])
 
             // deal with Windows Vista and earlier input audio rate
             // converter problems
-            downSampleFactor = multi_settings.settings ()->value ("Audio/DisableInputResampling",
+            downSampleFactor = multi_settings.settings()->value(
+                "Audio/DisableInputResampling",
 #if defined (Q_OS_WIN)
                                                                   // default to true for
-                                                                  // Windows Vista and older
-                                                                  QSysInfo::WV_VISTA >= QSysInfo::WindowsVersion ? true : false
+                (QOperatingSystemVersion::current() <
+                 QOperatingSystemVersion(QOperatingSystemVersion::Windows, 6))
+                    ? true
+                    : false
 #else
                                                                   false
 #endif
                                                                   ).toBool () ? 1u : 4u;
+
           }
+
+          QDir::setCurrent(qApp->applicationDirPath()); //This helps to find the SF executables
 
           // run the application UI
           MainWindow w(temp_dir, multiple, &multi_settings, &mem_jt9, downSampleFactor, &splash, env);

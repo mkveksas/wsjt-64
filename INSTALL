@@ -1,22 +1,23 @@
 
- __       __   ______      _____  ________      __    __ 
+ __       __   ______      _____  ________      __    __
 |  \  _  |  \ /      \    |     \|        \    |  \  |  \
 | $$ / \ | $$|  $$$$$$\    \$$$$$ \$$$$$$$$    | $$  | $$
 | $$/  $\| $$| $$___\$$      | $$   | $$ ______ \$$\/  $$
-| $$  $$$\ $$ \$$    \  __   | $$   | $$|      \ >$$  $$ 
-| $$ $$\$$\$$ _\$$$$$$\|  \  | $$   | $$ \$$$$$$/  $$$$\ 
+| $$  $$$\ $$ \$$    \  __   | $$   | $$|      \ >$$  $$
+| $$ $$\$$\$$ _\$$$$$$\|  \  | $$   | $$ \$$$$$$/  $$$$\
 | $$$$  \$$$$|  \__| $$| $$__| $$   | $$       |  $$ \$$\
 | $$$    \$$$ \$$    $$ \$$    $$   | $$       | $$  | $$
  \$$      \$$  \$$$$$$   \$$$$$$     \$$        \$$   \$$
-                                                         
-                                                         
-                                                         
+      --- I M P R O V E D   b y  D G 2 Y C B  ---
+
 Installing WSJT-X
 =================
 
-Binary packages of WSJT-X are available from the project web site:
+Binary packages of WSJT-X_IMPROVED are available from the project web
+sites:
 
-       https://wsjt.sourceforge.io/wsjtx.html
+       https://wsjt-x-improved.sourceforge.io/
+       https://sourceforge.net/projects/wsjt-x-improved/
 
 Building from Source
 ====================
@@ -50,7 +51,7 @@ normally you can choose not to  install libusb-1.0-dev but if you have
 a SoftRock USB or similar SDR that uses a custom USB interface then it
 is required.
 
-The Hamlib library is required.  WSJT-X  can be built with any version 
+The Hamlib library is required.  WSJT-X  can be built with any version
 of the Hamlib git master.  To  build  Hamlib  from  sources  something
 like the following recipe should suffice:
 
@@ -375,7 +376,7 @@ which installs the WSJT-X application bundle into ~/wsjtx-prefix
 Updating and Rebuilding Hamlib
 ==============================
 
-From  time  to time  new  fixes  will be  pushed  to  the Hamlib  git 
+From  time  to time  new  fixes  will be  pushed  to  the Hamlib  git
 master repository. To pick them up type:
 
 $ cd ~/hamlib-prefix/src

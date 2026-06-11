@@ -17,7 +17,7 @@ module ft8_a7
 
 contains
 
-subroutine ft8_a7_save(nutc,dt,f,msg)
+subroutine ft8_a7_save(jseq,dt,f,msg)
 
   use packjt77
   character*37 msg,msg1
@@ -37,8 +37,7 @@ subroutine ft8_a7_save(nutc,dt,f,msg)
   call split77(msg,nwords,nw,w)          !Parse msg into words
   if(nwords.lt.1) go to 999
   if(w(1)(1:3).eq.'CQ_') go to 999
-  j=mod(nutc/5,2)                        !j is 0 or 1 for odd/even sequence
-  jseq=j
+  j=jseq
 
 ! Add this decode to current table for this sequence
   ndec(j,1)=ndec(j,1)+1                  !Number of decodes in this sequence
@@ -56,7 +55,7 @@ subroutine ft8_a7_save(nutc,dt,f,msg)
 ! Include grid as part of message
   if(isgrid4(w(nwords))) msg0(i,j,1)=trim(msg0(i,j,1))//' '//trim(w(nwords))
 
-! If a transmission at this frequency with message fragment "call_1 call_2" 
+! If a transmission at this frequency with message fragment "call_1 call_2"
 ! was decoded in the previous sequence, flag it as "DO NOT USE" because
 ! we have already decoded and subtracted that station's next transmission.
 
@@ -68,7 +67,7 @@ subroutine ft8_a7_save(nutc,dt,f,msg)
         f0(i,j,0)=-98.0           !Flag as "do not use" for a potential a7 decode
      endif
   enddo
-  
+
 999 return
 end subroutine ft8_a7_save
 
@@ -76,7 +75,7 @@ subroutine ft8_a7d(dd0,newdat,call_1,call_2,grid4,xdt,f1,xbase,nharderrors,dmin,
      msg37,xsnr)
 
 ! Examine the raw data in dd0() for possible "a7" decodes.
-  
+
   use crc
   use timer_module, only: timer
   use packjt77
@@ -190,7 +189,7 @@ subroutine ft8_a7d(dd0,newdat,call_1,call_2,grid4,xdt,f1,xbase,nharderrors,dmin,
     call four2a(csymb,32,1,-1,1)
     cs(0:7,k)=csymb(1:8)/1e3
     s8(0:7,k)=abs(csymb(1:8))
-  enddo  
+  enddo
 
 ! sync quality check
   is1=0
@@ -230,9 +229,9 @@ subroutine ft8_a7d(dd0,newdat,call_1,call_2,grid4,xdt,f1,xbase,nharderrors,dmin,
           endif
         enddo
         i32=1+(k-1)*3+(ihalf-1)*87
-        if(nsym.eq.1) ibmax=2 
-        if(nsym.eq.2) ibmax=5 
-        if(nsym.eq.3) ibmax=8 
+        if(nsym.eq.1) ibmax=2
+        if(nsym.eq.2) ibmax=5
+        if(nsym.eq.3) ibmax=8
         do ib=0,ibmax
           bm=maxval(s2(0:nt-1),one(0:nt-1,ibmax-ib)) - &
              maxval(s2(0:nt-1),.not.one(0:nt-1,ibmax-ib))
@@ -273,7 +272,7 @@ subroutine ft8_a7d(dd0,newdat,call_1,call_2,grid4,xdt,f1,xbase,nharderrors,dmin,
   pbest=0.
   dmin=1.e30
   nharderrors=-1
-  
+
   do imsg=1,MAXMSG
      msg=trim(call_1)//' '//trim(call_2)
      i=imsg
@@ -355,16 +354,16 @@ subroutine ft8_a7d(dd0,newdat,call_1,call_2,grid4,xdt,f1,xbase,nharderrors,dmin,
            nharderrors=count((2*cw-1)*llrd.lt.0.0)
         endif
      endif
-     
+
   enddo  ! imsg
 
   iloc=minloc(dmm)
   dmm(iloc(1))=1.e30
   iloc=minloc(dmm)
   dmin2=dmm(iloc(1))
-  xsnr=-24.
+  xsnr=-25.
   arg=pbest/xbase/3.0e6-1.0
-  if(arg.gt.0.0) xsnr=max(-24.0,db(arg)-27.0)
+  if(arg.gt.0.0) xsnr=max(-25.0,db(arg)-27.0)
 !  write(41,3041) nharderrors,dmin,dmin2,dmin2/dmin,xsnr,trim(msgbest)
 !3041 format(i3,2f7.1,f7.2,f7.1,1x,a)
   if(dmin.gt.100.0 .or. dmin2/dmin.lt.1.3) nharderrors=-1
@@ -374,5 +373,49 @@ subroutine ft8_a7d(dd0,newdat,call_1,call_2,grid4,xdt,f1,xbase,nharderrors,dmin,
 
   return
 end subroutine ft8_a7d
+
+subroutine getmsg(i,mycall,hiscall,hisgrid,msg)
+
+  character*12 mycall,hiscall
+  character*6 hisgrid
+  character*37 msg
+  logical my_std,his_std
+
+  call stdcall(mycall,my_std)
+  call stdcall(hiscall,his_std)
+
+  isnr=0
+  msg=trim(mycall)//' '//trim(hiscall)
+  if(.not.my_std) then
+     if(i.eq.1 .or. i.ge.6)  msg='<'//trim(mycall)//'> '//trim(hiscall)
+     if(i.ge.2 .and. i.le.4) msg=trim(mycall)//' <'//trim(hiscall)//'>'
+  else if(.not.his_std) then
+     if(i.le.4 .or. i.eq.6) msg='<'//trim(mycall)//'> '//trim(hiscall)
+     if(i.ge.7) msg=trim(mycall)//' <'//trim(hiscall)//'>'
+  endif
+  j0=len(trim(msg))+2
+  if(i.eq.2) msg(j0:j0+2)='RRR'
+  if(i.eq.3) msg(j0:j0+3)='RR73'
+  if(i.eq.4) msg(j0:j0+1)='73'
+  if(i.eq.5) then
+     if(his_std) msg='CQ '//trim(hiscall)//' '//hisgrid(1:4)
+     if(.not.his_std) msg='CQ '//trim(hiscall)
+  endif
+  if(i.eq.6 .and. his_std) msg(j0:j0+3)=hisgrid(1:4)
+  if(i.ge.7 .and. i.le.206) then
+     isnr = -50 + (i-7)/2
+     if(iand(i,1).eq.1) then
+        write(msg(j0:j0+2),'(i3.2)') isnr
+        if(msg(j0:j0).eq.' ') msg(j0:j0)='+'
+     else
+        write(msg(j0:j0+3),'("R",i3.2)') isnr
+        if(msg(j0+1:j0+1).eq.' ') msg(j0+1:j0+1)='+'
+     endif
+  endif
+
+  if(abs(isnr).gt.30) msg=''
+
+  return
+end subroutine getmsg
 
 end module ft8_a7

@@ -20,4 +20,3 @@ subroutine flat1(savg,iz,nsmo,syellow)
 
   return
 end subroutine flat1
-

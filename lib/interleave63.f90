@@ -20,6 +20,6 @@ subroutine interleave63(d1,idir)
         enddo
      enddo
   endif
-         
+
   return
 end subroutine interleave63

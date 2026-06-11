@@ -3,7 +3,7 @@ subroutine fox_rx(fail,called,fm,hm)
 ! Given fm, recently transmitted by Fox, determine hm -- the next
 ! message for Hound to transmit
 
-  parameter (MAXSIG=5,NCALLS=268)  
+  parameter (MAXSIG=5,NCALLS=268)
   character*6 xcall(NCALLS)
 !  character*8 mycall_plus
   character*4 xgrid(NCALLS)

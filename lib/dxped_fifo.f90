@@ -1,6 +1,6 @@
 subroutine dxped_fifo(cx,gx,isnrx)
 
-  parameter (NCALLS=268)  
+  parameter (NCALLS=268)
   character*6 xcall(NCALLS)
   character*4 xgrid(NCALLS)
   integer isnr(NCALLS)
@@ -18,6 +18,6 @@ subroutine dxped_fifo(cx,gx,isnrx)
      gx='    '
      isnrx=0
   endif
-  
+
   return
 end subroutine dxped_fifo

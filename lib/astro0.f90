@@ -70,7 +70,7 @@ subroutine astro0(nyear,month,nday,uth8,freq8,mygrid,hisgrid,              &
      dopplerz=doppler
      doppler00z=doppler00
   endif
-     
+
   dt=60.0*(uth8-uth8z)
   if(dt.le.0) dt=1.d0/60.d0
   dfdt=(doppler-dopplerz)/dt

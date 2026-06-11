@@ -38,6 +38,6 @@ subroutine lorentzian_fading(c,npts,fs,fspread)
   fac=sqrt(1.0/avep)
   cspread=fac*cspread
   c=cspread*c
-   
+
   return
 end subroutine lorentzian_fading

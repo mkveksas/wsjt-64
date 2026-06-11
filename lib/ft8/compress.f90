@@ -12,7 +12,7 @@ subroutine compress(c)
   do i=0,NMAX-1
      c(i)=rms*cmplx(h1(xr(i)),h1(xi(i)))
   enddo
-  
+
 !  par=pwr_pk/pwr_ave
 !  write(*,1010) 5,rms,pk,pwr_pk,pwr_ave,par
 !1010 format(i3,2f10.3,3f10.2)
@@ -32,6 +32,6 @@ subroutine wavestats(x,kz,rms,pk,pwr_pk,pwr_ave)
   pk=max(maxval(x),-minval(x))
   pwr_pk=pk*pk
   pwr_ave=sumsq/kz
-  
+
   return
 end subroutine wavestats

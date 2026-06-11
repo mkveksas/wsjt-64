@@ -32,7 +32,7 @@
 
 #include "moc_PSKReporter.cpp"
 
-#define DEBUGECLIPSE 0
+//#define DEBUGECLIPSE 0
 
 namespace
 {
@@ -264,7 +264,7 @@ public:
   QTimer report_timer_;
   QTimer descriptor_timer_;
 };
-  
+
 #include "PSKReporter.moc"
 
 namespace
@@ -294,8 +294,9 @@ namespace
   }
 }
 
-bool PSKReporter::impl::eclipse_active(QDateTime timeutc) 
+bool PSKReporter::impl::eclipse_active(QDateTime timeutc)
 {
+	qDebug() << timeutc;
 #ifdef DEBUGECLIPSE
     std::ofstream mylog("/temp/eclipse.log", std::ios_base::app);
 #endif
@@ -344,7 +345,7 @@ void PSKReporter::impl::eclipse_load(QString eclipse_file)
 				//else
 				//  mylog << "not adding " << myline << std::endl;
 #endif
-	
+
               }
 #ifdef DEBUGECLIPSE
               mylog << myline << std::endl;
@@ -627,7 +628,7 @@ void PSKReporter::setLocalStation (QString const& call, QString const& gridSquar
 }
 
 bool PSKReporter::addRemoteStation (QString const& call, QString const& grid, Radio::Frequency freq
-                                     , QString const& mode, int snr)
+                                     , QString const& mode, int snr, QDateTime qSpotTime)
 {
   LOG_LOG_LOCATION (m_->logger_, trace, "call: " << call << " grid: " << grid << " freq: " << freq << " mode: " << mode << " snr: " << snr);
   m_->check_connection ();
@@ -648,15 +649,15 @@ bool PSKReporter::addRemoteStation (QString const& call, QString const& grid, Ra
       // we allow all spots through +/- 6 hours around an eclipse for the HamSCI group
       if (!spot_cache.contains(call) || freq > 49000000 || eclipse_active(qdateNow)) // then it's a new spot
       {
-        m_->spots_.enqueue ({call, grid, snr, freq, mode, QDateTime::currentDateTimeUtc ()});
+        m_->spots_.enqueue ({call, grid, snr, freq, mode, qSpotTime});
         spot_cache.insert(call, time(NULL));
 #ifdef DEBUGPSK
         if (fs.is_open()) fs << "Adding   " << call << " freq=" << freq << " " << spot_cache[call] <<  " count=" << m_->spots_.count() << std::endl;
 #endif
       }
-      else if (time(NULL) - spot_cache[call] > CACHE_TIMEOUT) // then the cache has expired  
+      else if (time(NULL) - spot_cache[call] > CACHE_TIMEOUT) // then the cache has expired
       {
-        m_->spots_.enqueue ({call, grid, snr, freq, mode, QDateTime::currentDateTimeUtc ()});
+        m_->spots_.enqueue ({call, grid, snr, freq, mode, qSpotTime});
 #ifdef DEBUGPSK
         if (fs.is_open()) fs << "Adding # " << call << spot_cache[call] << " count=" << m_->spots_.count() << std::endl;
 #endif

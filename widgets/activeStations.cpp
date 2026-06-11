@@ -175,7 +175,7 @@ void ActiveStations::on_textEdit_clicked()
     if(text!="") {
       int nline=text.left(2).toInt();
       if(QGuiApplication::keyboardModifiers().testFlag(Qt::ControlModifier)) nline=-nline;
-      if (!m_mode.contains("fox", Qt::CaseInsensitive))
+      if ("Fox Mode" != m_mode && "SuperFox Mode" != m_mode)
         emit callSandP(nline);
       else
         emit queueActiveWindowHound(text);

@@ -25,7 +25,7 @@ extern dec_data dec_data;
 
 CPlotter::CPlotter(QWidget *parent) :                  //CPlotter Constructor
   QFrame {parent},
-  m_set_freq_action {new QAction {tr ("&Set Rx && Tx Offset"), this}},
+//  m_set_freq_action {new QAction {tr ("&Set Rx && Tx Offset"), this}},
   m_bScaleOK {false},
   m_bReference {false},
   m_bReference0 {false},
@@ -51,7 +51,9 @@ CPlotter::CPlotter(QWidget *parent) :                  //CPlotter Constructor
   m_rxFreq {1020},
   m_txFreq {0},
   m_startFreq {0},
-  m_tol {100}
+  m_lastMouseX {-1},
+  m_lastPaintedX {-1}
+//  m_tol {100}
 {
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   setFocusPolicy(Qt::StrongFocus);
@@ -63,17 +65,17 @@ CPlotter::CPlotter(QWidget *parent) :                  //CPlotter Constructor
   m_bReplot=false;
 
   // contextual pop up menu
-  setContextMenuPolicy (Qt::CustomContextMenu);
-  connect (this, &QWidget::customContextMenuRequested, [this] (QPoint const& pos) {
-      QMenu menu {this};
-      menu.addAction (m_set_freq_action);
-      auto const& connection = connect (m_set_freq_action, &QAction::triggered, [this, pos] () {
-          int newFreq = FreqfromX (pos.x ()) + .5;
-          emit setFreq1 (newFreq, newFreq);
-        });
-      menu.exec (mapToGlobal (pos));
-      disconnect (connection);
-    });
+//  setContextMenuPolicy (Qt::CustomContextMenu);
+//  connect (this, &QWidget::customContextMenuRequested, [this] (QPoint const& pos) {
+//      QMenu menu {this};
+//      menu.addAction (m_set_freq_action);
+//      auto const& connection = connect (m_set_freq_action, &QAction::triggered, [this, pos] () {
+//          int newFreq = FreqfromX (pos.x ()) + .5;
+//          emit setFreq1 (newFreq, newFreq);
+//        });
+//      menu.exec (mapToGlobal (pos));
+//      disconnect (connection);
+//    });
 }
 
 CPlotter::~CPlotter() { }                                      // Destructor
@@ -101,6 +103,11 @@ void CPlotter::resizeEvent(QResizeEvent* )                    //resizeEvent()
     if(m_bReference) m_h2=m_h-30;
     if(m_h2<1) m_h2=1;
     m_h1=m_h-m_h2;
+//    m_line=0;
+    m_DialOverlayPixmap = QPixmap(m_Size.width(), m_h);
+    m_DialOverlayPixmap.fill(Qt::transparent);
+    m_HoverOverlayPixmap = QPixmap(m_Size.width(), m_h);
+    m_HoverOverlayPixmap.fill(Qt::transparent);
     m_2DPixmap = QPixmap(m_Size.width(), m_h2);
     m_2DPixmap.fill(Qt::black);
     m_WaterfallPixmap = QPixmap(m_Size.width(), m_h1);
@@ -126,6 +133,14 @@ void CPlotter::paintEvent(QPaintEvent *)                                // paint
   painter.drawPixmap(0,0,m_ScalePixmap);
   painter.drawPixmap(0,30,m_WaterfallPixmap);
   painter.drawPixmap(0,m_h1,m_2DPixmap);
+  int x = XfromFreq(m_rxFreq);
+  if (m_bars) {
+    painter.drawPixmap(0,30,m_DialOverlayPixmap);
+    if(m_lastMouseX >= 0 && m_lastMouseX != x){
+      painter.drawPixmap(m_lastMouseX, 0, m_HoverOverlayPixmap);
+    }
+  }
+  m_lastPaintedX = m_lastMouseX;
   m_paintEventBusy=false;
 }
 
@@ -170,7 +185,6 @@ void CPlotter::draw(float swide[], bool bScroll, bool bRed)
   static QPoint LineBuf2[MAX_SCREENSIZE];
   static QPoint LineBuf3[MAX_SCREENSIZE];
   static QPoint LineBuf4[MAX_SCREENSIZE];
-
   j=0;
   j0=int(m_startFreq/m_fftBinWidth + 0.5);
   int iz=XfromFreq(5000.0);
@@ -189,9 +203,9 @@ void CPlotter::draw(float swide[], bool bScroll, bool bRed)
     int irow=-1;
     plotsave_(swide,&m_w,&m_h1,&irow);
   }
+  ymin = 0;
   for(int i=0; i<iz; i++) {
     y=swide[i];
-    if(y<ymin) ymin=y;
     int y1 = 10.0*gain*y + m_plotZero;
     if (y1<0) y1=0;
     if (y1>254) y1=254;
@@ -250,7 +264,7 @@ void CPlotter::draw(float swide[], bool bScroll, bool bRed)
   if(m_mode=="FT4" and m_line==34) m_line=0;
   if(m_mode=="FT2" and m_line==17) m_line=0;
   if(m_mode=="FT1" and m_line==9) m_line=0;
-  if(m_line == painter1.fontMetrics ().height ()) {
+  if(m_line == painter1.fontMetrics ().height () && m_timestamp!=0) {
     painter1.setPen(Qt::white);
     QString t;
     if(m_nUTC<0) {
@@ -263,7 +277,9 @@ void CPlotter::draw(float swide[], bool bScroll, bool bRed)
          .toString (m_TRperiod < 60. ? "hh:mm:ss" : "hh:mm");
       t = QString {"%1    %2"}.arg (start).arg (m_rxBand);
     }
-    painter1.drawText (5, painter1.fontMetrics ().ascent (), t);
+    QRect rect{5, -2, m_w-10, painter1.fontMetrics().ascent()};
+    QRect boundingRect;
+    painter1.drawText(rect, m_timestamp==2?0x0082:0x0081,t, &boundingRect);
   }
 
   if(m_mode=="JT4" or (m_mode=="Q65" and m_nSubMode>=3)) {
@@ -300,7 +316,7 @@ void CPlotter::draw(float swide[], bool bScroll, bool bRed)
           // Plot the red curve only if we have averaged 2 or more Rx sequences.
           if(sync_avg > -99.0 and (smin!=0.0 or smax != 0.0)) {
             y=m_h2*(0.9 - 0.09*gain2d*gain2d*sync_avg) - m_plot2dZero - 10;
-            LineBuf2[k2].setX(x);                          //Red sync curve (average)
+            LineBuf2[k2].setX(x);                            //Red sync curve
             LineBuf2[k2].setY(y);
             k2++;
           }
@@ -382,6 +398,7 @@ void CPlotter::DrawOverlay()                   //DrawOverlay()
   double df = m_binsPerPixel*m_fftBinWidth;
   QPen penOrange(QColor(255,165,0),3);
   QPen penGreen(QColor(15,153,105), 3);        //Mark Tol range or BW with dark green line
+  if(m_useDarkStyle) penGreen.setBrush(Qt::green);   // lighter green for dark style
   QPen penRed(Qt::red, 3);                     //Mark Tx freq with red
   QPainter painter(&m_OverlayPixmap);
   painter.setBackground (palette ().brush (backgroundRole ()));
@@ -393,6 +410,7 @@ void CPlotter::DrawOverlay()                   //DrawOverlay()
   painter.setBrush(Qt::SolidPattern);
 
   m_fSpan = w*df;
+//  int n=m_fSpan/10;
   m_freqPerDiv=10;
   if(m_fSpan>100) m_freqPerDiv=20;
   if(m_fSpan>250) m_freqPerDiv=50;
@@ -453,12 +471,20 @@ void CPlotter::DrawOverlay()                   //DrawOverlay()
   Font.setPointSize(12);
   Font.setWeight(QFont::Normal);
   painter0.setFont(Font);
-  painter0.setPen(Qt::black);
+  if (m_useDarkStyle) {
+      painter0.setPen(Qt::white);
+  } else {
+      painter0.setPen(Qt::black);
+  }
 
   if(m_binsPerPixel < 1) m_binsPerPixel=1;
   m_hdivs = w*df/m_freqPerDiv + 0.9999;
 
-  m_ScalePixmap.fill(Qt::white);
+  if (m_useDarkStyle) {
+      m_ScalePixmap.fill(Qt::black);
+  } else {
+      m_ScalePixmap.fill(Qt::white);
+  }
   painter0.drawRect(0, 0, w, 30);
   MakeFrequencyStrs();
 
@@ -488,9 +514,7 @@ void CPlotter::DrawOverlay()                   //DrawOverlay()
   if(m_mode=="FT4") bw=3*12000.0/576.0;      //FT4  ### (3x, or 4x???) ###
   if(m_mode=="FT2") bw=3*12000.0/288.0;      //FT2
   if(m_mode=="FT1") bw=3*12000.0/144.0;      //FT1
-  if(m_mode=="FT8") {
-    bw=7*12000.0/1920.0;     //FT8
-  }
+  if(m_mode=="FT8") bw=7*12000.0/1920.0;     //FT8
   if(m_mode.startsWith("FST4")) {
     int h=int(pow(2.0,m_nSubMode));
     int nsps=800;
@@ -592,7 +616,7 @@ void CPlotter::DrawOverlay()                   //DrawOverlay()
       painter0.drawLine(x2,25,x2-5,20);
     }
 
-    if(m_mode=="Q65" or (m_mode=="JT65" and m_bVHF) or (m_mode=="FT8" and m_bSuperHound) ) {
+    if(m_mode=="Q65" or (m_mode=="JT65" and m_bVHF) or (m_mode=="FT8" and m_bSuperHound)) {
       painter0.setPen(penGreen);
       x1=XfromFreq(m_rxFreq-m_tol);
       x2=XfromFreq(m_rxFreq+m_tol);
@@ -630,12 +654,51 @@ void CPlotter::DrawOverlay()                   //DrawOverlay()
     }
   }
 
+  QPainter overPainter(&m_DialOverlayPixmap);
+  if (m_bars) {
+    if (!overPainter.isActive()) overPainter.begin(this);
+    overPainter.setCompositionMode(QPainter::CompositionMode_Source);
+    overPainter.fillRect(0, 0, m_Size.width(), m_h, Qt::transparent);
+  }
+
+  if(m_mode.startsWith("FT") or m_mode.startsWith("JT") or m_mode=="Q65" or m_mode.startsWith("FST4")) {
+    x1=XfromFreq(m_rxFreq);
+    if(m_mode=="FT8" and m_bSuperHound) {
+      x2=XfromFreq(m_rxFreq+1500);
+    } else {
+      x2=XfromFreq(m_rxFreq+bw);
+    }
+    if (m_bars) {
+      overPainter.setPen(Qt::green);                   // Rx bars
+      overPainter.drawLine(x1,0,x1,m_h); overPainter.drawLine(x2,0,x2,m_h);
+    }
+  }
+
+  // red bars
+  if(m_mode.startsWith("FT") or m_mode.startsWith("JT") or m_mode=="Q65" or m_mode.startsWith("FST4")
+     or m_mode.mid(0,4)=="WSPR") {
+    x1=XfromFreq(m_txFreq); x2=XfromFreq(m_txFreq+bw);
+    if(m_mode=="FT8" and m_bSuperFox) x2=XfromFreq(m_txFreq+1500.0);
+    if(m_mode=="WSPR") {
+      bw=4*12000.0/8192.0;                  //WSPR
+      x1=XfromFreq(m_txFreq-0.5*bw); x2=XfromFreq(m_txFreq+0.5*bw);
+    }
+    if (m_bars) {
+      overPainter.setPen(Qt::red);                   // Tx bars
+      overPainter.drawLine(x1,0,x1,m_h); overPainter.drawLine(x2,0,x2,m_h);
+    }
+  }
+
+  // red goal post
   if(m_mode=="JT9" or m_mode=="JT65" or m_mode.mid(0,4)=="WSPR" or m_mode=="Q65"
      or m_mode=="FT8" or m_mode=="FT4" or m_mode=="FT2" or m_mode=="FT1" or m_mode.startsWith("FST4")) {
     painter0.setPen(penRed);
     x1=XfromFreq(m_txFreq);
-    x2=XfromFreq(m_txFreq+bw);
-    if(m_bSuperFox) x2=XfromFreq(m_txFreq+1500.0);
+    if(m_mode=="FT8" and m_bSuperFox) {
+      x2=XfromFreq(m_txFreq+1500.0);
+    } else {
+      x2=XfromFreq(m_txFreq+bw);
+    }
     if(m_mode=="WSPR") {
       bw=4*12000.0/8192.0;                  //WSPR
       x1=XfromFreq(m_txFreq-0.5*bw);
@@ -645,6 +708,18 @@ void CPlotter::DrawOverlay()                   //DrawOverlay()
     painter0.drawLine(x1,yTxTop,x1,yTxTop+yh);
     painter0.drawLine(x1,yTxTop,x2,yTxTop);
     painter0.drawLine(x2,yTxTop,x2,yTxTop+yh);
+  }
+
+  QPainter hoverPainter(&m_HoverOverlayPixmap);
+  if (m_bars) {
+    if (!hoverPainter.isActive()) hoverPainter.begin(this);
+//    if(m_mode=="FT8" and m_bSuperHound) bw=1500;  // not useful for the white bars
+    int fwidth=XfromFreq(m_rxFreq+bw)-XfromFreq(m_rxFreq);;
+    hoverPainter.setCompositionMode(QPainter::CompositionMode_Source);
+    hoverPainter.fillRect(0, 0, m_Size.width(), m_h, Qt::transparent);
+    hoverPainter.setPen(QPen(Qt::white));              // white bars
+    hoverPainter.drawLine(0, 30, 0, m_h);              // first slot, left line hover
+    hoverPainter.drawLine(fwidth, 30, fwidth, m_h);    // first slot, right line hover
   }
 
   if(m_dialFreq>10.13 and m_dialFreq< 10.15 and m_mode.mid(0,4)!="WSPR" and m_mode!="FST4W") {
@@ -779,20 +854,36 @@ void CPlotter::setRxFreq (int x)                               //setRxFreq
 
 int CPlotter::rxFreq() {return m_rxFreq;}                      //rxFreq
 
+void CPlotter::leaveEvent(QEvent *event)
+{
+    m_lastMouseX = -1;
+    m_lastPaintedX = -1;
+    event->ignore();
+}
+
 void CPlotter::mouseMoveEvent (QMouseEvent * event)
 {
   int x=event->x();
-  if (!m_bTotalPower){
-      QToolTip::showText(event->globalPos(),QString::number(int(FreqfromX(x))));
-  } else {
-    int y=event->y();
-    float pdB=10.0*(m_h-y)/m_vpixperdiv + 20.0;
-    if(y<(m_h-m_h2)) {
-      QToolTip::showText(event->globalPos(),QString::number(int(FreqfromX(x))));
+  if(x < 0) x = 0;
+  if(x>m_Size.width()) x = m_Size.width();
+  if(m_freq) m_pos = event->globalPos();
+  m_lastMouseX = x;
+  update();
+
+  event->ignore();
+  if(m_freq) {
+    if (!m_bTotalPower){
+        QToolTip::showText(event->globalPos(),QString::number(int(FreqfromX(x))));
     } else {
-      QString t;
-      t=t.asprintf("%4.1f dB",pdB);
-      QToolTip::showText(event->globalPos(),t);
+        int y=event->y();
+        float pdB=10.0*(m_h-y)/m_vpixperdiv + 20.0;
+        if(y<(m_h-m_h2)) {
+            QToolTip::showText(event->globalPos(),QString::number(int(FreqfromX(x))));
+        } else {
+            QString t;
+            t=t.asprintf("%4.1f dB",pdB);
+            QToolTip::showText(event->globalPos(),t);
+        }
     }
   }
   QWidget::mouseMoveEvent(event);
@@ -800,12 +891,18 @@ void CPlotter::mouseMoveEvent (QMouseEvent * event)
 
 void CPlotter::mouseReleaseEvent (QMouseEvent * event)
 {
-  if (Qt::LeftButton == event->button()) {
+  bool rightbutton = (event->button() & Qt::RightButton);
+  bool leftbutton = (event->button() & Qt::LeftButton);
+  bool shift = (event->modifiers() & Qt::ShiftModifier);
+  if (rightbutton) {
+     leftbutton = true;
+     shift = true;
+  }
+  if (leftbutton) {
     int x=event->x();
     if(x<0) x=0;
     if(x>m_Size.width()) x=m_Size.width();
     bool ctrl = (event->modifiers() & Qt::ControlModifier);
-    bool shift = (event->modifiers() & Qt::ShiftModifier);
     if(!shift and m_mode=="FST4W") return;
     int newFreq = int(FreqfromX(x)+0.5);
     int oldTxFreq = m_txFreq;
@@ -830,13 +927,24 @@ void CPlotter::mouseReleaseEvent (QMouseEvent * event)
 
 void CPlotter::mouseDoubleClickEvent (QMouseEvent * event)
 {
-  if (Qt::LeftButton == event->button ()) {
+    bool rightbutton = (event->button() & Qt::RightButton);
+    bool leftbutton = (event->button() & Qt::LeftButton);
     bool ctrl = (event->modifiers() & Qt::ControlModifier);
+  if (leftbutton) {
     int n=2;
     if(ctrl) n+=100;
     emit freezeDecode1(n);
+  } else if (rightbutton) {
+      int x=event->x();
+      if(x<0) x=0;
+      if(x>m_Size.width()) x=m_Size.width();
+      int newFreq = int(FreqfromX(x)+0.5);
+      if (m_mode!="FST4W") emit setFreq1 (newFreq, newFreq);
+      int n=1;
+      if(ctrl) n+=100;
+      emit freezeDecode1(n);
   } else {
-    event->ignore ();           // let parent handle
+      event->ignore ();           // let parent handle
   }
 }
 
@@ -899,7 +1007,6 @@ void CPlotter::setSuperFox(bool b)
   m_bSuperFox=b;
   if(m_bSuperFox) m_bSuperHound=false;
 }
-
 void CPlotter::setSuperHound(bool b)
 {
   m_bSuperHound=b;
@@ -909,6 +1016,7 @@ void CPlotter::setSuperHound(bool b)
 void CPlotter::setTol(int n)                                 //setTol()
 {
   m_tol=n;
+  DrawOverlay();
 }
 
 void CPlotter::setFST4_FreqRange(int fLow,int fHigh)
@@ -959,4 +1067,30 @@ void CPlotter::drawTotalPower(float pdB)
 void CPlotter::restartTotalPower()
 {
   m_x=0;
+}
+
+void CPlotter::setTimestamp(int n)
+{
+    m_timestamp=n;
+}
+
+void CPlotter::setBars(bool b)
+{
+  setMouseTracking(b || m_freq);
+  m_bars=b;
+  DrawOverlay();
+  update();
+}
+
+void CPlotter::showFreq(bool b)
+{
+  setMouseTracking(b || m_bars);
+  m_freq=b;
+}
+
+void CPlotter::setDarkStyle (bool b)     //set wide filter lines for Hound mode
+{
+  m_useDarkStyle=b;
+  DrawOverlay();
+  update();
 }

@@ -16,12 +16,12 @@ subroutine sync8d(cd0,i0,ctwk,itwk,sync)
 
   p(z1)=real(z1)**2 + aimag(z1)**2          !Statement function for power
 
-! Set some constants and compute the csync array.  
+! Set some constants and compute the csync array.
   if( first ) then
     twopi=8.0*atan(1.0)
     do i=0,6
       phi=0.0
-      dphi=twopi*icos7(i)/32.0 
+      dphi=twopi*icos7(i)/32.0
       do j=1,32
         csync(i,j)=cmplx(cos(phi),sin(phi)) !Waveform for 7x7 Costas array
         phi=mod(phi+dphi,twopi)

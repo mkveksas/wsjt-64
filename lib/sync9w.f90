@@ -40,7 +40,7 @@ subroutine sync9w(ss,nzhsym,lag1,lag2,ia,ib,ccfred,ccfblue,ipkbest,lagpk,nadd)
         enddo
         if(sum1.gt.smax) then
            smax=sum1
-           ipk=i 
+           ipk=i
         endif
      enddo
 

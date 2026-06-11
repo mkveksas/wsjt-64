@@ -1,5 +1,5 @@
 subroutine fastosd240_74(llr,k,apmask,ndeep,message74,cw,nhardmin,dmin)
-! 
+!
 ! An ordered-statistics decoder for the (240,74) code.
 ! Message payload is 50 bits. Any or all of a 24-bit CRC can be
 ! used for detecting incorrect codewords. The remaining CRC bits are
@@ -64,7 +64,7 @@ subroutine fastosd240_74(llr,k,apmask,ndeep,message74,cw,nhardmin,dmin)
       ksave=k
    endif
 
-! Use best k elements from the sorted list for the first basis. For the 2nd basis replace 
+! Use best k elements from the sorted list for the first basis. For the 2nd basis replace
 ! the nswap lowest quality symbols with the best nswap elements from the parity symbols.
    nswap=20
 
@@ -168,6 +168,7 @@ subroutine fastosd240_74(llr,k,apmask,ndeep,message74,cw,nhardmin,dmin)
 
       if(ndeep.eq.0) goto 998  ! norder=0
       if(ndeep.gt.4) ndeep=4
+      nsyndmax=0
       if( ndeep.eq. 1) then
          nord=1
          xlambda=0.0
@@ -194,7 +195,7 @@ subroutine fastosd240_74(llr,k,apmask,ndeep,message74,cw,nhardmin,dmin)
 !beta=0.0
 !if(iorder.ge.3) beta=0.4
 !spnc_order=sum(absrx(k-iorder+1:k))+beta*(N-k)
-!if(dmin.lt.spnc_order) cycle 
+!if(dmin.lt.spnc_order) cycle
          mi(1:k-iorder)=0
          mi(k-iorder+1:k)=1
          iflag=k-iorder+1
@@ -286,4 +287,3 @@ subroutine nextpat74(mi,k,iorder,iflag)
    enddo
    return
 end subroutine nextpat74
-

@@ -328,7 +328,7 @@ subroutine wqenc(msg,ntype,data0)
 130 ntype=63
   call packprop(k,muf,ccur,cxp,n1)
   call hash(call1,i1-2,ih)
-  n2=128*ih + ntype + 64 
+  n2=128*ih + ntype + 64
   call pack50(n1,n2,data0)
   go to 900
 

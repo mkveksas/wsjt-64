@@ -42,7 +42,7 @@ subroutine subtract65(dd,npts,f0,dt)
 
   nstart=dt*12000+1;
   nsym=126
-  ns=4458 
+  ns=4458
   nref=nsym*ns
   nend=nstart+nref-1
   phi=0.0
@@ -69,7 +69,7 @@ subroutine subtract65(dd,npts,f0,dt)
   call timer('subtr_1 ',1)
 
   call timer('subtr_2 ',0)
-! Smoothing filter: do the convolution by means of FFTs. Ignore end-around 
+! Smoothing filter: do the convolution by means of FFTs. Ignore end-around
 ! cyclic effects for now.
 
   nfft=564480
@@ -109,4 +109,4 @@ subroutine subtract65(dd,npts,f0,dt)
   call timer('subtr_3 ',1)
 
   return
-end subroutine subtract65 
+end subroutine subtract65

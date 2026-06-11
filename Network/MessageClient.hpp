@@ -78,7 +78,8 @@ public:
                           , QString const& name, QDateTime time_on, QString const& operator_call
                           , QString const& my_call, QString const& my_grid
                           , QString const& exchange_sent, QString const& exchange_rcvd
-                          , QString const& propmode);
+                          , QString const& propmode, QString const& satellite
+                          , QString const& satmode, QString const& freqRx);
 
   // ADIF_record argument should be valid ADIF excluding any <EOR> end
   // of record marker
@@ -126,7 +127,7 @@ public:
   // this signal is emitted if the server has sent information about a callsign
   Q_SIGNAL void annotation_info (QString const& dx_call, bool sort_order_provided, quint32 sort_order);
 
-    // this signal is emitted when network errors occur or if a host
+  // this signal is emitted when network errors occur or if a host
   // lookup fails
   Q_SIGNAL void error (QString const&) const;
 

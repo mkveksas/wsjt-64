@@ -15,4 +15,3 @@ Source: "c:\Users\joe\wsjt\wsjtx\WSJT-X_Users_Guide_v1.2.pdf";           DestDir
 [Icons]
 Name: "{group}\wsjtx1.2";        Filename: "{app}\wsjtx.exe";   WorkingDir: {app}; IconFilename: {app}\wsjt.ico
 Name: "{userdesktop}\wsjtx1.2";  Filename: "{app}\wsjtx.exe";   WorkingDir: {app}; IconFilename: {app}\wsjt.ico
-

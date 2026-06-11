@@ -28,7 +28,7 @@ contains
       use timer_module, only: timer
       use packjt77
       include 'ft4/ft4_params.f90'
-      parameter (MAXCAND=100)
+      parameter (MAXCAND=200)
       class(ft4_decoder), intent(inout) :: this
       procedure(ft4_decode_callback) :: callback
       parameter (NSS=NSPS/NDOWN,NDMAX=NMAX/NDOWN)
@@ -75,7 +75,7 @@ contains
       data   mcqru/0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,1,1,1,0,0,1,1,0,0/
       data   mcqfd/0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,1,0/
       data mcqtest/0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,1,0,1,0,1,1,1,1,1,1,0,0,1,0/
-      data   mcqww/0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,0,1,1,1,1,0/      
+      data   mcqww/0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,0,1,1,1,1,0/
       data    mrrr/0,1,1,1,1,1,1,0,1,0,0,1,0,0,1,0,0,0,1/
       data     m73/0,1,1,1,1,1,1,0,1,0,0,1,0,1,0,0,0,0,1/
       data   mrr73/0,1,1,1,1,1,1,0,0,1,1,1,0,1,0,1,0,0,1/
@@ -192,7 +192,7 @@ contains
 ! ndepth=1: 1 pass, no subtraction
 
       max_iterations=40
-      syncmin=1.2
+      syncmin=1.18
       dosubtract=.true.
       doosd=.true.
       nsp=3
@@ -232,7 +232,7 @@ contains
             if(sum2.gt.0.0) cd2=cd2/sqrt(sum2)
 ! Sample rate is now 12000/18 = 666.67 samples/second
             do iseg=1,3                ! DT search is done over 3 segments
-               do isync=1,2          
+               do isync=1,2
                   if(isync.eq.1) then
                      idfmin=-12
                      idfmax=12
@@ -277,7 +277,7 @@ contains
                enddo
                if(iseg.eq.1) smax1=smax
                if(smax.lt.1.2) cycle
-               if(iseg.gt.1 .and. smax.lt.smax1) cycle 
+               if(iseg.gt.1 .and. smax.lt.smax1) cycle
                f1=f0+real(idfbest)
                if( f1.le.10.0 .or. f1.ge.4990.0 ) cycle
                call timer('ft4down ',0)
@@ -344,25 +344,25 @@ contains
 !          2 : EU_VHF
 !          3 : FIELD DAY
 !          4 : RTTY
-!          5 : WW_DIGI 
+!          5 : WW_DIGI
 !          6 : FOX
 !          7 : HOUND
 !
 ! Conditions that cause us to bail out of AP decoding
-                     napwid=80
+                     napwid=50
                      if(ncontest.le.5 .and. iaptype.ge.3 .and. (abs(f1-nfqso).gt.napwid) ) cycle
                      if(iaptype.ge.2 .and. apbits(1).gt.1) cycle  ! No, or nonstandard, mycall
                      if(iaptype.ge.3 .and. apbits(30).gt.1) cycle ! No, or nonstandard, dxcall
 
-                     if(iaptype.eq.1) then  ! CQ or CQ TEST or CQ FD or CQ RU or CQ WW 
+                     if(iaptype.eq.1) then  ! CQ or CQ TEST or CQ FD or CQ RU or CQ WW
                         apmask=0
                         apmask(1:29)=1
                         if( ncontest.eq.0 ) llrd(1:29)=apmag*mcq(1:29)
                         if( ncontest.eq.1 ) llrd(1:29)=apmag*mcqtest(1:29)
                         if( ncontest.eq.2 ) llrd(1:29)=apmag*mcqtest(1:29)
                         if( ncontest.eq.3 ) llrd(1:29)=apmag*mcqfd(1:29)
-                        if( ncontest.eq.4 ) llrd(1:29)=apmag*mcqru(1:29) 
-                        if( ncontest.eq.5 ) llrd(1:29)=apmag*mcqww(1:29) 
+                        if( ncontest.eq.4 ) llrd(1:29)=apmag*mcqru(1:29)
+                        if( ncontest.eq.5 ) llrd(1:29)=apmag*mcqww(1:29)
                      endif
 
                      if(iaptype.eq.2) then ! MyCall,???,???
@@ -391,7 +391,7 @@ contains
                            apmask(1:56)=1
                            llrd(1:28)=apmag*apbits(1:28)
                            llrd(29:56)=apmag*aphis_fd(1:28)
-                        else if(ncontest.eq.4) then 
+                        else if(ncontest.eq.4) then
                            apmask(2:57)=1
                            llrd(2:29)=apmag*apmy_ru(1:28)
                            llrd(30:57)=apmag*apbits(30:57)
@@ -412,7 +412,7 @@ contains
                   dmin=0.0
 
                   ndeep=2
-                  maxosd=2  
+                  maxosd=2
                   if(abs(nfqso-f1).le.napwid) then
                      ndeep=2
                      maxosd=3
@@ -452,7 +452,7 @@ contains
                      endif
                      nsnr=nint(max(-21.0,xsnr))
                      xdt=ibest/666.67 - 0.5
-                     qual=1.0-(nharderror+dmin)/60.0 
+                     qual=1.0-(nharderror+dmin)/60.0
                      call this%callback(smax,nsnr,xdt,f1,message,iaptype,qual)
                      exit
                   endif

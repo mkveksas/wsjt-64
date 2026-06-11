@@ -30,7 +30,7 @@ subroutine map65a(dd,ss,savg,newdat,nutc,fcenter,ntol,idphi,nfa,nfb,        &
   real short(3,NFFT)                 !SNR dt ipol for potential shorthands
   real qphi(12)
   type(candidate) :: cand(MAX_CANDIDATES)
-  
+
   common/c3com/ mcall3a
   common/testcom/ifreq
   common/early/nhsym1,nhsym2,ldecoded(32768)
@@ -57,7 +57,7 @@ subroutine map65a(dd,ss,savg,newdat,nutc,fcenter,ntol,idphi,nfa,nfb,        &
   nts_jt65=mode65                     !JT65 tone separation factor
   nts_q65=2**(mode_q65-1)             !Q65 tone separation factor
   xpol=(nxpol.ne.0)
-  
+
 ! No second decode for JT65?
   if(nhsym.eq.nhsym2 .and. nagain.eq.0 .and.ndiskdat.eq.0) mode65=0
 
@@ -392,7 +392,7 @@ subroutine map65a(dd,ss,savg,newdat,nutc,fcenter,ntol,idphi,nfa,nfb,        &
         iloop=iloop+1
         go to 2
      endif
-     
+
      if(ndphi.eq.1 .and.iloop.eq.12) call getdphi(qphi)
      if(nqd.eq.1) then
         call sec0(1,tdec)
@@ -409,7 +409,7 @@ subroutine map65a(dd,ss,savg,newdat,nutc,fcenter,ntol,idphi,nfa,nfb,        &
      if(nqd.eq.1 .and. nagain.eq.1) go to 900
 
      if(nqd.eq.0 .and. bq65) then
-! Do the wideband Q65 decode        
+! Do the wideband Q65 decode
         do icand=1,ncand
            if(cand(icand)%iflip.ne.0) cycle    !Do only Q65 candidates here
            if(candec(icand)) cycle             !Skip if already decoded
@@ -466,7 +466,7 @@ subroutine map65a(dd,ss,savg,newdat,nutc,fcenter,ntol,idphi,nfa,nfb,        &
            enddo
            nhist=sig(i,18)
            decoded=msg(i)
-           
+
            if(flip.lt.0.0) then
               do i=22,1,-1
                  if(decoded(i:i).ne.' ') go to 10
@@ -501,12 +501,12 @@ subroutine map65a(dd,ss,savg,newdat,nutc,fcenter,ntol,idphi,nfa,nfb,        &
            if(mode65.eq.2) cmode='#B'
            if(mode65.eq.4) cmode='#C'
            write(26,1014) f0,ndf,ndf0,ndf1,ndf2,dt,npol,nsync1,       &
-                nsync2,nutc,decoded,cp,cmode
-1014       format(f8.3,i5,3i3,f5.1,i4,i3,i4,i5.4,4x,a22,2x,a1,3x,a2)
+                nsync2,nutc,decoded,'#',cp,cmode ! was decoded,cp,
+1014       format(f8.3,i5,3i3,f5.1,i4,i3,i4,i5.4,4x,a22,7x,2a1,2x,a2) ! was a22,2x,a1,3x,a2
            ndecodes=ndecodes+1
-           write(21,1100) f0,ndf,dt,npol,nsync2,nutc,decoded,cp,          &
-                cmode(1:1),cmode(2:2)
-1100       format(f8.3,i5,f5.1,2i4,i5.4,2x,a22,2x,a1,3x,a1,1x,a1)
+           write(21,1100) f0,ndf,dt,npol,nsync2,nutc,decoded,'#',cp,          &
+                cmode(1:1),cmode(2:2)! was decoded,cp,
+1100       format(f8.3,i5,f5.1,2i4,i5.4,2x,a22,7x,2a1,3x,a1,1x,a1) ! was a22,2x,a1,1x,a1
         endif
 
      endif

@@ -1,5 +1,5 @@
 subroutine ft8b(dd0,newdat,nQSOProgress,nfqso,nftx,ndepth,nzhsym,lapon,     &
-     lapcqonly,napwid,lsubtract,nagain,ncontest,iaptype,mycall12,hiscall12, &
+     lapcqonly,napwid,lsubtract,nagain,ncontest,imetric,iaptype,mycall12,hiscall12, &
      f1,xdt,xbase,apsym,aph10,nharderrors,dmin,nbadcrc,ipass,               &
      msg37,xsnr,itone)
 
@@ -14,10 +14,11 @@ subroutine ft8b(dd0,newdat,nQSOProgress,nfqso,nftx,ndepth,nzhsym,lapon,     &
   real a(5)
   real s8(0:7,NN)
   real s2(0:511)
-  real bmeta(174),bmetb(174),bmetc(174),bmetd(174)
-  real llra(174),llrb(174),llrc(174),llrd(174),llrz(174)           !Soft symbols
+  real bmeta(174),bmetb(174),bmetc(174),bmetd(174),bmete(174)
+  real llra(174),llrb(174),llrc(174),llrd(174),llre(174),llrz(174)           !Soft symbols
   real dd0(15*12000)
   real ss(9)
+  real temp(3)
   integer*1 message77(77),message91(91),apmask(174),cw(174)
   integer apsym(58),aph10(10)
   integer mcq(29),mcqru(29),mcqfd(29),mcqtest(29),mcqww(29)
@@ -158,7 +159,7 @@ subroutine ft8b(dd0,newdat,nQSOProgress,nfqso,nftx,ndepth,nzhsym,lapon,     &
     call four2a(csymb,32,1,-1,1)
     cs(0:7,k)=csymb(1:8)/1e3
     s8(0:7,k)=abs(csymb(1:8))
-  enddo  
+  enddo
 
 ! sync quality check
   is1=0
@@ -174,7 +175,10 @@ subroutine ft8b(dd0,newdat,nQSOProgress,nfqso,nftx,ndepth,nzhsym,lapon,     &
   enddo
 ! hard sync sum - max is 21
   nsync=is1+is2+is3
-  if(nsync .le. 6) then ! bail out
+  syncmin=6
+  if(imetric.eq.2) syncmin=7
+  if(ndepth.le.2) syncmin=8
+  if(nsync.le.syncmin) then ! bail out
     nbadcrc=1
     return
   endif
@@ -200,10 +204,11 @@ subroutine ft8b(dd0,newdat,nQSOProgress,nfqso,nftx,ndepth,nzhsym,lapon,     &
             print*,"Error - nsym must be 1, 2, or 3."
           endif
         enddo
+        if(imetric.eq.2) s2=s2**2
         i32=1+(k-1)*3+(ihalf-1)*87
-        if(nsym.eq.1) ibmax=2 
-        if(nsym.eq.2) ibmax=5 
-        if(nsym.eq.3) ibmax=8 
+        if(nsym.eq.1) ibmax=2
+        if(nsym.eq.2) ibmax=5
+        if(nsym.eq.3) ibmax=8
         do ib=0,ibmax
           bm=maxval(s2(0:nt-1),one(0:nt-1,ibmax-ib)) - &
              maxval(s2(0:nt-1),.not.one(0:nt-1,ibmax-ib))
@@ -227,54 +232,71 @@ subroutine ft8b(dd0,newdat,nQSOProgress,nfqso,nftx,ndepth,nzhsym,lapon,     &
       enddo
     enddo
   enddo
+  do i=1,174
+    temp(1)=bmeta(i)
+    temp(2)=bmetb(i)
+    temp(3)=bmetc(i)
+    ip=maxloc(abs(temp))
+    bmete(i)=temp(ip(1))
+  enddo
+
   call normalizebmet(bmeta,174)
   call normalizebmet(bmetb,174)
   call normalizebmet(bmetc,174)
   call normalizebmet(bmetd,174)
+  call normalizebmet(bmete,174)
 
   scalefac=2.83
   llra=scalefac*bmeta
   llrb=scalefac*bmetb
   llrc=scalefac*bmetc
   llrd=scalefac*bmetd
-
-  apmag=maxval(abs(llra))*1.01
+  llre=scalefac*bmete
 
 ! pass #
 !------------------------------
-!   1        regular decoding, nsym=1 
-!   2        regular decoding, nsym=2 
-!   3        regular decoding, nsym=3 
-!   4        regular decoding, nsym=1, bit-by-bit normalized 
-!   5        ap pass 1, nsym=1
-!   6        ap pass 2
-!   7        ap pass 3
-!   8        ap pass 4
+!   1        regular decoding, nsym=1
+!   2        regular decoding, nsym=2
+!   3        regular decoding, nsym=3
+!   4        regular decoding, nsym=1, bit-by-bit normalized
+!   5        regular decoding, choose best (largest) metric from 1-3
+!   6        ap pass 1, nsym=1
+!   7        ap pass 1, nsym=2
+!   8        ap pass 2, nsym=1
+!   9        ap pass 2, nsym=2
+!   10       ap pass 3, nsym=1
+!   11       ap pass 3, nsym=2
+!   12       ap pass 4, nsym=1
+!   13       ap pass 4, nsym=2
 
   if(lapon.or.ncontest.eq.7) then !Hounds always use AP
      if(.not.lapcqonly) then
-        npasses=4+nappasses(nQSOProgress)
+        npasses=5+2*nappasses(nQSOProgress)
      else
-        npasses=5 
+        npasses=7
      endif
   else
-     npasses=4
+     npasses=5
   endif
-  if(nzhsym.lt.50) npasses=4
-  
-  do ipass=1,npasses 
+  if(nzhsym.lt.50) npasses=5
+
+  do ipass=1,npasses
      llrz=llra
      if(ipass.eq.2) llrz=llrb
      if(ipass.eq.3) llrz=llrc
      if(ipass.eq.4) llrz=llrd
-     if(ipass.le.4) then
+     if(ipass.eq.5) llrz=llre
+     if(ipass.le.5) then
         apmask=0
         iaptype=0
      endif
-     if(ipass .gt. 4) then
+     if(ipass .gt. 5) then
         llrz=llra
+        if(mod(ipass-5,2).eq.1) llrz=llra
+        if(mod(ipass-5,2).eq.0) llrz=llrc
+        apmag=maxval(abs(llrz))*1.1
         if(.not.lapcqonly) then
-           iaptype=naptypes(nQSOProgress,ipass-4)
+           iaptype=naptypes(nQSOProgress,(ipass-4)/2)
         else
            iaptype=1
         endif
@@ -284,7 +306,7 @@ subroutine ft8b(dd0,newdat,nQSOProgress,nfqso,nftx,ndepth,nzhsym,lapon,     &
 !          2 : EU_VHF
 !          3 : FIELD DAY
 !          4 : RTTY
-!          5 : WW_DIGI 
+!          5 : WW_DIGI
 !          6 : FOX
 !          7 : HOUND
 !          8 : ARRL_DIGI
@@ -293,13 +315,13 @@ subroutine ft8b(dd0,newdat,nQSOProgress,nfqso,nftx,ndepth,nzhsym,lapon,     &
         if(ncontest.le.5 .and. iaptype.ge.3 .and. (abs(f1-nfqso).gt.napwid .and. abs(f1-nftx).gt.napwid) ) cycle
         if(ncontest.eq.6) cycle                     ! No AP for Foxes
         if(ncontest.eq.7.and.f1.gt.950.0) cycle     ! Hounds use AP only for signals below 950 Hz
-        if(iaptype.ge.2 .and. apsym(1).gt.1) cycle  ! No, or nonstandard, mycall 
+        if(iaptype.ge.2 .and. apsym(1).gt.1) cycle  ! No, or nonstandard, mycall
         if(ncontest.eq.7 .and. iaptype.ge.2 .and. aph10(1).gt.1) cycle
         if(iaptype.ge.3 .and. apsym(30).gt.1) cycle ! No, or nonstandard, dxcall
 
         if(iaptype.eq.1) then ! CQ or CQ RU or CQ TEST or CQ FD
            apmask=0
-           apmask(1:29)=1  
+           apmask(1:29)=1
            if(ncontest.eq.0) llrz(1:29)=apmag*mcq(1:29)
            if(ncontest.eq.1) llrz(1:29)=apmag*mcqtest(1:29)
            if(ncontest.eq.2) llrz(1:29)=apmag*mcqtest(1:29)
@@ -308,85 +330,85 @@ subroutine ft8b(dd0,newdat,nQSOProgress,nfqso,nftx,ndepth,nzhsym,lapon,     &
            if(ncontest.eq.5) llrz(1:29)=apmag*mcqww(1:29)
            if(ncontest.eq.7) llrz(1:29)=apmag*mcq(1:29)
            if(ncontest.eq.8) llrz(1:29)=apmag*mcqtest(1:29)
-           apmask(75:77)=1 
+           apmask(75:77)=1
            llrz(75:76)=apmag*(-1)
            llrz(77)=apmag*(+1)
         endif
 
-        if(iaptype.eq.2) then ! MyCall,???,??? 
+        if(iaptype.eq.2) then ! MyCall,???,???
            apmask=0
            if(ncontest.eq.0.or.ncontest.eq.1.or.ncontest.eq.5.or.ncontest.eq.8) then
-              apmask(1:29)=1  
+              apmask(1:29)=1
               llrz(1:29)=apmag*apsym(1:29)
-              apmask(75:77)=1 
+              apmask(75:77)=1
               llrz(75:76)=apmag*(-1)
               llrz(77)=apmag*(+1)
            else if(ncontest.eq.2) then
-              apmask(1:28)=1  
+              apmask(1:28)=1
               llrz(1:28)=apmag*apsym(1:28)
               apmask(72:74)=1
               llrz(72)=apmag*(-1)
               llrz(73)=apmag*(+1)
               llrz(74)=apmag*(-1)
-              apmask(75:77)=1 
+              apmask(75:77)=1
               llrz(75:77)=apmag*(-1)
            else if(ncontest.eq.3) then
-              apmask(1:28)=1  
+              apmask(1:28)=1
               llrz(1:28)=apmag*apsym(1:28)
-              apmask(75:77)=1 
+              apmask(75:77)=1
               llrz(75:77)=apmag*(-1)
            else if(ncontest.eq.4) then
-              apmask(2:29)=1  
+              apmask(2:29)=1
               llrz(2:29)=apmag*apsym(1:28)
-              apmask(75:77)=1 
+              apmask(75:77)=1
               llrz(75)=apmag*(-1)
               llrz(76:77)=apmag*(+1)
            else if(ncontest.eq.7) then ! ??? RR73; MyCall <Fox Call hash10> ???
-              apmask(29:56)=1  
+              apmask(29:56)=1
               llrz(29:56)=apmag*apsym(1:28)
               apmask(57:66)=1
               llrz(57:66)=apmag*aph10(1:10)
-              apmask(72:77)=1 
+              apmask(72:77)=1
               llrz(72:73)=apmag*(-1)
               llrz(74)=apmag*(+1)
               llrz(75:77)=apmag*(-1)
            endif
         endif
 
-        if(iaptype.eq.3) then ! MyCall,DxCall,??? 
+        if(iaptype.eq.3) then ! MyCall,DxCall,???
            apmask=0
            if(ncontest.eq.0.or.ncontest.eq.1.or.ncontest.eq.2.or.ncontest.eq.5.or.ncontest.eq.7.or.ncontest.eq.8) then
-              apmask(1:58)=1  
+              apmask(1:58)=1
               llrz(1:58)=apmag*apsym
-              apmask(75:77)=1 
+              apmask(75:77)=1
               llrz(75:76)=apmag*(-1)
               llrz(77)=apmag*(+1)
            else if(ncontest.eq.3) then ! Field Day
-              apmask(1:56)=1  
+              apmask(1:56)=1
               llrz(1:28)=apmag*apsym(1:28)
               llrz(29:56)=apmag*apsym(30:57)
-              apmask(72:74)=1 
-              apmask(75:77)=1 
+              apmask(72:74)=1
+              apmask(75:77)=1
               llrz(75:77)=apmag*(-1)
-           else if(ncontest.eq.4) then 
-              apmask(2:57)=1  
+           else if(ncontest.eq.4) then
+              apmask(2:57)=1
               llrz(2:29)=apmag*apsym(1:28)
               llrz(30:57)=apmag*apsym(30:57)
-              apmask(75:77)=1 
+              apmask(75:77)=1
               llrz(75)=apmag*(-1)
               llrz(76:77)=apmag*(+1)
            endif
         endif
 
         if(iaptype.eq.5.and.ncontest.eq.7) cycle !Hound
-        if(iaptype.eq.4 .or. iaptype.eq.5 .or. iaptype.eq.6) then  
+        if(iaptype.eq.4 .or. iaptype.eq.5 .or. iaptype.eq.6) then
            apmask=0
            if(ncontest.le.5 .or. (ncontest.eq.7.and.iaptype.eq.6) .or. ncontest.eq.8) then
               apmask(1:77)=1   ! mycall, hiscall, RRR|73|RR73
               llrz(1:58)=apmag*apsym
-              if(iaptype.eq.4) llrz(59:77)=apmag*mrrr 
-              if(iaptype.eq.5) llrz(59:77)=apmag*m73 
-              if(iaptype.eq.6) llrz(59:77)=apmag*mrr73 
+              if(iaptype.eq.4) llrz(59:77)=apmag*mrrr
+              if(iaptype.eq.5) llrz(59:77)=apmag*m73
+              if(iaptype.eq.6) llrz(59:77)=apmag*mrr73
            else if(ncontest.eq.7.and.iaptype.eq.4) then ! Hound listens for MyCall RR73;...
               apmask(1:28)=1
               llrz(1:28)=apmag*apsym(1:28)
@@ -396,7 +418,7 @@ subroutine ft8b(dd0,newdat,nQSOProgress,nfqso,nftx,ndepth,nzhsym,lapon,     &
               llrz(72:73)=apmag*(-1)
               llrz(74)=apmag*(1)
               llrz(75:77)=apmag*(-1)
-           endif             
+           endif
         endif
      endif
 
@@ -405,7 +427,7 @@ subroutine ft8b(dd0,newdat,nQSOProgress,nfqso,nftx,ndepth,nzhsym,lapon,     &
      norder=2
      maxosd=2
      if(ndepth.eq.1) maxosd=-1  ! BP only
-     if(ndepth.eq.2) maxosd=0   ! uncoupled BP+OSD
+!     if(ndepth.eq.2) maxosd=0   ! uncoupled BP+OSD
      if(ndepth.eq.3 .and.         &
         (abs(nfqso-f1).le.napwid .or. abs(nftx-f1).le.napwid .or. ncontest.eq.7)) then
         maxosd=2
@@ -427,8 +449,13 @@ subroutine ft8b(dd0,newdat,nQSOProgress,nfqso,nftx,ndepth,nzhsym,lapon,     &
      if(i3.gt.5 .or. (i3.eq.0.and.n3.gt.6)) cycle
      if(i3.eq.0 .and. n3.eq.2) cycle
      call unpack77(c77,1,msg37,unpk77_success)
+     if(.not.unpk77_success .or. index(msg37,'/R').gt.0 .or.     &
+          msg37(1:4).eq.'TU; ') then
+        if(i3.ge.1 .and. i3.le.3 .and. ncontest.eq.0) cycle
+     endif
      if(.not.unpk77_success) cycle
-     nbadcrc=0  ! If we get this far: valid codeword, valid (i3,n3), nonquirky message.
+! If we get this far: valid codeword, valid (i3,n3), nonquirky message.
+     nbadcrc=0
      call get_ft8_tones_from_77bits(message77,itone)
      if(lsubtract) then
         call timer('sub_ft8a',0)
@@ -444,7 +471,7 @@ subroutine ft8b(dd0,newdat,nQSOProgress,nfqso,nftx,ndepth,nzhsym,lapon,     &
      enddo
      xsnr=0.001
      xsnr2=0.001
-     arg=xsig/xnoi-1.0 
+     arg=xsig/xnoi-1.0
      if(arg.gt.0.1) xsnr=arg
      arg=xsig/xbase/3.0e6-1.0
      if(arg.gt.0.1) xsnr2=arg
@@ -453,11 +480,11 @@ subroutine ft8b(dd0,newdat,nQSOProgress,nfqso,nftx,ndepth,nzhsym,lapon,     &
      if(.not.nagain) then
        xsnr=xsnr2
     endif
-    if(nsync.le.10 .and. xsnr.lt.-24.0) then    !bail out, likely false decode
+    if(nsync.le.10 .and. xsnr.lt.-25.0) then    !bail out, likely false decode
        nbadcrc=1
        return
     endif
-    if(xsnr .lt. -24.0) xsnr=-24.0
+    if(xsnr .lt. -25.0) xsnr=-25.0
     return
   enddo
   return
@@ -479,7 +506,7 @@ subroutine normalizebmet(bmet,n)
 end subroutine normalizebmet
 
 
-function bessi0(x) 
+function bessi0(x)
 ! From Numerical Recipes
    real bessi0,x
    double precision p1,p2,p3,p4,p5,p6,p7,q1,q2,q3,q4,q5,q6,q7,q8,q9,y
@@ -490,12 +517,12 @@ function bessi0(x)
       0.225319d-2,-0.157565d-2,0.916281d-2,-0.2057706d-1,               &
       0.2635537d-1,-0.1647633d-1,0.392377d-2/
 
-   if (abs(x).lt.3.75) then 
+   if (abs(x).lt.3.75) then
       y=(x/3.75)**2
-      bessi0=p1+y*(p2+y*(p3+y*(p4+y*(p5+y*(p6+y*p7))))) 
+      bessi0=p1+y*(p2+y*(p3+y*(p4+y*(p5+y*(p6+y*p7)))))
    else
       ax=abs(x)
-      y=3.75/ax 
+      y=3.75/ax
       bessi0=(exp(ax)/sqrt(ax))*(q1+y*(q2+y*(q3+y*(q4         &
            +y*(q5+y*(q6+y*(q7+y*(q8+y*q9))))))))
    endif

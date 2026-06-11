@@ -245,7 +245,7 @@ subroutine wqdec(data0,message,ntype)
      if(n1.gt.0) i1=log10(float(n1)) + 1
      fmt="('PSE QSY ',i2,' KHZ')"
      fmt(14:14)=char(48+i1)
-     write(message,fmt) n1        
+     write(message,fmt) n1
 
 ! WX wx temp C/F wind (msg #6; type 29)
   else if(ntype.eq.29) then
@@ -268,7 +268,7 @@ subroutine wqdec(data0,message,ntype)
   else if(ntype.eq.62) then
      ng=n2/128
      write(message,'(z4.4,z7.7)') ng,n1
-     
+
 ! Solar/geomagnetic/ionospheric data (type 63)
   else if(ntype.eq.63) then
      ih=(n2-64-ntype)/128
@@ -282,7 +282,7 @@ subroutine wqdec(data0,message,ntype)
      i2=index(message,'>')
      write(message(i2+1:),'(i3,i3)') k,muf
      message=message(:i2+7)//ccur//' '//cxp
-     
+
 ! [plain text] (msg #6; type -57)
   else if(ntype.eq.-57) then
      ng=n2/128

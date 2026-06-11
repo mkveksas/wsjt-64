@@ -52,7 +52,7 @@ subroutine symspec2(c5,nz3,nsps8,nspsd,fsample,freq,drift,snrdb,schk,    &
   sig=sig/69.                             !Signal
   t=max(1.0,sig - 1.0)
   snrdb=db(t) - 61.3
-     
+
   m0=3
   k=0
   do j=1,69

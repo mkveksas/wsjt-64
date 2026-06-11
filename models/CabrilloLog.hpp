@@ -9,6 +9,7 @@
 #include "pimpl_h.hpp"
 
 class Configuration;
+class QDateTime;
 class QSqlTableModel;
 class QTextStream;
 class AD1CCty;

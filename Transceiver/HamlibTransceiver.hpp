@@ -31,8 +31,14 @@ private:
   void do_tx_frequency (Frequency, MODE, bool no_ignore) override;
   void do_mode (MODE) override;
   void do_ptt (bool) override;
+  void do_tune (bool) override;
 
   void do_poll () override;
+
+  bool ptt_on_ = false;
+  bool do_pwr_;
+  bool do_pwr2_;
+  bool do_swr_;
 
   class impl;
   pimpl<impl> m_;

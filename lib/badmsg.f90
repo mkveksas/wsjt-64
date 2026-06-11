@@ -1,6 +1,6 @@
 subroutine badmsg(irc,dat,nc1,nc2,ng2)
 
-! Get rid of a few QRA64 false decodes that cannot be correct messages.  
+! Get rid of a few QRA64 false decodes that cannot be correct messages.
 
   integer dat(12)                           !Decoded message (as 12 integers)
 
@@ -18,7 +18,7 @@ subroutine badmsg(irc,dat,nc1,nc2,ng2)
        iand(ishft(dat(10),-4),3)
 
   ig=ishft(iand(dat(10),15),12) + ishft(dat(11),6) + dat(12)
-  
+
 ! Test for blank, -01 to -30, R-01 to R-30, RO, RRR, 73
   if(ig.ge.32401 .and. ig.le.32464) return
 

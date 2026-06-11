@@ -7,6 +7,7 @@
 #include <QHash>
 #include <QPair>
 #include <QString>
+#include <QTimer>
 
 class QAction;
 class Configuration;
@@ -31,7 +32,7 @@ public:
                           bool displayDXCCEntity, LogBook const& logBook,
                           QString const& currentBand=QString {}, bool ppfx=false, bool bCQonly=false,
                           bool haveFSpread = false, float fSpread = 0.0, bool bDisplayPoints=false,
-                          int points=-99);
+                          int points=-99, QString distance = "", bool alertsMuted=false);
   void displayTransmittedText(QString text, QString modeTx, qint32 txFreq, bool bFastMode,
                               double TRperiod, bool bSuperfox);
   void displayQSY(QString text);
@@ -51,6 +52,8 @@ public:
   Q_SLOT void highlight_callsign (QString const& callsign, QColor const& bg, QColor const& fg, bool last_period_only);
 
 private:
+  void AudioAlerts();
+  QTimer alertsTimer;
   QString leftJustifyAppendage (QString message, QString const& appendage) const;
   void mouseDoubleClickEvent (QMouseEvent *) override;
 

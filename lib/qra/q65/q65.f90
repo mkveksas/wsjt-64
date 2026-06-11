@@ -34,7 +34,7 @@ subroutine q65_dec0(iavg,iwave,ntrperiod,nfqso,ntol,lclearave,  &
 !   - Compute symbol spectra
 !   - Attempt sync and q3 decode using all 85 symbols
 !   - If that fails, try sync with 22 symbols and standard q[0124] decode
-  
+
 ! Input:  iavg                   0 for single-period decode, 1 for average
 !         iwave(0:nmax-1)        Raw data
 !         ntrperiod              T/R sequence length (s)
@@ -96,7 +96,7 @@ subroutine q65_dec0(iavg,iwave,ntrperiod,nfqso,ntol,lclearave,  &
   nsmo=int(0.5*mode_q65*mode_q65)
   if(nsmo.lt.1) nsmo=1
   if(first) then                         !Generate the sync vector
-     sync=-22.0/63.0                     !Sync tone OFF  
+     sync=-22.0/63.0                     !Sync tone OFF
      do k=1,22
         sync(isync(k))=1.0               !Sync tone ON
      enddo
@@ -127,6 +127,7 @@ subroutine q65_dec0(iavg,iwave,ntrperiod,nfqso,ntol,lclearave,  &
   lag1=-1.0/dtstep
   lag2=1.0/dtstep + 0.9999
   if(nsps.ge.3600 .and. emedelay.gt.0) lag2=5.5/dtstep + 0.9999  !Include EME
+  if(ntrperiod.eq.15 .and. nsps.ge.900 .and. emedelay.gt.0) lag2=4/dtstep + 0.9999  !EME Q65-15
   j0=0.5/dtstep
   if(nsps.ge.7200) j0=1.0/dtstep              !Nominal start-signal index
 
@@ -163,16 +164,14 @@ subroutine q65_dec0(iavg,iwave,ntrperiod,nfqso,ntol,lclearave,  &
 ! Get 2d CCF and ccf2 using sync symbols only
   if(iavg.eq.0) then
      call timer('ccf_22a ',0)
-     call q65_ccf_22(s1,iz,jz,nfqso,ntol,iavg,ipk,jpk,  &
-          f0a,xdta,ccf2)
+     call q65_ccf_22(s1,iz,jz,nfqso,ntol,ipk,jpk,f0a,xdta,ccf2)
      call timer('ccf_22a ',1)
   endif
 
 ! Get 2d CCF and ccf2_avg using sync symbols only
   if(iavg.ge.1) then
      call timer('ccf_22b ',0)
-     call q65_ccf_22(s1,iz,jz,nfqso,ntol,iavg,ipk,jpk,  &
-          f0a,xdta,ccf2_avg)
+     call q65_ccf_22(s1,iz,jz,nfqso,ntol,ipk,jpk,f0a,xdta,ccf2_avg)
      call timer('ccf_22b ',1)
   endif
   if(idec.lt.0) then
@@ -212,8 +211,8 @@ subroutine q65_dec0(iavg,iwave,ntrperiod,nfqso,ntol,lclearave,  &
   if(idec.lt.0 .and. max_drift.eq.50 .and. stageno.eq.5) then
 
      if(allocated(s1w)) deallocate(s1w) ! w3sz
-     allocate(s1w(iz,jz))               ! w3sz	 
-	 
+     allocate(s1w(iz,jz))               ! w3sz
+
      s1w=s1
      do w3t=1,jz
         do w3f=1,iz
@@ -259,19 +258,19 @@ subroutine q65_clravg
 
   if(allocated(s1a)) s1a(:,:,iseq)=0.
   navg(iseq)=0
-  
+
   return
 end subroutine q65_clravg
 
 subroutine q65_symspec(iwave,nmax,iz,jz,s1)
 
 ! Compute symbol spectra with NSTEP time-steps per symbol.
-  
+
   integer*2 iwave(0:nmax-1)              !Raw data
   real s1(iz,jz)
-  complex, allocatable :: c0(:)          !Complex spectrum of symbol
+  complex c0(0:41472)                    !Largest requirement, Q65-300x
+  save c0
 
-  allocate(c0(0:nsps-1))
   nfft=nsps
   fac=1/32767.0
   do j=1,jz,2                     !Compute symbol spectra at 2*step size
@@ -284,7 +283,7 @@ subroutine q65_symspec(iwave,nmax,iz,jz,s1)
         k=k+1
         c0(k)=fac*cmplx(xx,yy)
      enddo
-     c0(k+1:)=0.
+     c0(k+1:nfft-1)=0.
      call four2a(c0,nfft,1,-1,0)              !r2c FFT
      do i=1,iz
         s1(i,j)=real(c0(i))**2 + aimag(c0(i))**2
@@ -344,7 +343,7 @@ end subroutine q65_dec_q3
 subroutine q65_dec_q012(s3,LL,snr2,dat4,idec,decoded)
 
 ! Do separate passes attempting q0, q1, q2 decodes.
-  
+
   character*37 decoded
   character*78 c78
   integer dat4(13)
@@ -356,13 +355,13 @@ subroutine q65_dec_q012(s3,LL,snr2,dat4,idec,decoded)
   if(mode_q65.eq.4) nsubmode=2
   if(mode_q65.eq.8) nsubmode=3
   if(mode_q65.eq.16) nsubmode=4
-  
+
   baud=12000.0/nsps
   iaptype=0
   nQSOprogress=0    !### TEMPORARY  ? ###
   ncontest=0
   lapcqonly=.false.
-  
+
   do ipass=0,npasses                  !Loop over AP passes
      apmask=0                         !Try first with no AP information
      apsymbols=0
@@ -399,7 +398,7 @@ subroutine q65_ccf_85(s1,iz,jz,nfqso,ia,ia2,ipk,jpk,f0,xdt,imsg_best,   &
 
 ! Attempt synchronization using all 85 symbols, in advance of an
 ! attempt at q3 decoding.  Return ccf1 for the "red sync curve".
-  
+
   real s1(iz,jz)
   real, allocatable :: ccf(:,:)          !CCF(freq,lag)
   real, allocatable :: best(:)           !best(imsg) -- for checking 2nd best
@@ -466,8 +465,7 @@ subroutine q65_ccf_85(s1,iz,jz,nfqso,ia,ia2,ipk,jpk,f0,xdt,imsg_best,   &
   return
 end subroutine q65_ccf_85
 
-subroutine q65_ccf_22(s1,iz,jz,nfqso,ntol,iavg,ipk,jpk,  &
-     f0,xdt,ccf2)
+subroutine q65_ccf_22(s1,iz,jz,nfqso,ntol,ipk,jpk,f0,xdt,ccf2)
 
 ! Attempt synchronization using only the 22 sync symbols.  Return ccf2
 ! for the "orange sync curve".
@@ -485,7 +483,6 @@ subroutine q65_ccf_22(s1,iz,jz,nfqso,ntol,iavg,ipk,jpk,  &
 
   ia=max(nfa,100)/df
   ib=min(nfb,4900)/df
-!  if(nqd.ne.1 .or. iavg.ne.0) max_drift=0    !### Disabled March 22, 2023
   if(max_drift.ne.0) then
      ia=max(nint(100/df),nint((nfqso-ntol)/df))
      ib=min(nint(4900/df),nint((nfqso+ntol)/df))
@@ -645,7 +642,7 @@ subroutine q65_s1_to_s3(s1,iz,jz,ipk,jpk,LL,mode_q65,sync,s3)
   real s1(iz,jz)
   real s3(-64:LL-65,63)
   real sync(85)                          !sync vector
-  
+
   i1=i0+ipk-64 + mode_q65
   i2=i1+LL-1
   if(i1.ge.1 .and. i2.le.iz) then
@@ -661,7 +658,7 @@ subroutine q65_s1_to_s3(s1,iz,jz,ipk,jpk,LL,mode_q65,sync,s3)
      enddo
   endif
   call q65_bzap(s3,LL)                   !Zap birdies
-  
+
   return
 end subroutine q65_s1_to_s3
 
@@ -745,7 +742,7 @@ subroutine q65_snr(dat4,dtdec,f0dec,mode_q65,snr2)
 
 ! Estimate SNR of a decoded transmission by aligning the spectra of
 ! all 85 symbols.
-  
+
   integer dat4(13)
   integer codeword(63)
   integer itone(85)
@@ -832,7 +829,7 @@ subroutine q65_hist(if0,msg0,dxcall,dxgrid)
   dxcall='            '                        !This is a lookup request
   dxgrid='      '
 ! Look for a decode close to if0, starting with most recent ones
-  do i=nhist,1,-1                     
+  do i=nhist,1,-1
      if(abs(nf0(i)-if0).gt.10) cycle
      i1=index(msg(i),' ')
      if(i1.ge.4 .and. i1.le.13) then

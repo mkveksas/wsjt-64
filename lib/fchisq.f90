@@ -27,7 +27,7 @@ real function fchisq(c3,npts,fsample,a)
         k=k+1
         z=z+c4(k+1)
      enddo
-     pp=real(z)**2 + aimag(z)**2     
+     pp=real(z)**2 + aimag(z)**2
      if(isync(i).eq.1) then
         sum1=sum1+pp
      else

@@ -18,7 +18,7 @@ subroutine jtmsg(msg,iflag)
   character*1 c
   logical c1ok,c2ok,c3ok,isdigit,isletter,isgrid4
 
-! Statement functions  
+! Statement functions
   isdigit(c)=(ichar(c).ge.ichar('0')) .and. (ichar(c).le.ichar('9'))
   isletter(c)=(ichar(c).ge.ichar('A')) .and. (ichar(c).le.ichar('Z'))
   isgrid4(w)=(len_trim(w).eq.4 .and.                                        &

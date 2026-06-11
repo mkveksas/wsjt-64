@@ -141,8 +141,11 @@
 #include <QPair>
 #include <QVariant>
 #include <QSettings>
+#include <QAudio>
 #include <QAudioDeviceInfo>
 #include <QAudioInput>
+#include <QAudioOutput>
+#include <QSound>
 #include <QDialog>
 #include <QAction>
 #include <QFileDialog>
@@ -161,7 +164,7 @@
 #include <QStandardPaths>
 #include <QFont>
 #include <QFontDialog>
-#include <QSerialPortInfo>
+#include <QComboBox>
 #include <QScopedPointer>
 #include <QNetworkInterface>
 #include <QHostInfo>
@@ -172,6 +175,10 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <QSerialPortInfo>
+#include <vector>
+#include <utility>
+#include <iostream>
 
 #include "pimpl_impl.hpp"
 #include "Logger.hpp"
@@ -198,6 +205,7 @@
 #include "validators/MaidenheadLocatorValidator.hpp"
 #include "validators/CallsignValidator.hpp"
 #include "Network/LotWUsers.hpp"
+#include "Network/Cloudlog.hpp"
 #include "models/DecodeHighlightingModel.hpp"
 #include "logbook/logbook.h"
 #include "widgets/LazyFillComboBox.hpp"
@@ -378,6 +386,7 @@ public:
 private:
   QComboBox region_combo_box_;
   QComboBox mode_combo_box_;
+  QComboBox voices_combo_box_;
   FrequencyLineEdit frequency_line_edit_;
   QLineEdit description_line_edit_;
   QLineEdit source_line_edit_;
@@ -405,7 +414,7 @@ public:
     setWindowTitle (QApplication::applicationName () + " - " + tr ("Add Station"));
 
     band_.setModel (filtered_bands_.data ());
-      
+
     auto form_layout = new QFormLayout ();
     form_layout->addRow (tr ("&Band:"), &band_);
     form_layout->addRow (tr ("&Offset (MHz):"), &delta_);
@@ -473,7 +482,7 @@ class Configuration::impl final
 public:
   using FrequencyDelta = Radio::FrequencyDelta;
   using port_type = Configuration::port_type;
-  using audio_info_type = QPair<QAudioDeviceInfo, QList<QVariant> >;
+  using audio_info_type = QPair<QAudioDeviceInfo , QList<QVariant> >;
 
   explicit impl (Configuration * self
                  , QNetworkAccessManager * network_manager
@@ -489,6 +498,17 @@ public:
   void transceiver_tx_frequency (Frequency);
   void transceiver_mode (MODE);
   void transceiver_ptt (bool);
+  void transceiver_audio (bool);
+  void transceiver_tune (bool);
+  void transceiver_period (double);
+  void transceiver_blocksize (qint32);
+  void transceiver_modulator_start (QString, unsigned, double, double, double, bool, bool, double, double);
+  void transceiver_modulator_stop (bool);
+  void transceiver_spread (double);
+  void transceiver_nsym (int);
+  void transceiver_trfrequency (double);
+  void transceiver_volume (double);
+  void transceiver_txvolume (double);
   void sync_transceiver (bool force_signal);
 
   Q_SLOT int exec () override;
@@ -559,9 +579,15 @@ private:
   Q_SLOT void on_split_mode_button_group_buttonClicked (int);
   Q_SLOT void on_test_CAT_push_button_clicked ();
   Q_SLOT void on_test_PTT_push_button_clicked (bool checked);
+  Q_SLOT void on_pbTestCloudlog_clicked ();
+  Q_SLOT void on_gbCloudlog_clicked ();
+  Q_SLOT void on_gbEQSL_clicked ();
   Q_SLOT void on_force_DTR_combo_box_currentIndexChanged (int);
   Q_SLOT void on_force_RTS_combo_box_currentIndexChanged (int);
   Q_SLOT void on_rig_combo_box_currentIndexChanged (int);
+  Q_SLOT void on_refresh_push_button_clicked ();
+  Q_SLOT void on_tci_audio_check_box_clicked(bool checked);
+  Q_SLOT void on_TCI_spin_box_valueChanged(double a);
   Q_SLOT void on_add_macro_push_button_clicked (bool = false);
   Q_SLOT void on_delete_macro_push_button_clicked (bool = false);
   Q_SLOT void on_PTT_method_button_group_buttonClicked (int);
@@ -571,17 +597,29 @@ private:
   void after_CTY_downloaded();
   void set_CTY_DAT_version(QString const& version);
   void error_during_CTY_download (QString const& reason);
+  void after_CALL3_downloaded();
+  void error_during_CALL3_download (QString const& reason);
+  void read_CALL3_version();
   Q_SLOT void on_udp_server_line_edit_textChanged (QString const&);
   Q_SLOT void on_udp_server_line_edit_editingFinished ();
   Q_SLOT void on_save_path_select_push_button_clicked (bool);
   Q_SLOT void on_azel_path_select_push_button_clicked (bool);
   Q_SLOT void on_calibration_intercept_spin_box_valueChanged (double);
+  Q_SLOT void handle_leavingSettings ();
   Q_SLOT void on_calibration_slope_ppm_spin_box_valueChanged (double);
+  Q_SLOT void handle_transceiver_tciframeswritten (qint64);
+  Q_SLOT void handle_transceiver_tci_mod_active (bool);
   Q_SLOT void handle_transceiver_update (TransceiverState const&, unsigned sequence_number);
   Q_SLOT void handle_transceiver_failure (QString const& reason);
+  Q_SLOT void on_DXCC_check_box_clicked(bool checked);
+  Q_SLOT void on_PWR_and_SWR_check_box_clicked(bool checked);
+  Q_SLOT void on_cbHighDPI_clicked(bool checked);
   Q_SLOT void on_reset_highlighting_to_defaults_push_button_clicked (bool);
+  Q_SLOT void on_reset_highlighting_to_defaults2_push_button_clicked (bool);
   Q_SLOT void on_rescan_log_push_button_clicked (bool);
   Q_SLOT void on_CTY_download_button_clicked (bool);
+  Q_SLOT void on_CALL3_download_button_clicked (bool);
+  Q_SLOT void on_CALL3_EME_download_button_clicked (bool);
   Q_SLOT void on_LotW_CSV_fetch_push_button_clicked (bool);
   Q_SLOT void on_hamlib_download_button_clicked (bool);
   Q_SLOT void on_revert_update_button_clicked (bool);
@@ -599,7 +637,7 @@ private:
   Q_SLOT void on_cbContestName_clicked (bool);
   Q_SLOT void on_cbOTP_clicked (bool);
   Q_SLOT void on_cbShowOTP_clicked (bool);
-
+  Q_SLOT void on_cb_NCCC_Sprint_clicked (bool);
   void error_during_hamlib_download (QString const& reason);
   void after_hamlib_downloaded();
   void display_file_information();
@@ -609,11 +647,59 @@ private:
   Q_SLOT void on_cbx4ToneSpacing_clicked(bool);
   Q_SLOT void on_prompt_to_log_check_box_clicked(bool);
   Q_SLOT void on_cbAutoLog_clicked(bool);
-  Q_SLOT void on_Field_Day_Exchange_textEdited (QString const&);
-  Q_SLOT void on_RTTY_Exchange_textEdited (QString const&);
+  Q_SLOT void on_Field_Day_Exchange_editingFinished ();
+  Q_SLOT void on_RTTY_Exchange_editingFinished ();
   Q_SLOT void on_OTPUrl_textEdited (QString const&);
   Q_SLOT void on_OTPSeed_textEdited (QString const&);
-  Q_SLOT void on_Contest_Name_textEdited (QString const&);
+  Q_SLOT void on_cbSortAlphabetically_clicked(bool);
+  Q_SLOT void on_cbHideCARD_clicked(bool);
+  Q_SLOT void on_Contest_Name_editingFinished ();
+  Q_SLOT void on_Blacklist1_editingFinished ();
+  Q_SLOT void on_Blacklist2_editingFinished ();
+  Q_SLOT void on_Blacklist3_editingFinished ();
+  Q_SLOT void on_Blacklist4_editingFinished ();
+  Q_SLOT void on_Blacklist5_editingFinished ();
+  Q_SLOT void on_Blacklist6_editingFinished ();
+  Q_SLOT void on_Blacklist7_editingFinished ();
+  Q_SLOT void on_Blacklist8_editingFinished ();
+  Q_SLOT void on_Blacklist9_editingFinished ();
+  Q_SLOT void on_Blacklist10_editingFinished ();
+  Q_SLOT void on_Blacklist11_editingFinished ();
+  Q_SLOT void on_Blacklist12_editingFinished ();
+  Q_SLOT void on_Whitelist1_editingFinished ();
+  Q_SLOT void on_Whitelist2_editingFinished ();
+  Q_SLOT void on_Whitelist3_editingFinished ();
+  Q_SLOT void on_Whitelist4_editingFinished ();
+  Q_SLOT void on_Whitelist5_editingFinished ();
+  Q_SLOT void on_Whitelist6_editingFinished ();
+  Q_SLOT void on_Whitelist7_editingFinished ();
+  Q_SLOT void on_Whitelist8_editingFinished ();
+  Q_SLOT void on_Whitelist9_editingFinished ();
+  Q_SLOT void on_Whitelist10_editingFinished ();
+  Q_SLOT void on_Whitelist11_editingFinished ();
+  Q_SLOT void on_Whitelist12_editingFinished ();
+  Q_SLOT void on_Pass1_editingFinished ();
+  Q_SLOT void on_Pass2_editingFinished ();
+  Q_SLOT void on_Pass3_editingFinished ();
+  Q_SLOT void on_Pass4_editingFinished ();
+  Q_SLOT void on_Pass5_editingFinished ();
+  Q_SLOT void on_Pass6_editingFinished ();
+  Q_SLOT void on_Pass7_editingFinished ();
+  Q_SLOT void on_Pass8_editingFinished ();
+  Q_SLOT void on_Pass9_editingFinished ();
+  Q_SLOT void on_Pass10_editingFinished ();
+  Q_SLOT void on_Pass11_editingFinished ();
+  Q_SLOT void on_Pass12_editingFinished ();
+  Q_SLOT void on_Territory1_editingFinished ();
+  Q_SLOT void on_Territory2_editingFinished ();
+  Q_SLOT void on_Territory3_editingFinished ();
+  Q_SLOT void on_Territory4_editingFinished ();
+  Q_SLOT void on_highlight_orange_callsigns_editingFinished ();
+  Q_SLOT void on_highlight_blue_callsigns_editingFinished ();
+  Q_SLOT void on_voices_combo_box_currentIndexChanged (int);
+  Q_SLOT void on_pb_test_alerts_clicked (bool);
+  void read_voices ();
+  void read_voicesPath ();
 
   // typenames used as arguments must match registered type names :(
   Q_SIGNAL void start_transceiver (unsigned seqeunce_number) const;
@@ -649,9 +735,11 @@ private:
   QFont next_decoded_text_font_;
 
   LotWUsers lotw_users_;
+  Cloudlog cloudlog_;
 
   bool restart_sound_input_device_;
   bool restart_sound_output_device_;
+  bool restart_tci_device_;
 
   Type2MsgGen type_2_msg_gen_;
 
@@ -688,12 +776,19 @@ private:
   bool highlight_only_fields_;
   bool include_WAE_entities_;
   bool highlight_73_;
+  bool highlight_orange_;
+  bool highlight_blue_;
+  bool bSpecialOp_;
+  bool alternate_erase_button_;
+  bool show_country_names_;
   int LotW_days_since_upload_;
+  int voice_;
 
   TransceiverFactory::ParameterPack rig_params_;
   TransceiverFactory::ParameterPack saved_rig_params_;
   TransceiverFactory::Capabilities::PortType last_port_type_;
   bool rig_is_dummy_;
+  bool is_tci_;
   bool rig_active_;
   bool have_rig_;
   bool rig_changed_;
@@ -710,7 +805,56 @@ private:
   QString FD_exchange_;
   QString RTTY_exchange_;
   QString Contest_Name_;
+  QString Blacklist1_;
+  QString Blacklist2_;
+  QString Blacklist3_;
+  QString Blacklist4_;
+  QString Blacklist5_;
+  QString Blacklist6_;
+  QString Blacklist7_;
+  QString Blacklist8_;
+  QString Blacklist9_;
+  QString Blacklist10_;
+  QString Blacklist11_;
+  QString Blacklist12_;
+  QString Whitelist1_;
+  QString Whitelist2_;
+  QString Whitelist3_;
+  QString Whitelist4_;
+  QString Whitelist5_;
+  QString Whitelist6_;
+  QString Whitelist7_;
+  QString Whitelist8_;
+  QString Whitelist9_;
+  QString Whitelist10_;
+  QString Whitelist11_;
+  QString Whitelist12_;
+  QString Pass1_;
+  QString Pass2_;
+  QString Pass3_;
+  QString Pass4_;
+  QString Pass5_;
+  QString Pass6_;
+  QString Pass7_;
+  QString Pass8_;
+  QString Pass9_;
+  QString Pass10_;
+  QString Pass11_;
+  QString Pass12_;
+  QString Territory1_;
+  QString Territory2_;
+  QString Territory3_;
+  QString Territory4_;
+  QString highlight_orange_callsigns_;
+  QString highlight_blue_callsigns_;
   QString hamlib_backed_up_;
+  QString cloudLogApiUrl_;
+  QString cloudLogApiKey_;
+  QString voicesPath_;
+  bool send_to_eqsl_;
+  QString eqsl_username_;
+  QString eqsl_passwd_;
+  QString eqsl_nickname_;
 
   QString OTPUrl_;
   QString OTPSeed_;
@@ -719,40 +863,73 @@ private:
   qint32 OTPinterval_;
 
   qint32 id_interval_;
+  qint32 align_steps_;
+  qint32 align_steps2_;
   qint32 ntrials_;
+  qint32 volume_;
   qint32 aggressive_;
   qint32 RxBandwidth_;
+  qint32 cloudLogStationID_;
+  bool PWR_and_SWR_;
+  bool check_SWR_;
   double degrade_;
   double txDelay_;
+  bool tci_audio_;
   bool id_after_73_;
   bool tx_QSY_allowed_;
+  bool progressBar_red_;
   bool spot_to_psk_reporter_;
   bool psk_reporter_tcpip_;
   bool monitor_off_at_startup_;
   bool monitor_last_used_;
   bool log_as_RTTY_;
   bool report_in_comments_;
+  bool specOp_in_comments_;
   bool prompt_to_log_;
   bool autoLog_;
+  bool contestingOnly_;
+  bool ZZ00_;
+  bool log4digitGrids_;
   bool decodes_from_top_;
   bool insert_blank_;
+  bool detailed_blank_;
   bool DXCC_;
+  bool gridMap_;
+  bool gridMapAll_;
   bool ppfx_;
-  bool clear_DX_;
   bool miles_;
   bool quick_call_;
   bool disable_TX_on_73_;
   bool force_call_1st_;
   bool alternate_bindings_;
   int watchdog_;
+  int tune_watchdog_time_;
+  bool tune_watchdog_;
   bool TX_messages_;
   bool enable_VHF_features_;
   bool decode_at_52s_;
+  bool kHz_without_k_;
+  bool button_coloring_disabled_;
+  bool Wait_features_enabled_;
+  bool showDistance_;
+  bool showAzimuth_;
+  bool align_;
+  bool repeat_Tx_;
+  bool auto_astro_;
   bool single_decode_;
   bool twoPass_;
+  bool highDPI_;
+  bool largerTabWidget_;
   bool bSuperFox_;
   bool Individual_Contest_Name_;
-  bool bSpecialOp_;
+  bool NCCC_Sprint_;
+  bool Blacklisted_;
+  bool Whitelisted_;
+  bool AlwaysPass_;
+  bool filters_for_Wait_and_Pounce_only_;
+  bool filters_for_word2_;
+  bool twoDays_;
+  bool bCloudLog_;
   int  SelectedActivity_;
   bool x2ToneSpacing_;
   bool x4ToneSpacing_;
@@ -773,10 +950,33 @@ private:
   bool udpWindowRestore_;
   DataMode data_mode_;
   bool bLowSidelobes_;
+  bool sortAlphabetically_;
+  bool hideCARD_;
+  bool AzElExtraLines_;
   bool pwrBandTxMemory_;
   bool pwrBandTuneMemory_;
   bool highlight_DXcall_;
+  bool clear_DXcall_;
   bool highlight_DXgrid_;
+  bool clear_DXgrid_;
+  bool erase_BandActivity_;
+  bool set_RXtoTX_;
+  bool alert_CQ_;
+  bool alert_MyCall_;
+  bool alert_DXCC_;
+  bool alert_DXCCOB_;
+  bool alert_Grid_;
+  bool alert_GridOB_;
+  bool alert_Continent_;
+  bool alert_ContinentOB_;
+  bool alert_CQZ_;
+  bool alert_CQZOB_;
+  bool alert_ITUZ_;
+  bool alert_ITUZOB_;
+  bool alert_DXcall_;
+  bool alert_Wanted_;
+  bool alert_QSYmessage_;
+  bool alert_Enabled_;
 
   QAudioDeviceInfo audio_input_device_;
   QAudioDeviceInfo next_audio_input_device_;
@@ -787,6 +987,10 @@ private:
   AudioDevice::Channel audio_output_channel_;
   AudioDevice::Channel next_audio_output_channel_;
   FileDownload cty_download;
+
+  bool default_audio_input_device_selected_;
+  bool default_audio_output_device_selected_;
+
   friend class Configuration;
 };
 
@@ -803,7 +1007,6 @@ Configuration::Configuration (QNetworkAccessManager * network_manager, QDir cons
 Configuration::~Configuration ()
 {
 }
-
 QDir Configuration::doc_dir () const {return m_->doc_dir_;}
 QDir Configuration::data_dir () const {return m_->data_dir_;}
 QDir Configuration::writeable_data_dir () const {return m_->writeable_data_dir_;}
@@ -819,48 +1022,89 @@ QAudioDeviceInfo const& Configuration::audio_output_device () const {return m_->
 AudioDevice::Channel Configuration::audio_output_channel () const {return m_->audio_output_channel_;}
 bool Configuration::restart_audio_input () const {return m_->restart_sound_input_device_;}
 bool Configuration::restart_audio_output () const {return m_->restart_sound_output_device_;}
+bool Configuration::restart_tci () const {return m_->restart_tci_device_;}
 auto Configuration::type_2_msg_gen () const -> Type2MsgGen {return m_->type_2_msg_gen_;}
 QString Configuration::my_callsign () const {return m_->my_callsign_;}
 QFont Configuration::text_font () const {return m_->font_;}
 QFont Configuration::decoded_text_font () const {return m_->decoded_text_font_;}
 qint32 Configuration::id_interval () const {return m_->id_interval_;}
+qint32 Configuration::align_steps () const {return m_->align_steps_;}
+qint32 Configuration::align_steps2 () const {return m_->align_steps2_;}
 qint32 Configuration::ntrials() const {return m_->ntrials_;}
+qint32 Configuration::volume() const {return m_->volume_;}
 qint32 Configuration::aggressive() const {return m_->aggressive_;}
 double Configuration::degrade() const {return m_->degrade_;}
 double Configuration::txDelay() const {return m_->txDelay_;}
 qint32 Configuration::RxBandwidth() const {return m_->RxBandwidth_;}
+bool Configuration::tci_audio () const {return m_->tci_audio_;}
 bool Configuration::id_after_73 () const {return m_->id_after_73_;}
 bool Configuration::tx_QSY_allowed () const {return m_->tx_QSY_allowed_;}
+bool Configuration::progressBar_red () const {return m_->progressBar_red_;}
 bool Configuration::spot_to_psk_reporter () const
 {
   // rig must be open and working to spot externally
   return is_transceiver_online () && m_->spot_to_psk_reporter_;
 }
 bool Configuration::psk_reporter_tcpip () const {return m_->psk_reporter_tcpip_;}
+bool Configuration::send_to_eqsl () const {return m_->send_to_eqsl_;}
+QString Configuration::eqsl_username () const {return m_->eqsl_username_;}
+QString Configuration::eqsl_passwd () const {return m_->eqsl_passwd_;}
+QString Configuration::eqsl_nickname () const {return m_->eqsl_nickname_;}
 bool Configuration::monitor_off_at_startup () const {return m_->monitor_off_at_startup_;}
 bool Configuration::monitor_last_used () const {return m_->rig_is_dummy_ || m_->monitor_last_used_;}
 bool Configuration::log_as_RTTY () const {return m_->log_as_RTTY_;}
 bool Configuration::report_in_comments () const {return m_->report_in_comments_;}
+bool Configuration::specOp_in_comments () const {return m_->specOp_in_comments_;}
+bool Configuration::cloudlog_enabled () const {return m_->bCloudLog_;}
+QString Configuration::cloudlog_api_url () const {return m_->cloudLogApiUrl_;}
+QString Configuration::cloudlog_api_key () const {return m_->cloudLogApiKey_;}
+qint32 Configuration::cloudlog_api_station_id () const {return m_->cloudLogStationID_;}
 bool Configuration::prompt_to_log () const {return m_->prompt_to_log_;}
 bool Configuration::autoLog() const {return m_->autoLog_;}
+bool Configuration::contestingOnly() const {return m_->contestingOnly_;}
+bool Configuration::ZZ00() const {return m_->ZZ00_;}
+bool Configuration::log4digitGrids() const {return m_->log4digitGrids_;}
 bool Configuration::decodes_from_top () const {return m_->decodes_from_top_;}
 bool Configuration::insert_blank () const {return m_->insert_blank_;}
+bool Configuration::detailed_blank () const {return m_->detailed_blank_;}
 bool Configuration::DXCC () const {return m_->DXCC_;}
+bool Configuration::GridMap() const { return m_->gridMap_;}
+bool Configuration::GridMapAll() const { return m_->gridMapAll_;}
 bool Configuration::ppfx() const {return m_->ppfx_;}
-bool Configuration::clear_DX () const {return m_->clear_DX_;}
 bool Configuration::miles () const {return m_->miles_;}
 bool Configuration::quick_call () const {return m_->quick_call_;}
 bool Configuration::disable_TX_on_73 () const {return m_->disable_TX_on_73_;}
 bool Configuration::force_call_1st() const {return m_->force_call_1st_;}
 bool Configuration::alternate_bindings() const {return m_->alternate_bindings_;}
 int Configuration::watchdog () const {return m_->watchdog_;}
+int Configuration::tune_watchdog_time () const {return m_->tune_watchdog_time_;}
+bool Configuration::tune_watchdog () const {return m_->tune_watchdog_;}
 bool Configuration::TX_messages () const {return m_->TX_messages_;}
 bool Configuration::enable_VHF_features () const {return m_->enable_VHF_features_;}
 bool Configuration::decode_at_52s () const {return m_->decode_at_52s_;}
+bool Configuration::kHz_without_k () const {return m_->kHz_without_k_;}
+bool Configuration::button_coloring_disabled () const {return m_->button_coloring_disabled_;}
+bool Configuration::Wait_features_enabled () const {return m_->Wait_features_enabled_;}
+bool Configuration::showDistance() const {return m_->showDistance_;}
+bool Configuration::showAzimuth() const {return m_->showAzimuth_;}
+bool Configuration::align() const {return m_->align_;}
+bool Configuration::repeat_Tx () const {return m_->repeat_Tx_;}
+bool Configuration::auto_astro () const {return m_->auto_astro_;}
 bool Configuration::single_decode () const {return m_->single_decode_;}
 bool Configuration::twoPass() const {return m_->twoPass_;}
+bool Configuration::highDPI() const {return m_->highDPI_;}
+bool Configuration::largerTabWidget() const {return m_->largerTabWidget_;}
 bool Configuration::superFox() const {return m_->bSuperFox_;}
 bool Configuration::Individual_Contest_Name() const {return m_->Individual_Contest_Name_;}
+bool Configuration::NCCC_Sprint() const {return m_->NCCC_Sprint_;}
+bool Configuration::Blacklisted() const {return m_->Blacklisted_;}
+bool Configuration::Whitelisted() const {return m_->Whitelisted_;}
+bool Configuration::AlwaysPass() const {return m_->AlwaysPass_;}
+bool Configuration::filters_for_Wait_and_Pounce_only() const {return m_->filters_for_Wait_and_Pounce_only_;}
+bool Configuration::filters_for_word2() const {return m_->filters_for_word2_;}
+bool Configuration::twoDays() const {return m_->twoDays_;}
+bool Configuration::PWR_and_SWR () const {return m_->PWR_and_SWR_;}
+bool Configuration::check_SWR () const {return m_->check_SWR_;}
 bool Configuration::x2ToneSpacing() const {return m_->x2ToneSpacing_;}
 bool Configuration::x4ToneSpacing() const {return m_->x4ToneSpacing_;}
 bool Configuration::split_mode () const {return m_->split_mode ();}
@@ -874,6 +1118,7 @@ bool Configuration::accept_udp_requests () const {return m_->accept_udp_requests
 QString Configuration::n1mm_server_name () const {return m_->n1mm_server_name_;}
 auto Configuration::n1mm_server_port () const -> port_type {return m_->n1mm_server_port_;}
 bool Configuration::broadcast_to_n1mm () const {return m_->broadcast_to_n1mm_;}
+bool Configuration::broadcast_to_cloudlog () const {return m_->bCloudLog_;}
 bool Configuration::lowSidelobes() const {return m_->bLowSidelobes_;}
 bool Configuration::udpWindowToFront () const {return m_->udpWindowToFront_;}
 bool Configuration::udpWindowRestore () const {return m_->udpWindowRestore_;}
@@ -889,6 +1134,7 @@ QStringListModel const * Configuration::macros () const {return &m_->macros_;}
 QDir Configuration::save_directory () const {return m_->save_directory_;}
 QDir Configuration::azel_directory () const {return m_->azel_directory_;}
 QString Configuration::rig_name () const {return m_->rig_params_.rig_name;}
+bool Configuration::AzElExtraLines () const {return m_->AzElExtraLines_;}
 bool Configuration::pwrBandTxMemory () const {return m_->pwrBandTxMemory_;}
 bool Configuration::pwrBandTuneMemory () const {return m_->pwrBandTuneMemory_;}
 LotWUsers const& Configuration::lotw_users () const {return m_->lotw_users_;}
@@ -897,12 +1143,43 @@ bool Configuration::highlight_by_mode () const {return m_->highlight_by_mode_;}
 bool Configuration::highlight_only_fields () const {return m_->highlight_only_fields_;}
 bool Configuration::include_WAE_entities () const {return m_->include_WAE_entities_;}
 bool Configuration::highlight_73 () const {return m_->highlight_73_;}
+bool Configuration::highlight_orange () const {return m_->highlight_orange_;}
+bool Configuration::highlight_blue () const {return m_->highlight_blue_;}
+bool Configuration::bSpecialOp () const {return m_->bSpecialOp_;}
+bool Configuration::alternate_erase_button () const {return m_->alternate_erase_button_;}
+bool Configuration::show_country_names () const {return m_->show_country_names_;}
 bool Configuration::highlight_DXcall () const {return m_->highlight_DXcall_;}
+bool Configuration::clear_DXcall () const {return m_->clear_DXcall_;}
 bool Configuration::highlight_DXgrid () const {return m_->highlight_DXgrid_;}
+bool Configuration::clear_DXgrid () const {return m_->clear_DXgrid_;}
+bool Configuration::erase_BandActivity () const {return m_->erase_BandActivity_;}
+bool Configuration::set_RXtoTX () const {return m_->set_RXtoTX_;}
+bool Configuration::alert_CQ () const {return m_->alert_CQ_;}
+bool Configuration::alert_MyCall () const {return m_->alert_MyCall_;}
+bool Configuration::alert_DXCC () const {return m_->alert_DXCC_;}
+bool Configuration::alert_DXCCOB () const {return m_->alert_DXCCOB_;}
+bool Configuration::alert_Grid () const {return m_->alert_Grid_;}
+bool Configuration::alert_GridOB () const {return m_->alert_GridOB_;}
+bool Configuration::alert_Continent () const {return m_->alert_Continent_;}
+bool Configuration::alert_ContinentOB () const {return m_->alert_ContinentOB_;}
+bool Configuration::alert_CQZ () const {return m_->alert_CQZ_;}
+bool Configuration::alert_CQZOB () const {return m_->alert_CQZOB_;}
+bool Configuration::alert_ITUZ () const {return m_->alert_ITUZ_;}
+bool Configuration::alert_ITUZOB () const {return m_->alert_ITUZOB_;}
+bool Configuration::alert_DXcall () const {return m_->alert_DXcall_;}
+bool Configuration::alert_Wanted () const {return m_->alert_Wanted_;}
+bool Configuration::alert_QSYmessage () const {return m_->alert_QSYmessage_;}
+bool Configuration::alert_Enabled () const {return m_->alert_Enabled_;}
+
 
 void Configuration::set_CTY_DAT_version(QString const& version)
 {
   m_->set_CTY_DAT_version(version);
+}
+
+void Configuration::read_CALL3_version ()
+{
+  m_->read_CALL3_version ();
 }
 
 void Configuration::set_calibration (CalibrationParams params)
@@ -925,6 +1202,11 @@ bool Configuration::is_transceiver_online () const
 bool Configuration::is_dummy_rig () const
 {
   return m_->rig_is_dummy_;
+}
+
+bool Configuration::is_tci () const
+{
+  return m_->is_tci_;
 }
 
 bool Configuration::transceiver_online ()
@@ -967,6 +1249,101 @@ void Configuration::transceiver_ptt (bool on)
   LOG_TRACE (on << ' ' << m_->cached_rig_state_);
   m_->transceiver_ptt (on);
 }
+
+void Configuration::transceiver_audio (bool on)
+{
+  LOG_TRACE (on << ' ' << m_->cached_rig_state_);
+  m_->transceiver_audio (on);
+}
+
+void Configuration::transceiver_tune (bool on)
+{
+  LOG_TRACE (on << ' ' << m_->cached_rig_state_);
+  m_->transceiver_tune (on);
+}
+
+void Configuration::transceiver_period (double period)
+{
+#if WSJT_TRACE_CAT
+  qDebug () << "Configuration::transceiver_period:" << period << m_->cached_rig_state_;
+#endif
+
+  m_->transceiver_period (period);
+}
+
+void Configuration::transceiver_blocksize (qint32 blocksize)
+{
+#if WSJT_TRACE_CAT
+  qDebug () << "Configuration::transceiver_blocksize:" << blocksize << m_->cached_rig_state_;
+#endif
+
+  m_->transceiver_blocksize (blocksize);
+}
+
+void Configuration::transceiver_modulator_start(QString jtmode, unsigned symbolslength, double framespersymbol, double trfrequency,
+                     double tonespacing, bool synchronize, bool fastmode, double dbsnr, double trperiod)
+{
+#if WSJT_TRACE_CAT
+  qDebug () << "Configuration::transceiver_modulator_start:" << symbolslength << m_->cached_rig_state_;
+#endif
+
+  m_->transceiver_modulator_start(jtmode, symbolslength,framespersymbol,trfrequency,tonespacing,synchronize,fastmode,dbsnr,trperiod);
+}
+
+void Configuration::transceiver_modulator_stop (bool on)
+{
+#if WSJT_TRACE_CAT
+  qDebug () << "Configuration::transceiver_stop:" << on << m_->cached_rig_state_;
+#endif
+
+  m_->transceiver_modulator_stop (on);
+}
+
+void Configuration::transceiver_spread (double spread)
+{
+#if WSJT_TRACE_CAT
+  qDebug () << "Configuration::transceiver_spread:" << spread << m_->cached_rig_state_;
+#endif
+
+  m_->transceiver_spread (spread);
+}
+
+void Configuration::transceiver_nsym (qint32 nsym)
+{
+#if WSJT_TRACE_CAT
+  qDebug () << "Configuration::transceiver_nsym:" << nsym << m_->cached_rig_state_;
+#endif
+
+  m_->transceiver_nsym (nsym);
+}
+
+void Configuration::transceiver_trfrequency (double trfrequency)
+{
+#if WSJT_TRACE_CAT
+  qDebug () << "Configuration::transceiver_trfrequency:" << trfrequency << m_->cached_rig_state_;
+#endif
+
+  m_->transceiver_trfrequency (trfrequency);
+}
+
+void Configuration::transceiver_txvolume (qreal txvolume)
+{
+#if WSJT_TRACE_CAT
+  qDebug () << "Configuration::transceiver_txvolume:" << txvolume << m_->cached_rig_state_;
+#endif
+
+  m_->transceiver_txvolume (txvolume);
+}
+
+void Configuration::transceiver_volume (qreal volume)
+{
+#if WSJT_TRACE_CAT
+  qDebug () << "Configuration::transceiver_volume:" << volume << m_->cached_rig_state_;
+#endif
+
+  m_->transceiver_volume (volume);
+}
+
 
 void Configuration::sync_transceiver (bool force_signal, bool enforce_mode_and_split)
 {
@@ -1030,16 +1407,6 @@ QString Configuration::Field_Day_Exchange() const
 {
   return m_->FD_exchange_;
 }
-/*
-void Configuration::setEU_VHF_Contest()
-{ 
-  m_->bSpecialOp_=true;
-  m_->ui_->gbSpecialOpActivity->setChecked(m_->bSpecialOp_);
-  m_->ui_->rbEU_VHF_Contest->setChecked(true);
-  m_->SelectedActivity_ = static_cast<int> (SpecialOperatingActivity::EU_VHF);
-  m_->write_settings();
-}
-*/
 
 QString Configuration::RTTY_Exchange() const
 {
@@ -1049,6 +1416,221 @@ QString Configuration::RTTY_Exchange() const
 QString Configuration::Contest_Name() const
 {
   return m_->Contest_Name_;
+}
+
+QString Configuration::Blacklist1() const
+{
+  return m_->Blacklist1_;
+}
+
+QString Configuration::Blacklist2() const
+{
+  return m_->Blacklist2_;
+}
+
+QString Configuration::Blacklist3() const
+{
+  return m_->Blacklist3_;
+}
+
+QString Configuration::Blacklist4() const
+{
+  return m_->Blacklist4_;
+}
+
+QString Configuration::Blacklist5() const
+{
+  return m_->Blacklist5_;
+}
+
+QString Configuration::Blacklist6() const
+{
+  return m_->Blacklist6_;
+}
+
+QString Configuration::Blacklist7() const
+{
+  return m_->Blacklist7_;
+}
+
+QString Configuration::Blacklist8() const
+{
+  return m_->Blacklist8_;
+}
+
+QString Configuration::Blacklist9() const
+{
+  return m_->Blacklist9_;
+}
+
+QString Configuration::Blacklist10() const
+{
+  return m_->Blacklist10_;
+}
+
+QString Configuration::Blacklist11() const
+{
+  return m_->Blacklist11_;
+}
+
+QString Configuration::Blacklist12() const
+{
+  return m_->Blacklist12_;
+}
+
+QString Configuration::Whitelist1() const
+{
+  return m_->Whitelist1_;
+}
+
+QString Configuration::Whitelist2() const
+{
+  return m_->Whitelist2_;
+}
+
+QString Configuration::Whitelist3() const
+{
+  return m_->Whitelist3_;
+}
+
+QString Configuration::Whitelist4() const
+{
+  return m_->Whitelist4_;
+}
+
+QString Configuration::Whitelist5() const
+{
+  return m_->Whitelist5_;
+}
+
+QString Configuration::Whitelist6() const
+{
+  return m_->Whitelist6_;
+}
+
+QString Configuration::Whitelist7() const
+{
+  return m_->Whitelist7_;
+}
+
+QString Configuration::Whitelist8() const
+{
+  return m_->Whitelist8_;
+}
+
+QString Configuration::Whitelist9() const
+{
+  return m_->Whitelist9_;
+}
+
+QString Configuration::Whitelist10() const
+{
+  return m_->Whitelist10_;
+}
+
+QString Configuration::Whitelist11() const
+{
+  return m_->Whitelist11_;
+}
+
+QString Configuration::Whitelist12() const
+{
+  return m_->Whitelist12_;
+}
+
+QString Configuration::Pass1() const
+{
+  return m_->Pass1_;
+}
+
+QString Configuration::Pass2() const
+{
+  return m_->Pass2_;
+}
+
+QString Configuration::Pass3() const
+{
+  return m_->Pass3_;
+}
+
+QString Configuration::Pass4() const
+{
+  return m_->Pass4_;
+}
+
+QString Configuration::Pass5() const
+{
+  return m_->Pass5_;
+}
+
+QString Configuration::Pass6() const
+{
+  return m_->Pass6_;
+}
+
+QString Configuration::Pass7() const
+{
+  return m_->Pass7_;
+}
+
+QString Configuration::Pass8() const
+{
+  return m_->Pass8_;
+}
+
+QString Configuration::Pass9() const
+{
+  return m_->Pass9_;
+}
+
+QString Configuration::Pass10() const
+{
+  return m_->Pass10_;
+}
+
+QString Configuration::Pass11() const
+{
+  return m_->Pass11_;
+}
+
+QString Configuration::Pass12() const
+{
+  return m_->Pass12_;
+}
+
+QString Configuration::Territory1() const
+{
+  return m_->Territory1_;
+}
+
+QString Configuration::Territory2() const
+{
+  return m_->Territory2_;
+}
+
+QString Configuration::Territory3() const
+{
+  return m_->Territory3_;
+}
+
+QString Configuration::Territory4() const
+{
+  return m_->Territory4_;
+}
+
+QString Configuration::highlight_orange_callsigns() const
+{
+  return m_->highlight_orange_callsigns_;
+}
+
+QString Configuration::highlight_blue_callsigns() const
+{
+  return m_->highlight_blue_callsigns_;
+}
+
+QString Configuration::voicesPath() const
+{
+  return m_->voicesPath_;
 }
 
 auto Configuration::special_op_id () const -> SpecialOperatingActivity
@@ -1094,7 +1676,13 @@ void Configuration::setSpecial_None()
 {
   m_->bSpecialOp_=false;
   m_->ui_->gbSpecialOpActivity->setChecked(m_->bSpecialOp_);
-  m_->SelectedActivity_ = static_cast<int> (SpecialOperatingActivity::HOUND); // brings backward compatibility to versions without Q65_PILEUP
+  m_->write_settings();
+}
+
+void Configuration::setSpecial_On()
+{
+  m_->bSpecialOp_=true;
+  m_->ui_->gbSpecialOpActivity->setChecked(m_->bSpecialOp_);
   m_->write_settings();
 }
 
@@ -1183,8 +1771,10 @@ Configuration::impl::impl (Configuration * self, QNetworkAccessManager * network
   , temp_dir_ {temp_directory}
   , writeable_data_dir_ {QStandardPaths::writableLocation (QStandardPaths::DataLocation)}
   , lotw_users_ {network_manager_}
+  , cloudlog_ {self}
   , restart_sound_input_device_ {false}
   , restart_sound_output_device_ {false}
+  , restart_tci_device_ {false}
   , frequencies_ {&bands_}
   , next_frequencies_ {&bands_}
   , stations_ {&bands_}
@@ -1199,9 +1789,15 @@ Configuration::impl::impl (Configuration * self, QNetworkAccessManager * network
   , highlight_only_fields_ {false}
   , include_WAE_entities_ {false}
   , highlight_73_ {false}
+  , highlight_orange_ {false}
+  , highlight_blue_ {false}
+  , bSpecialOp_ {false}
+  , alternate_erase_button_ {false}
+  , show_country_names_ {false}
   , LotW_days_since_upload_ {0}
   , last_port_type_ {TransceiverFactory::Capabilities::none}
   , rig_is_dummy_ {false}
+  , is_tci_ {false}
   , rig_active_ {false}
   , have_rig_ {false}
   , rig_changed_ {false}
@@ -1212,6 +1808,8 @@ Configuration::impl::impl (Configuration * self, QNetworkAccessManager * network
                                 // saved in settings
   , udp_server_name_edited_ {false}
   , dns_lookup_id_ {-1}
+  , default_audio_input_device_selected_ {false}
+  , default_audio_output_device_selected_ {false}
 {
   ui_->setupUi (this);
 
@@ -1228,7 +1826,7 @@ Configuration::impl::impl (Configuration * self, QNetworkAccessManager * network
         throw std::runtime_error {"Failed to create save directory"};
       }
 
-    // we now have a default save path that exists
+    // we now have a deafult save path that exists
 
     // make sure samples directory exists
     QString samples_dir {"samples"};
@@ -1243,7 +1841,7 @@ Configuration::impl::impl (Configuration * self, QNetworkAccessManager * network
     // copy in any new sample files to the sample directory
     QDir dest_dir {default_save_directory_};
     dest_dir.cd (samples_dir);
-    
+
     QDir source_dir {":/" + samples_dir};
     source_dir.cd (save_dir);
     source_dir.cd (samples_dir);
@@ -1295,6 +1893,20 @@ Configuration::impl::impl (Configuration * self, QNetworkAccessManager * network
   });
 
   lotw_users_.set_local_file_path (writeable_data_dir_.absoluteFilePath ("lotw-user-activity.csv"));
+
+  // set up Cloudlog API key test button
+  connect (&cloudlog_, &Cloudlog::apikey_ok, [this] () {
+      ui_->pbTestCloudlog->setStyleSheet ("QPushButton {background-color: green;}");
+      ui_->pbTestCloudlog->setToolTip (tr ("API key OK"));
+    });
+  connect (&cloudlog_, &Cloudlog::apikey_ro, [this] () {
+      ui_->pbTestCloudlog->setStyleSheet ("QPushButton {background-color: orange;}");
+      ui_->pbTestCloudlog->setToolTip (tr ("API key read-only"));
+    });
+  connect (&cloudlog_, &Cloudlog::apikey_invalid, [this] () {
+      ui_->pbTestCloudlog->setStyleSheet ("QPushButton {background-color: red;}");
+      ui_->pbTestCloudlog->setToolTip (tr ("API key invalid"));
+    });
 
   //
   // validation
@@ -1457,6 +2069,7 @@ Configuration::impl::impl (Configuration * self, QNetworkAccessManager * network
 
   enumerate_rigs ();
   initialize_models ();
+  restart_tci_device_ = false;
 
   audio_input_device_ = next_audio_input_device_;
   audio_input_channel_ = next_audio_input_channel_;
@@ -1478,6 +2091,10 @@ Configuration::impl::impl (Configuration * self, QNetworkAccessManager * network
 
   transceiver_thread_ = new QThread {this};
   transceiver_thread_->start ();
+
+  ui_->eqsluser_edit->setText (eqsl_username_);
+  ui_->eqslpasswd_edit->setText (eqsl_passwd_);
+  ui_->eqslnick_edit->setText (eqsl_nickname_);
 }
 
 Configuration::impl::~impl ()
@@ -1495,6 +2112,8 @@ void Configuration::impl::initialize_models ()
   next_audio_output_channel_ = audio_output_channel_;
   restart_sound_input_device_ = false;
   restart_sound_output_device_ = false;
+  restart_tci_device_ = false;
+
   {
     SettingsGroup g {settings_, "Configuration"};
     find_audio_devices ();
@@ -1514,44 +2133,86 @@ void Configuration::impl::initialize_models ()
   ui_->grid_line_edit->setText (my_grid_);
   ui_->use_dynamic_grid->setChecked(use_dynamic_grid_);
   ui_->CW_id_interval_spin_box->setValue (id_interval_);
+  ui_->align_spin_box->setValue (align_steps_);
+  ui_->align_spin_box2->setValue (align_steps2_);
   ui_->sbNtrials->setValue (ntrials_);
+  ui_->TCI_spin_box->setValue (volume_);
   ui_->sbTxDelay->setValue (txDelay_);
   ui_->sbAggressive->setValue (aggressive_);
   ui_->sbDegrade->setValue (degrade_);
   ui_->sbBandwidth->setValue (RxBandwidth_);
+  ui_->tci_audio_check_box->setChecked (tci_audio_);
   ui_->PTT_method_button_group->button (rig_params_.ptt_type)->setChecked (true);
-
+  ui_->PWR_and_SWR_check_box->setChecked (PWR_and_SWR_);
+  ui_->check_SWR_check_box->setChecked (check_SWR_);
+  if (!ui_->PWR_and_SWR_check_box->isChecked()) ui_->check_SWR_check_box->setEnabled (false);
   ui_->save_path_display_label->setText (save_directory_.absolutePath ());
   ui_->azel_path_display_label->setText (azel_directory_.absolutePath ());
   ui_->CW_id_after_73_check_box->setChecked (id_after_73_);
   ui_->tx_QSY_check_box->setChecked (tx_QSY_allowed_);
+  ui_->progress_bar_check_box->setChecked (progressBar_red_);
   ui_->psk_reporter_check_box->setChecked (spot_to_psk_reporter_);
   ui_->psk_reporter_tcpip_check_box->setChecked (psk_reporter_tcpip_);
   ui_->monitor_off_check_box->setChecked (monitor_off_at_startup_);
   ui_->monitor_last_used_check_box->setChecked (monitor_last_used_);
   ui_->log_as_RTTY_check_box->setChecked (log_as_RTTY_);
   ui_->report_in_comments_check_box->setChecked (report_in_comments_);
+  ui_->specOp_in_comments_check_box->setChecked (specOp_in_comments_);
   ui_->prompt_to_log_check_box->setChecked (prompt_to_log_);
   ui_->cbAutoLog->setChecked(autoLog_);
+  ui_->cbContestingOnly->setChecked(contestingOnly_);
+  ui_->cbZZ00->setChecked(ZZ00_);
+  ui_->cbLog4digitGrids->setChecked(log4digitGrids_);
   ui_->decodes_from_top_check_box->setChecked (decodes_from_top_);
   ui_->insert_blank_check_box->setChecked (insert_blank_);
+  ui_->cb_detailed_blank_line->setChecked (detailed_blank_);
   ui_->DXCC_check_box->setChecked (DXCC_);
   ui_->ppfx_check_box->setChecked (ppfx_);
-  ui_->clear_DX_check_box->setChecked (clear_DX_);
+  ui_->show_country_names_check_box->setChecked (show_country_names_);
+  if (!ui_->DXCC_check_box->isChecked()) {
+    ui_->ppfx_check_box->setEnabled (false);
+    ui_->show_country_names_check_box->setEnabled (false);
+  }
+  ui_->Map_Grid_to_State->setChecked(gridMap_);
+  ui_->Map_All_Messages->setChecked(gridMapAll_);
   ui_->miles_check_box->setChecked (miles_);
   ui_->quick_call_check_box->setChecked (quick_call_);
   ui_->disable_TX_on_73_check_box->setChecked (disable_TX_on_73_);
   ui_->force_call_1st_check_box->setChecked (force_call_1st_);
   ui_->alternate_bindings_check_box->setChecked (alternate_bindings_);
   ui_->tx_watchdog_spin_box->setValue (watchdog_);
+  ui_->tune_watchdog_check_box->setChecked(tune_watchdog_);
+  ui_->tune_watchdog_spin_box->setValue (tune_watchdog_time_);
   ui_->TX_messages_check_box->setChecked (TX_messages_);
   ui_->enable_VHF_features_check_box->setChecked(enable_VHF_features_);
   ui_->decode_at_52s_check_box->setChecked(decode_at_52s_);
+  ui_->kHz_without_k_check_box->setChecked(kHz_without_k_);
+  ui_->disable_button_coloring_check_box->setChecked(button_coloring_disabled_);
+  ui_->enable_Wait_features_check_box->setChecked(Wait_features_enabled_);
+  ui_->cb_showDistance->setChecked(showDistance_);
+  ui_->cb_showAzimuth->setChecked(showAzimuth_);
+  ui_->cb_Align->setChecked(align_);
+  ui_->repeat_Tx_check_box->setChecked(repeat_Tx_);
+  ui_->auto_astro_check_box->setChecked(auto_astro_);
   ui_->single_decode_check_box->setChecked(single_decode_);
   ui_->cbTwoPass->setChecked(twoPass_);
+  ui_->cbHighDPI->setChecked(highDPI_);
+  ui_->cbLargerTabWidget->setChecked(largerTabWidget_);
   ui_->cbSuperFox->setChecked(bSuperFox_);
   ui_->cbContestName->setChecked(Individual_Contest_Name_);
+  ui_->cb_NCCC_Sprint->setChecked(NCCC_Sprint_);
+  ui_->cbBlacklist->setChecked(Blacklisted_);
+  ui_->cbWhitelist->setChecked(Whitelisted_);
+  ui_->cbPass->setChecked(AlwaysPass_);
+  ui_->cb_filters_for_Wait_and_Pounce_only->setChecked(filters_for_Wait_and_Pounce_only_);
+  ui_->cb_filters_for_word2->setChecked(filters_for_word2_);
+  ui_->cb_twoDays->setChecked(twoDays_);
   ui_->gbSpecialOpActivity->setChecked(bSpecialOp_);
+  ui_->gbCloudlog->setChecked(bCloudLog_);
+  ui_->gbEQSL->setChecked(send_to_eqsl_);
+  ui_->leCloudlogApiUrl->setText(cloudLogApiUrl_);
+  ui_->leCloudlogApiKey->setText(cloudLogApiKey_);
+  ui_->sbCloudlogStationID->setValue (cloudLogStationID_);
   ui_->special_op_activity_button_group->button (SelectedActivity_)->setChecked (true);
   ui_->cbx2ToneSpacing->setChecked(x2ToneSpacing_);
   ui_->cbx4ToneSpacing->setChecked(x4ToneSpacing_);
@@ -1563,6 +2224,10 @@ void Configuration::impl::initialize_models ()
   ui_->CAT_data_bits_button_group->button (rig_params_.data_bits)->setChecked (true);
   ui_->CAT_stop_bits_button_group->button (rig_params_.stop_bits)->setChecked (true);
   ui_->CAT_handshake_button_group->button (rig_params_.handshake)->setChecked (true);
+  ui_->cbSortAlphabetically->setChecked(sortAlphabetically_);
+  ui_->cbHideCARD->setChecked(hideCARD_);
+  ui_->cbHideCARD->setEnabled(sortAlphabetically_);
+  ui_->checkBoxAzElExtraLines->setChecked(AzElExtraLines_);
   ui_->checkBoxPwrBandTxMemory->setChecked(pwrBandTxMemory_);
   ui_->checkBoxPwrBandTuneMemory->setChecked(pwrBandTuneMemory_);
   if (rig_params_.force_dtr)
@@ -1582,7 +2247,7 @@ void Configuration::impl::initialize_models ()
       ui_->force_RTS_combo_box->setCurrentIndex (0);
     }
   ui_->TX_audio_source_button_group->button (rig_params_.audio_source)->setChecked (true);
-  ui_->CAT_poll_interval_spin_box->setValue (rig_params_.poll_interval);
+  ui_->CAT_poll_interval_spin_box->setValue (rig_params_.poll_interval & 0x7fff);
   ui_->opCallEntry->setText (opCall_);
   ui_->udp_server_line_edit->setEnabled(false);
   ui_->udp_server_line_edit->setText (udp_server_name_);
@@ -1629,9 +2294,34 @@ void Configuration::impl::initialize_models ()
   ui_->only_fields_check_box->setChecked (highlight_only_fields_);
   ui_->include_WAE_check_box->setChecked (include_WAE_entities_);
   ui_->highlight_73_check_box->setChecked (highlight_73_);
+  ui_->highlight_orange_check_box->setChecked (highlight_orange_);
+  ui_->highlight_blue_check_box->setChecked (highlight_blue_);
+  ui_->alternate_erase_button_check_box->setChecked (alternate_erase_button_);
   ui_->LotW_days_since_upload_spin_box->setValue (LotW_days_since_upload_);
   ui_->cbHighlightDXcall->setChecked(highlight_DXcall_);
+  ui_->cbClearDXcall->setChecked(clear_DXcall_);
   ui_->cbHighlightDXgrid->setChecked(highlight_DXgrid_);
+  ui_->cbClearDXgrid->setChecked(clear_DXgrid_);
+  ui_->cbEraseBandActivity->setChecked(erase_BandActivity_);
+  ui_->cbRxToTxAfterQSO->setChecked(set_RXtoTX_);
+  ui_->cbCQ->setChecked(alert_CQ_);
+  ui_->cbMyCall->setChecked(alert_MyCall_);
+  ui_->cbDXCC->setChecked(alert_DXCC_);
+  ui_->cbDXCCOB->setChecked(alert_DXCCOB_);
+  ui_->cbGrid->setChecked(alert_Grid_);
+  ui_->cbGridOB->setChecked(alert_GridOB_);
+  ui_->cbContinent->setChecked(alert_Continent_);
+  ui_->cbContinentOB->setChecked(alert_ContinentOB_);
+  ui_->cbCQZ->setChecked(alert_CQZ_);
+  ui_->cbCQZOB->setChecked(alert_CQZOB_);
+  ui_->cbITUZ->setChecked(alert_ITUZ_);
+  ui_->cbITUZOB->setChecked(alert_ITUZOB_);
+  ui_->cbDXcall->setChecked(alert_DXcall_);
+  ui_->cbWanted->setChecked(alert_Wanted_);
+  ui_->cbQSYmessage->setChecked(alert_QSYmessage_);
+  ui_->pbAlerts->setChecked(alert_Enabled_);
+
+  ui_->pbTestCloudlog->setStyleSheet ("QPushButton {background-color: none;}");
 
   check_visibility ();
 
@@ -1643,6 +2333,7 @@ void Configuration::impl::done (int r)
   // do this here since window is still on screen at this point
   SettingsGroup g {settings_, "Configuration"};
   settings_->setValue ("window/geometry", saveGeometry ());
+  handle_leavingSettings();
 
   QDialog::done (r);
 }
@@ -1652,10 +2343,6 @@ void Configuration::impl::read_settings ()
   SettingsGroup g {settings_, "Configuration"};
   LOG_INFO(QString{"Configuration Settings (%1)"}.arg(settings_->fileName()));
   QStringList keys = settings_->allKeys();
-  //Q_FOREACH (auto const& item, keys)
-  //{
-  //  LOG_INFO(QString{"  %1 = %2"}.arg(item).arg(settings_->value(item).toString()));
-  //}
 
   restoreGeometry (settings_->value ("window/geometry").toByteArray ());
 
@@ -1667,7 +2354,94 @@ void Configuration::impl::read_settings ()
   ui_->Field_Day_Exchange->setText(FD_exchange_);
   ui_->RTTY_Exchange->setText(RTTY_exchange_);
   ui_->Contest_Name->setText(Contest_Name_);
+
+  Blacklist1_ = settings_->value ("Blacklist1",QString {}).toString ();
+  Blacklist2_ = settings_->value ("Blacklist2",QString {}).toString ();
+  Blacklist3_ = settings_->value ("Blacklist3",QString {}).toString ();
+  Blacklist4_ = settings_->value ("Blacklist4",QString {}).toString ();
+  Blacklist5_ = settings_->value ("Blacklist5",QString {}).toString ();
+  Blacklist6_ = settings_->value ("Blacklist6",QString {}).toString ();
+  Blacklist7_ = settings_->value ("Blacklist7",QString {}).toString ();
+  Blacklist8_ = settings_->value ("Blacklist8",QString {}).toString ();
+  Blacklist9_ = settings_->value ("Blacklist9",QString {}).toString ();
+  Blacklist10_ = settings_->value ("Blacklist10",QString {}).toString ();
+  Blacklist11_ = settings_->value ("Blacklist11",QString {}).toString ();
+  Blacklist12_ = settings_->value ("Blacklist12",QString {}).toString ();
+  Whitelist1_ = settings_->value ("Whitelist1",QString {}).toString ();
+  Whitelist2_ = settings_->value ("Whitelist2",QString {}).toString ();
+  Whitelist3_ = settings_->value ("Whitelist3",QString {}).toString ();
+  Whitelist4_ = settings_->value ("Whitelist4",QString {}).toString ();
+  Whitelist5_ = settings_->value ("Whitelist5",QString {}).toString ();
+  Whitelist6_ = settings_->value ("Whitelist6",QString {}).toString ();
+  Whitelist7_ = settings_->value ("Whitelist7",QString {}).toString ();
+  Whitelist8_ = settings_->value ("Whitelist8",QString {}).toString ();
+  Whitelist9_ = settings_->value ("Whitelist9",QString {}).toString ();
+  Whitelist10_ = settings_->value ("Whitelist10",QString {}).toString ();
+  Whitelist11_ = settings_->value ("Whitelist11",QString {}).toString ();
+  Whitelist12_ = settings_->value ("Whitelist12",QString {}).toString ();
+  Pass1_ = settings_->value ("Pass1",QString {}).toString ();
+  Pass2_ = settings_->value ("Pass2",QString {}).toString ();
+  Pass3_ = settings_->value ("Pass3",QString {}).toString ();
+  Pass4_ = settings_->value ("Pass4",QString {}).toString ();
+  Pass5_ = settings_->value ("Pass5",QString {}).toString ();
+  Pass6_ = settings_->value ("Pass6",QString {}).toString ();
+  Pass7_ = settings_->value ("Pass7",QString {}).toString ();
+  Pass8_ = settings_->value ("Pass8",QString {}).toString ();
+  Pass9_ = settings_->value ("Pass9",QString {}).toString ();
+  Pass10_ = settings_->value ("Pass10",QString {}).toString ();
+  Pass11_ = settings_->value ("Pass11",QString {}).toString ();
+  Pass12_ = settings_->value ("Pass12",QString {}).toString ();
+  Territory1_ = settings_->value ("Territory1",QString {}).toString ();
+  Territory2_ = settings_->value ("Territory2",QString {}).toString ();
+  Territory3_ = settings_->value ("Territory3",QString {}).toString ();
+  Territory4_ = settings_->value ("Territory4",QString {}).toString ();
+  highlight_orange_callsigns_ = settings_->value ("HighlightOrangeCallsigns",QString {}).toString ();
+  highlight_blue_callsigns_ = settings_->value ("HighlightBlueCallsigns",QString {}).toString ();
   hamlib_backed_up_ = settings_->value ("HamlibBackedUp",QString {}).toString ();
+  ui_->Blacklist1->setText(Blacklist1_);
+  ui_->Blacklist2->setText(Blacklist2_);
+  ui_->Blacklist3->setText(Blacklist3_);
+  ui_->Blacklist4->setText(Blacklist4_);
+  ui_->Blacklist5->setText(Blacklist5_);
+  ui_->Blacklist6->setText(Blacklist6_);
+  ui_->Blacklist7->setText(Blacklist7_);
+  ui_->Blacklist8->setText(Blacklist8_);
+  ui_->Blacklist9->setText(Blacklist9_);
+  ui_->Blacklist10->setText(Blacklist10_);
+  ui_->Blacklist11->setText(Blacklist11_);
+  ui_->Blacklist12->setText(Blacklist12_);
+  ui_->Whitelist1->setText(Whitelist1_);
+  ui_->Whitelist2->setText(Whitelist2_);
+  ui_->Whitelist3->setText(Whitelist3_);
+  ui_->Whitelist4->setText(Whitelist4_);
+  ui_->Whitelist5->setText(Whitelist5_);
+  ui_->Whitelist6->setText(Whitelist6_);
+  ui_->Whitelist7->setText(Whitelist7_);
+  ui_->Whitelist8->setText(Whitelist8_);
+  ui_->Whitelist9->setText(Whitelist9_);
+  ui_->Whitelist10->setText(Whitelist10_);
+  ui_->Whitelist11->setText(Whitelist11_);
+  ui_->Whitelist12->setText(Whitelist12_);
+  ui_->Pass1->setText(Pass1_);
+  ui_->Pass2->setText(Pass2_);
+  ui_->Pass3->setText(Pass3_);
+  ui_->Pass4->setText(Pass4_);
+  ui_->Pass5->setText(Pass5_);
+  ui_->Pass6->setText(Pass6_);
+  ui_->Pass7->setText(Pass7_);
+  ui_->Pass8->setText(Pass8_);
+  ui_->Pass9->setText(Pass9_);
+  ui_->Pass10->setText(Pass10_);
+  ui_->Pass11->setText(Pass11_);
+  ui_->Pass12->setText(Pass12_);
+  ui_->Territory1->setText(Territory1_);
+  ui_->Territory2->setText(Territory2_);
+  ui_->Territory3->setText(Territory3_);
+  ui_->Territory4->setText(Territory4_);
+  ui_->highlight_orange_callsigns->setText(highlight_orange_callsigns_);
+  ui_->highlight_blue_callsigns->setText(highlight_blue_callsigns_);
+  PWR_and_SWR_ = settings_->value ("PWRandSWR", false).toBool ();
+  check_SWR_ = settings_->value ("CheckSWR", false).toBool ();
 
   OTPinterval_ = settings_->value ("OTPinterval", 1).toUInt ();
   OTPUrl_ = settings_->value ("OTPUrl", FoxVerifier::default_url()).toString ();
@@ -1680,7 +2454,6 @@ void Configuration::impl::read_settings ()
   ui_->OTPSeed->setText(OTPSeed_);
   ui_->cbOTP->setChecked(OTPEnabled_);
   ui_->cbShowOTP->setChecked(ShowOTP_);
-
 
   if (next_font_.fromString (settings_->value ("Font", QGuiApplication::font ().toString ()).toString ())
       && next_font_ != font_)
@@ -1706,12 +2479,17 @@ void Configuration::impl::read_settings ()
     }
 
   id_interval_ = settings_->value ("IDint", 0).toInt ();
+  align_steps_ = settings_->value ("AlignSteps", 2).toInt ();
+  align_steps2_ = settings_->value ("AlignSteps2", 0).toInt ();
   ntrials_ = settings_->value ("nTrials", 6).toInt ();
+  volume_ = settings_->value ("volume", 0).toInt ();
   txDelay_ = settings_->value ("TxDelay",0.2).toDouble();
-  aggressive_ = settings_->value ("Aggressive", 0).toInt ();
+  aggressive_ = settings_->value ("Aggressive", 4).toInt ();
   RxBandwidth_ = settings_->value ("RxBandwidth", 2500).toInt ();
   save_directory_.setPath (settings_->value ("SaveDir", default_save_directory_.absolutePath ()).toString ());
   azel_directory_.setPath (settings_->value ("AzElDir", default_azel_directory_.absolutePath ()).toString ());
+
+  tci_audio_ = settings_->value ("TCIAudio", tci_audio_).toBool ();
 
   type_2_msg_gen_ = settings_->value ("Type2MsgGen", QVariant::fromValue (Configuration::type_2_msg_3_full)).value<Configuration::Type2MsgGen> ();
 
@@ -1719,8 +2497,13 @@ void Configuration::impl::read_settings ()
   monitor_last_used_ = settings_->value ("MonitorLastUsed", false).toBool ();
   spot_to_psk_reporter_ = settings_->value ("PSKReporter", false).toBool ();
   psk_reporter_tcpip_ = settings_->value ("PSKReporterTCPIP", false).toBool ();
+  eqsl_username_ = settings_->value ("EQSLUser", "").toString ();
+  eqsl_passwd_ = settings_->value ("EQSLPasswd", "").toString ();
+  eqsl_nickname_ = settings_->value ("EQSLNick", "").toString ();
+  send_to_eqsl_ = settings_->value ("EQSLSend", false).toBool ();
   id_after_73_ = settings_->value ("After73", false).toBool ();
   tx_QSY_allowed_ = settings_->value ("TxQSYAllowed", false).toBool ();
+  progressBar_red_ = settings_->value ("ProgressBarRed", true).toBool ();
   use_dynamic_grid_ = settings_->value ("AutoGrid", false).toBool ();
 
   macros_.setStringList (settings_->value ("Macros", QStringList {"TNX 73 GL"}).toStringList ());
@@ -1791,14 +2574,21 @@ void Configuration::impl::read_settings ()
   highlight_by_mode_ = settings_->value("HighlightByMode", false).toBool ();
   highlight_only_fields_ = settings_->value("OnlyFieldsSought", false).toBool ();
   include_WAE_entities_ = settings_->value("IncludeWAEEntities", false).toBool ();
-  highlight_73_ = settings_->value("Highlight73", false).toBool ();
+  highlight_73_ = settings_->value("Highlight73", true).toBool ();
+  highlight_orange_ = settings_->value("HighlightOrange", false).toBool ();
+  highlight_blue_ = settings_->value("HighlightBlue", false).toBool ();
+  alternate_erase_button_ = settings_->value("AlternateEraseButtonBehavior", true).toBool ();
+  show_country_names_ = settings_->value("AlwaysShowCountryNames", false).toBool ();
   LotW_days_since_upload_ = settings_->value ("LotWDaysSinceLastUpload", 365).toInt ();
   lotw_users_.set_age_constraint (LotW_days_since_upload_);
 
   log_as_RTTY_ = settings_->value ("toRTTY", false).toBool ();
   report_in_comments_ = settings_->value("dBtoComments", false).toBool ();
+  specOp_in_comments_ = settings_->value("specOptoComments", false).toBool ();
   rig_params_.rig_name = settings_->value ("Rig", TransceiverFactory::basic_transceiver_name_).toString ();
   rig_is_dummy_ = TransceiverFactory::basic_transceiver_name_ == rig_params_.rig_name;
+  is_tci_ = rig_params_.rig_name.startsWith("TCI Cli");
+  rig_params_.tci_port = settings_->value ("CATTCIPort","").toString ();
   rig_params_.network_port = settings_->value ("CATNetworkPort").toString ();
   rig_params_.usb_port = settings_->value ("CATUSBPort").toString ();
   rig_params_.serial_port = settings_->value ("CATSerialPort").toString ();
@@ -1816,27 +2606,55 @@ void Configuration::impl::read_settings ()
   data_mode_ = settings_->value ("DataMode", QVariant::fromValue (data_mode_none)).value<Configuration::DataMode> ();
   bLowSidelobes_ = settings_->value("LowSidelobes",true).toBool();
   prompt_to_log_ = settings_->value ("PromptToLog", false).toBool ();
-  autoLog_ = settings_->value ("AutoLog", false).toBool ();
+  autoLog_ = settings_->value ("AutoLog", true).toBool ();
+  contestingOnly_ = settings_->value ("ContestingOnly", true).toBool ();
+  ZZ00_ = settings_->value("ZZ00",false).toBool ();
+  log4digitGrids_ = settings_->value ("Log4digitGrids", false).toBool ();
   decodes_from_top_ = settings_->value ("DecodesFromTop", false).toBool ();
-  insert_blank_ = settings_->value ("InsertBlank", false).toBool ();
-  DXCC_ = settings_->value ("DXCCEntity", false).toBool ();
+  insert_blank_ = settings_->value ("InsertBlank", true).toBool ();
+  detailed_blank_ = settings_->value ("DetailedBlank", true).toBool ();
+  DXCC_ = settings_->value ("DXCCEntity", true).toBool ();
+  gridMap_ = settings_->value("MapGridEntity", true).toBool();
+  gridMapAll_ = settings_->value("MapGridAllEntity", true).toBool();
   ppfx_ = settings_->value ("PrincipalPrefix", false).toBool ();
-  clear_DX_ = settings_->value ("ClearCallGrid", false).toBool ();
   miles_ = settings_->value ("Miles", false).toBool ();
-  quick_call_ = settings_->value ("QuickCall", false).toBool ();
-  disable_TX_on_73_ = settings_->value ("73TxDisable", false).toBool ();
+  quick_call_ = settings_->value ("QuickCall", true).toBool ();
+  disable_TX_on_73_ = settings_->value ("73TxDisable", true).toBool ();
   force_call_1st_ = settings_->value ("ForceCallFirst", false).toBool ();
   alternate_bindings_ = settings_->value ("AlternateBindings", false).toBool ();
   watchdog_ = settings_->value ("TxWatchdog", 6).toInt ();
+  tune_watchdog_ = settings_->value("TuneWatchdog",true).toBool ();
+  tune_watchdog_time_ = settings_->value ("TuneWatchdogTime", 90).toInt ();
   TX_messages_ = settings_->value ("Tx2QSO", true).toBool ();
   enable_VHF_features_ = settings_->value("VHFUHF",false).toBool ();
   decode_at_52s_ = settings_->value("Decode52",false).toBool ();
+  kHz_without_k_ = settings_->value("kHzWithoutK",false).toBool ();
+  button_coloring_disabled_ = settings_->value("TxWarningDisabled",false).toBool ();
+  Wait_features_enabled_ = settings_->value("WaitFeaturesEnabled",true).toBool ();
+  showDistance_ = settings_->value("showDistance", false).toBool();
+  showAzimuth_ = settings_->value("showAzimuth", false).toBool();
+  align_ = settings_->value("AlignDistanceAzimuth", true).toBool();
+  repeat_Tx_ = settings_->value("RepeatTx",false).toBool ();
+  auto_astro_ = settings_->value("AutoAstroWindow",false).toBool ();
   single_decode_ = settings_->value("SingleDecode",false).toBool ();
   twoPass_ = settings_->value("TwoPass",true).toBool ();
+  highDPI_ = settings_->value("HighDPI",true).toBool ();
+  largerTabWidget_ = settings_->value("LargerTabWidget",false).toBool ();
   bSuperFox_ = settings_->value("SuperFox",true).toBool ();
-  Individual_Contest_Name_ = settings_->value("Individual_Contest_Name",true).toBool ();
+  Individual_Contest_Name_ = settings_->value("Individual_Contest_Name",false).toBool ();
+  NCCC_Sprint_ = settings_->value("NCCC_Sprint",false).toBool ();
+  Blacklisted_ = settings_->value("Blacklisted",false).toBool ();
+  Whitelisted_ = settings_->value("Whitelisted",false).toBool ();
+  AlwaysPass_ = settings_->value("AlwaysPass",false).toBool ();
+  filters_for_Wait_and_Pounce_only_ = settings_->value("FiltersForWaitAndPounceOnly",false).toBool ();
+  filters_for_word2_ = settings_->value("FiltersForWord2",false).toBool ();
+  twoDays_ = settings_->value("TwoDays",false).toBool ();
   bSpecialOp_ = settings_->value("SpecialOpActivity",false).toBool ();
-  SelectedActivity_ = settings_->value("SelectedActivity",1).toInt (); 
+  bCloudLog_ = settings_->value("CloudLog",false).toBool ();
+  cloudLogApiUrl_ = settings_->value ("CloudLogApiUrl", QString {}).toString ();
+  cloudLogApiKey_ = settings_->value ("CloudLogApiKey", QString {}).toString ();
+  cloudLogStationID_ = settings_->value("CloudLogStationID",1).toInt ();
+  SelectedActivity_ = settings_->value("SelectedActivity",1).toInt ();
   x2ToneSpacing_ = settings_->value("x2ToneSpacing",false).toBool ();
   x4ToneSpacing_ = settings_->value("x4ToneSpacing",false).toBool ();
   rig_params_.poll_interval = settings_->value ("Polling", 0).toInt ();
@@ -1854,10 +2672,40 @@ void Configuration::impl::read_settings ()
   udpWindowRestore_ = settings_->value ("udpWindowRestore",false).toBool ();
   calibration_.intercept = settings_->value ("CalibrationIntercept", 0.).toDouble ();
   calibration_.slope_ppm = settings_->value ("CalibrationSlopePPM", 0.).toDouble ();
+  sortAlphabetically_ = settings_->value("SortAlphabetically",true).toBool ();
+  hideCARD_ = settings_->value("HideCARD",true).toBool ();
+  AzElExtraLines_ = settings_->value("AzElExtraLines",false).toBool ();
   pwrBandTxMemory_ = settings_->value("pwrBandTxMemory",false).toBool ();
   pwrBandTuneMemory_ = settings_->value("pwrBandTuneMemory",false).toBool ();
-  highlight_DXcall_ = settings_->value("highlight_DXcall",false).toBool ();
-  highlight_DXgrid_ = settings_->value("highlight_DXgrid",false).toBool ();
+  highlight_DXcall_ = settings_->value("highlight_DXcall",true).toBool ();
+  clear_DXcall_ = settings_->value("clear_DXcall",false).toBool ();
+  highlight_DXgrid_ = settings_->value("highlight_DXgrid",true).toBool ();
+  clear_DXgrid_ = settings_->value("clear_DXgrid",false).toBool ();
+  erase_BandActivity_ = settings_->value("erase_BandActivity",false).toBool ();
+  set_RXtoTX_ = settings_->value("set_RXtoTX",false).toBool ();
+  alert_CQ_ = settings_->value("alert_CQ",false).toBool ();
+  alert_MyCall_ = settings_->value("alert_MyCall",false).toBool ();
+  alert_DXCC_ = settings_->value("alert_DXCC",false).toBool ();
+  alert_DXCCOB_ = settings_->value("alert_DXCCOB",false).toBool ();
+  alert_Grid_ = settings_->value("alert_Grid",false).toBool ();
+  alert_GridOB_ = settings_->value("alert_GridOB",false).toBool ();
+  alert_Continent_ = settings_->value("alert_Continent",false).toBool ();
+  alert_ContinentOB_ = settings_->value("alert_ContinentOB",false).toBool ();
+  alert_CQZ_ = settings_->value("alert_CQZ",false).toBool ();
+  alert_CQZOB_ = settings_->value("alert_CQZOB",false).toBool ();
+  alert_ITUZ_ = settings_->value("alert_ITUZ",false).toBool ();
+  alert_ITUZOB_ = settings_->value("alert_ITUZOB",false).toBool ();
+  alert_DXcall_ = settings_->value("alert_DXcall",false).toBool ();
+  alert_Wanted_ = settings_->value("alert_Wanted",false).toBool ();
+  alert_QSYmessage_ = settings_->value("alert_QSYmessage",false).toBool ();
+  alert_Enabled_ = settings_->value("alert_Enabled",false).toBool ();
+  voice_ = settings_->value ("Voice", 0).toInt ();
+  read_voices();
+  // Reset Rig to None if TCI was selected but no IP address was specified
+  if (is_tci_ && settings_->value("CATTCIPort")=="") {
+    rig_params_.rig_name = "None";
+    if (rig_params_.ptt_type == TransceiverFactory::PTT_method_CAT) rig_params_.ptt_type = TransceiverFactory::PTT_method_VOX;
+  }
 #ifdef WIN32
   QTimer::singleShot (2500, [=] {display_file_information ();});
 #else
@@ -1878,6 +2726,7 @@ void Configuration::impl::find_audio_devices ()
   // retrieve audio input device
   //
   auto saved_name = settings_->value ("SoundInName").toString ();
+  if (is_tci_ && tci_audio_) saved_name = "TCI audio";  // TCI
   if (next_audio_input_device_.deviceName () != saved_name || next_audio_input_device_.isNull ())
     {
       next_audio_input_device_ = find_audio_device (QAudio::AudioInput, ui_->sound_input_combo_box, saved_name);
@@ -1885,11 +2734,11 @@ void Configuration::impl::find_audio_devices ()
       update_audio_channels (ui_->sound_input_combo_box, ui_->sound_input_combo_box->currentIndex (), ui_->sound_input_channel_combo_box, false);
       ui_->sound_input_channel_combo_box->setCurrentIndex (next_audio_input_channel_);
     }
-
   //
   // retrieve audio output device
   //
   saved_name = settings_->value("SoundOutName").toString();
+  if (is_tci_ && tci_audio_) saved_name = "TCI audio";  // TCI
   if (next_audio_output_device_.deviceName () != saved_name || next_audio_output_device_.isNull ())
     {
       next_audio_output_device_ = find_audio_device (QAudio::AudioOutput, ui_->sound_output_combo_box, saved_name);
@@ -1908,34 +2757,93 @@ void Configuration::impl::write_settings ()
   settings_->setValue ("Field_Day_Exchange", FD_exchange_);
   settings_->setValue ("RTTY_Exchange", RTTY_exchange_);
   settings_->setValue ("Contest_Name", Contest_Name_);
+  settings_->setValue ("Blacklist1", Blacklist1_);
+  settings_->setValue ("Blacklist2", Blacklist2_);
+  settings_->setValue ("Blacklist3", Blacklist3_);
+  settings_->setValue ("Blacklist4", Blacklist4_);
+  settings_->setValue ("Blacklist5", Blacklist5_);
+  settings_->setValue ("Blacklist6", Blacklist6_);
+  settings_->setValue ("Blacklist7", Blacklist7_);
+  settings_->setValue ("Blacklist8", Blacklist8_);
+  settings_->setValue ("Blacklist9", Blacklist9_);
+  settings_->setValue ("Blacklist10", Blacklist10_);
+  settings_->setValue ("Blacklist11", Blacklist11_);
+  settings_->setValue ("Blacklist12", Blacklist12_);
+  settings_->setValue ("Whitelist1", Whitelist1_);
+  settings_->setValue ("Whitelist2", Whitelist2_);
+  settings_->setValue ("Whitelist3", Whitelist3_);
+  settings_->setValue ("Whitelist4", Whitelist4_);
+  settings_->setValue ("Whitelist5", Whitelist5_);
+  settings_->setValue ("Whitelist6", Whitelist6_);
+  settings_->setValue ("Whitelist7", Whitelist7_);
+  settings_->setValue ("Whitelist8", Whitelist8_);
+  settings_->setValue ("Whitelist9", Whitelist9_);
+  settings_->setValue ("Whitelist10", Whitelist10_);
+  settings_->setValue ("Whitelist11", Whitelist11_);
+  settings_->setValue ("Whitelist12", Whitelist12_);
+  settings_->setValue ("Pass1", Pass1_);
+  settings_->setValue ("Pass2", Pass2_);
+  settings_->setValue ("Pass3", Pass3_);
+  settings_->setValue ("Pass4", Pass4_);
+  settings_->setValue ("Pass5", Pass5_);
+  settings_->setValue ("Pass6", Pass6_);
+  settings_->setValue ("Pass7", Pass7_);
+  settings_->setValue ("Pass8", Pass8_);
+  settings_->setValue ("Pass9", Pass9_);
+  settings_->setValue ("Pass10", Pass10_);
+  settings_->setValue ("Pass11", Pass11_);
+  settings_->setValue ("Pass12", Pass12_);
+  settings_->setValue ("Territory1", Territory1_);
+  settings_->setValue ("Territory2", Territory2_);
+  settings_->setValue ("Territory3", Territory3_);
+  settings_->setValue ("Territory4", Territory4_);
+  settings_->setValue ("HighlightOrangeCallsigns", highlight_orange_callsigns_);
+  settings_->setValue ("HighlightBlueCallsigns", highlight_blue_callsigns_);
+  settings_->setValue ("PWRandSWR", PWR_and_SWR_);
+  settings_->setValue ("CheckSWR", check_SWR_);
+
   settings_->setValue ("Font", font_.toString ());
   settings_->setValue ("DecodedTextFont", decoded_text_font_.toString ());
   settings_->setValue ("IDint", id_interval_);
+  settings_->setValue ("AlignSteps", align_steps_);
+  settings_->setValue ("AlignSteps2", align_steps2_);
   settings_->setValue ("nTrials", ntrials_);
+  settings_->setValue ("volume", volume_);
   settings_->setValue ("TxDelay", txDelay_);
   settings_->setValue ("Aggressive", aggressive_);
   settings_->setValue ("RxBandwidth", RxBandwidth_);
+  settings_->setValue ("TCIAudio", tci_audio_);
+  settings_->setValue ("CATTCIPort", rig_params_.tci_port);
   settings_->setValue ("PTTMethod", QVariant::fromValue (rig_params_.ptt_type));
   settings_->setValue ("PTTport", rig_params_.ptt_port);
   settings_->setValue ("SaveDir", save_directory_.absolutePath ());
   settings_->setValue ("AzElDir", azel_directory_.absolutePath ());
-  if (!audio_input_device_.isNull ())
-    {
+  if (!audio_input_device_.isNull ()) {
       settings_->setValue ("SoundInName", audio_input_device_.deviceName ());
       settings_->setValue ("AudioInputChannel", AudioDevice::toString (audio_input_channel_));
-    }
-  if (!audio_output_device_.isNull ())
-    {
-      settings_->setValue ("SoundOutName", audio_output_device_.deviceName ());
-      settings_->setValue ("AudioOutputChannel", AudioDevice::toString (audio_output_channel_));
-    }
+  } else if (is_tci_ && tci_audio_) {
+    settings_->setValue ("SoundInName", "TCI audio");
+    settings_->setValue ("AudioInputChannel", "TCI audio");
+  }
+  if (!audio_output_device_.isNull ()) {
+    settings_->setValue ("SoundOutName", audio_output_device_.deviceName ());
+    settings_->setValue ("AudioOutputChannel", AudioDevice::toString (audio_output_channel_));
+  } else if (is_tci_ && tci_audio_) {
+    settings_->setValue ("SoundOutName", "TCI audio");
+    settings_->setValue ("AudioOutputChannel", "TCI audio");
+  }
   settings_->setValue ("Type2MsgGen", QVariant::fromValue (type_2_msg_gen_));
   settings_->setValue ("MonitorOFF", monitor_off_at_startup_);
   settings_->setValue ("MonitorLastUsed", monitor_last_used_);
   settings_->setValue ("PSKReporter", spot_to_psk_reporter_);
   settings_->setValue ("PSKReporterTCPIP", psk_reporter_tcpip_);
+  settings_->setValue ("EQSLSend", send_to_eqsl_);
+  settings_->setValue ("EQSLUser", eqsl_username_);
+  settings_->setValue ("EQSLPasswd", eqsl_passwd_);
+  settings_->setValue ("EQSLNick", eqsl_nickname_);
   settings_->setValue ("After73", id_after_73_);
   settings_->setValue ("TxQSYAllowed", tx_QSY_allowed_);
+  settings_->setValue ("ProgressBarRed", progressBar_red_);
   settings_->setValue ("Macros", macros_.stringList ());
   settings_->setValue ("stations", QVariant::fromValue (stations_.station_list ()));
   settings_->setValue ("FrequenciesForRegionModes_v2", QVariant::fromValue (frequencies_.frequency_list ()));
@@ -1944,9 +2852,14 @@ void Configuration::impl::write_settings ()
   settings_->setValue ("OnlyFieldsSought", highlight_only_fields_);
   settings_->setValue ("IncludeWAEEntities", include_WAE_entities_);
   settings_->setValue ("Highlight73", highlight_73_);
+  settings_->setValue ("HighlightOrange", highlight_orange_);
+  settings_->setValue ("HighlightBlue", highlight_blue_);
+  settings_->setValue ("AlternateEraseButtonBehavior", alternate_erase_button_);
+  settings_->setValue ("AlwaysShowCountryNames", show_country_names_);
   settings_->setValue ("LotWDaysSinceLastUpload", LotW_days_since_upload_);
   settings_->setValue ("toRTTY", log_as_RTTY_);
   settings_->setValue ("dBtoComments", report_in_comments_);
+  settings_->setValue ("specOptoComments", specOp_in_comments_);
   settings_->setValue ("Rig", rig_params_.rig_name);
   settings_->setValue ("CATNetworkPort", rig_params_.network_port);
   settings_->setValue ("CATUSBPort", rig_params_.usb_port);
@@ -1959,17 +2872,24 @@ void Configuration::impl::write_settings ()
   settings_->setValue ("LowSidelobes",bLowSidelobes_);
   settings_->setValue ("PromptToLog", prompt_to_log_);
   settings_->setValue ("AutoLog", autoLog_);
+  settings_->setValue ("ContestingOnly", contestingOnly_);
+  settings_->setValue ("ZZ00", ZZ00_);
+  settings_->setValue ("Log4digitGrids", log4digitGrids_);
   settings_->setValue ("DecodesFromTop", decodes_from_top_);
   settings_->setValue ("InsertBlank", insert_blank_);
+  settings_->setValue ("DetailedBlank", detailed_blank_);
   settings_->setValue ("DXCCEntity", DXCC_);
+  settings_->setValue ("MapGridEntity", gridMap_);
+  settings_->setValue ("MapGridAllEntity", gridMapAll_);
   settings_->setValue ("PrincipalPrefix", ppfx_);
-  settings_->setValue ("ClearCallGrid", clear_DX_);
   settings_->setValue ("Miles", miles_);
   settings_->setValue ("QuickCall", quick_call_);
   settings_->setValue ("73TxDisable", disable_TX_on_73_);
   settings_->setValue ("ForceCallFirst", force_call_1st_);
   settings_->setValue ("AlternateBindings", alternate_bindings_);
   settings_->setValue ("TxWatchdog", watchdog_);
+  settings_->setValue ("TuneWatchdog", tune_watchdog_);
+  settings_->setValue ("TuneWatchdogTime", tune_watchdog_time_);
   settings_->setValue ("Tx2QSO", TX_messages_);
   settings_->setValue ("CATForceDTR", rig_params_.force_dtr);
   settings_->setValue ("DTR", rig_params_.dtr_high);
@@ -1980,12 +2900,33 @@ void Configuration::impl::write_settings ()
   settings_->setValue ("SplitMode", QVariant::fromValue (rig_params_.split_mode));
   settings_->setValue ("VHFUHF", enable_VHF_features_);
   settings_->setValue ("Decode52", decode_at_52s_);
+  settings_->setValue ("kHzWithoutK", kHz_without_k_);
+  settings_->setValue ("TxWarningDisabled", button_coloring_disabled_);
+  settings_->setValue ("WaitFeaturesEnabled", Wait_features_enabled_);
+  settings_->setValue ("showDistance", showDistance_);
+  settings_->setValue ("showAzimuth", showAzimuth_);
+  settings_->setValue ("AlignDistanceAzimuth", align_);
+  settings_->setValue ("RepeatTx", repeat_Tx_);
+  settings_->setValue ("AutoAstroWindow", auto_astro_);
   settings_->setValue ("SingleDecode", single_decode_);
   settings_->setValue ("TwoPass", twoPass_);
+  settings_->setValue ("HighDPI", highDPI_);
+  settings_->setValue ("LargerTabWidget", largerTabWidget_);
   settings_->setValue ("SuperFox", bSuperFox_);
   settings_->setValue ("Individual_Contest_Name", Individual_Contest_Name_);
+  settings_->setValue ("NCCC_Sprint", NCCC_Sprint_);
+  settings_->setValue ("Blacklisted", Blacklisted_);
+  settings_->setValue ("Whitelisted", Whitelisted_);
+  settings_->setValue ("AlwaysPass", AlwaysPass_);
+  settings_->setValue ("FiltersForWaitAndPounceOnly", filters_for_Wait_and_Pounce_only_);
+  settings_->setValue ("FiltersForWord2", filters_for_word2_);
+  settings_->setValue ("TwoDays", twoDays_);
   settings_->setValue ("SelectedActivity", SelectedActivity_);
   settings_->setValue ("SpecialOpActivity", bSpecialOp_);
+  settings_->setValue ("CloudLog", bCloudLog_);
+  settings_->setValue ("CloudLogApiUrl", cloudLogApiUrl_);
+  settings_->setValue ("CloudLogApiKey", cloudLogApiKey_);
+  settings_->setValue ("CloudLogStationID", cloudLogStationID_);
   settings_->setValue ("x2ToneSpacing", x2ToneSpacing_);
   settings_->setValue ("x4ToneSpacing", x4ToneSpacing_);
   settings_->setValue ("OpCall", opCall_);
@@ -2001,17 +2942,41 @@ void Configuration::impl::write_settings ()
   settings_->setValue ("udpWindowRestore", udpWindowRestore_);
   settings_->setValue ("CalibrationIntercept", calibration_.intercept);
   settings_->setValue ("CalibrationSlopePPM", calibration_.slope_ppm);
+  settings_->setValue ("SortAlphabetically", sortAlphabetically_);
+  settings_->setValue ("HideCARD", hideCARD_);
+  settings_->setValue ("AzElExtraLines", AzElExtraLines_);
   settings_->setValue ("pwrBandTxMemory", pwrBandTxMemory_);
   settings_->setValue ("pwrBandTuneMemory", pwrBandTuneMemory_);
   settings_->setValue ("Region", QVariant::fromValue (region_));
   settings_->setValue ("AutoGrid", use_dynamic_grid_);
   settings_->setValue ("highlight_DXcall", highlight_DXcall_);
+  settings_->setValue ("clear_DXcall", clear_DXcall_);
   settings_->setValue ("highlight_DXgrid", highlight_DXgrid_);
   settings_->setValue ("OTPinterval", OTPinterval_);
   settings_->setValue ("OTPUrl", OTPUrl_);
   settings_->setValue ("OTPSeed", OTPSeed_);
   settings_->setValue ("OTPEnabled", OTPEnabled_);
   settings_->setValue ("ShowOTP", ShowOTP_);
+  settings_->setValue ("clear_DXgrid", clear_DXgrid_);
+  settings_->setValue ("erase_BandActivity", erase_BandActivity_);
+  settings_->setValue ("set_RXtoTX", set_RXtoTX_);
+  settings_->setValue ("alert_CQ", alert_CQ_);
+  settings_->setValue ("alert_MyCall", alert_MyCall_);
+  settings_->setValue ("alert_DXCC", alert_DXCC_);
+  settings_->setValue ("alert_DXCCOB", alert_DXCCOB_);
+  settings_->setValue ("alert_Grid", alert_Grid_);
+  settings_->setValue ("alert_GridOB", alert_GridOB_);
+  settings_->setValue ("alert_Continent", alert_Continent_);
+  settings_->setValue ("alert_ContinentOB", alert_ContinentOB_);
+  settings_->setValue ("alert_CQZ", alert_CQZ_);
+  settings_->setValue ("alert_CQZOB", alert_CQZOB_);
+  settings_->setValue ("alert_ITUZ", alert_ITUZ_);
+  settings_->setValue ("alert_ITUZOB", alert_ITUZOB_);
+  settings_->setValue ("alert_DXcall", alert_DXcall_);
+  settings_->setValue ("alert_Wanted", alert_Wanted_);
+  settings_->setValue ("alert_QSYmessage", alert_QSYmessage_);
+  settings_->setValue ("alert_Enabled", alert_Enabled_);
+  settings_->setValue ("Voice", voice_);
   settings_->sync ();
 }
 
@@ -2026,9 +2991,16 @@ void Configuration::impl::set_rig_invariants ()
   auto asynchronous_CAT = transceiver_factory_.has_asynchronous_CAT (rig);
   auto is_hw_handshake = ui_->CAT_handshake_group_box->isEnabled ()
     && TransceiverFactory::handshake_hardware == static_cast<TransceiverFactory::Handshake> (ui_->CAT_handshake_button_group->checkedId ());
-
+  is_tci_ = ui_->rig_combo_box->currentText().startsWith("TCI Cli");
+  ui_->tci_audio_check_box->setVisible(is_tci_);
+  ui_->TCI_spin_box->setVisible(is_tci_);
+//  ui_->refresh_push_button->setVisible(is_tci_);
+  if (is_tci_ && tci_audio_) {
+    find_audio_devices ();
+    ui_->sound_input_channel_combo_box->setCurrentIndex (0);
+    ui_->sound_output_channel_combo_box->setCurrentIndex (0);
+  }
   ui_->test_CAT_push_button->setStyleSheet ({});
-
   ui_->CAT_poll_interval_label->setEnabled (!asynchronous_CAT);
   ui_->CAT_poll_interval_spin_box->setEnabled (!asynchronous_CAT);
 
@@ -2039,6 +3011,8 @@ void Configuration::impl::set_rig_invariants ()
 
   // only enable CAT option if transceiver has CAT PTT
   ui_->PTT_CAT_radio_button->setEnabled (CAT_PTT_enabled);
+  ui_->PTT_VOX_radio_button->setEnabled (!is_tci_);
+  ui_->PTT_DTR_radio_button->setEnabled (!is_tci_);
 
   auto enable_ptt_port = TransceiverFactory::PTT_method_CAT != ptt_method && TransceiverFactory::PTT_method_VOX != ptt_method;
   ui_->PTT_port_combo_box->setEnabled (enable_ptt_port);
@@ -2058,7 +3032,7 @@ void Configuration::impl::set_rig_invariants ()
           ui_->PTT_port_combo_box->setCurrentIndex (ui_->PTT_port_combo_box->currentIndex () - 1);
         }
     }
-  ui_->PTT_RTS_radio_button->setEnabled (!(is_serial_CAT && ptt_port == cat_port && is_hw_handshake));
+  ui_->PTT_RTS_radio_button->setEnabled (!((is_serial_CAT && ptt_port == cat_port && is_hw_handshake) || is_tci_));
 
   if (TransceiverFactory::basic_transceiver_name_ == rig)
     {
@@ -2070,11 +3044,21 @@ void Configuration::impl::set_rig_invariants ()
       ui_->test_PTT_push_button->setEnabled (TransceiverFactory::PTT_method_DTR == ptt_method
                                              || TransceiverFactory::PTT_method_RTS == ptt_method);
       ui_->TX_audio_source_group_box->setEnabled (false);
+      ui_->PWR_and_SWR_check_box->setChecked (false);
+      ui_->PWR_and_SWR_check_box->setEnabled (false);
+      ui_->check_SWR_check_box->setChecked (false);
+      ui_->check_SWR_check_box->setEnabled (false);
     }
   else
     {
       ui_->monitor_last_used_check_box->setEnabled (true);
       ui_->CAT_control_group_box->setEnabled (true);
+      if(!ui_->rig_combo_box->currentText().startsWith("OmniRig") && !ui_->rig_combo_box->currentText().startsWith("DX Lab") &&
+         !ui_->rig_combo_box->currentText().startsWith("Ham Radio") && !ui_->rig_combo_box->currentText().startsWith("Kenwood TS-480") &&
+         !ui_->rig_combo_box->currentText().startsWith("Kenwood TS-850") &&
+         !ui_->rig_combo_box->currentText().startsWith("Kenwood TS-870")) {
+         ui_->PWR_and_SWR_check_box->setEnabled (true);
+      }
       ui_->test_CAT_push_button->setEnabled (true);
       ui_->test_PTT_push_button->setEnabled (false);
       ui_->TX_audio_source_group_box->setEnabled (transceiver_factory_.has_CAT_PTT_mic_data (rig) && TransceiverFactory::PTT_method_CAT == ptt_method);
@@ -2092,6 +3076,19 @@ void Configuration::impl::set_rig_invariants ()
                 }
               ui_->CAT_port_label->setText (tr ("Serial Port:"));
               ui_->CAT_port_combo_box->setToolTip (tr ("Serial port used for CAT control"));
+              ui_->CAT_port_combo_box->setEnabled (true);
+              break;
+
+            case TransceiverFactory::Capabilities::tci:
+              ui_->CAT_port_combo_box->clear ();
+              ui_->CAT_port_combo_box->setCurrentText (rig_params_.tci_port);
+              ui_->CAT_port_label->setText (tr ("TCI Server:"));
+              ui_->CAT_port_combo_box->setToolTip (tr ("Optional hostname and port of TCI service.\n"
+                                                     "Leave blank for a sensible default on this machine.\n"
+                                                     "Formats:\n"
+                                                     "\thostname:port\n"
+                                                     "\tIPv4-address:port\n"
+                                                     "\t[IPv6-address]:port"));
               ui_->CAT_port_combo_box->setEnabled (true);
               break;
 
@@ -2234,20 +3231,30 @@ TransceiverFactory::ParameterPack Configuration::impl::gather_rig_data ()
 
   switch (transceiver_factory_.CAT_port_type (result.rig_name))
     {
+    case TransceiverFactory::Capabilities::tci:
+      result.tci_port = ui_->CAT_port_combo_box->currentText ();
+      result.network_port = rig_params_.network_port;
+      result.usb_port = rig_params_.usb_port;
+      result.serial_port = rig_params_.serial_port;
+      break;
+
     case TransceiverFactory::Capabilities::network:
       result.network_port = ui_->CAT_port_combo_box->currentText ();
+      result.tci_port = rig_params_.tci_port;
       result.usb_port = rig_params_.usb_port;
       result.serial_port = rig_params_.serial_port;
       break;
 
     case TransceiverFactory::Capabilities::usb:
       result.usb_port = ui_->CAT_port_combo_box->currentText ();
+      result.tci_port = rig_params_.tci_port;
       result.network_port = rig_params_.network_port;
       result.serial_port = rig_params_.serial_port;
       break;
 
     default:
       result.serial_port = ui_->CAT_port_combo_box->currentText ();
+      result.tci_port = rig_params_.tci_port;
       result.network_port = rig_params_.network_port;
       result.usb_port = rig_params_.usb_port;
       break;
@@ -2262,6 +3269,8 @@ TransceiverFactory::ParameterPack Configuration::impl::gather_rig_data ()
   result.force_rts = ui_->force_RTS_combo_box->isEnabled () && ui_->force_RTS_combo_box->currentIndex () > 0;
   result.rts_high = ui_->force_RTS_combo_box->isEnabled () && 1 == ui_->force_RTS_combo_box->currentIndex ();
   result.poll_interval = ui_->CAT_poll_interval_spin_box->value ();
+  if (ui_->PWR_and_SWR_check_box->isChecked ()) result.poll_interval |= do__pwr;
+  if (is_tci_ && ui_->tci_audio_check_box->isChecked ()) result.poll_interval |= tci__audio;
   result.ptt_type = static_cast<TransceiverFactory::PTTMethod> (ui_->PTT_method_button_group->checkedId ());
   result.ptt_port = ui_->PTT_port_combo_box->currentText ();
   result.audio_source = static_cast<TransceiverFactory::TXAudioSource> (ui_->TX_audio_source_button_group->checkedId ());
@@ -2319,7 +3328,9 @@ void Configuration::impl::accept ()
   rig_params_ = temp_rig_params; // now we can go live with the rig
                                  // related configuration parameters
   rig_is_dummy_ = TransceiverFactory::basic_transceiver_name_ == rig_params_.rig_name;
-
+  is_tci_ = rig_params_.rig_name.startsWith("TCI Cli");
+  // Check to see whether SoundInThread must be restarted,
+  // and save user parameters.
   {
     auto const& selected_device = ui_->sound_input_combo_box->currentData ().value<audio_info_type> ().first;
     if (selected_device != next_audio_input_device_)
@@ -2380,34 +3391,97 @@ void Configuration::impl::accept ()
   FD_exchange_= ui_->Field_Day_Exchange->text ().toUpper ();
   RTTY_exchange_= ui_->RTTY_Exchange->text ().toUpper ();
   Contest_Name_= ui_->Contest_Name->text ().toUpper ();
+  Blacklist1_= ui_->Blacklist1->text ().toUpper ();
+  Blacklist2_= ui_->Blacklist2->text ().toUpper ();
+  Blacklist3_= ui_->Blacklist3->text ().toUpper ();
+  Blacklist4_= ui_->Blacklist4->text ().toUpper ();
+  Blacklist5_= ui_->Blacklist5->text ().toUpper ();
+  Blacklist6_= ui_->Blacklist6->text ().toUpper ();
+  Blacklist7_= ui_->Blacklist7->text ().toUpper ();
+  Blacklist8_= ui_->Blacklist8->text ().toUpper ();
+  Blacklist9_= ui_->Blacklist9->text ().toUpper ();
+  Blacklist10_= ui_->Blacklist10->text ().toUpper ();
+  Blacklist11_= ui_->Blacklist11->text ().toUpper ();
+  Blacklist12_= ui_->Blacklist12->text ().toUpper ();
+  Whitelist1_= ui_->Whitelist1->text ().toUpper ();
+  Whitelist2_= ui_->Whitelist2->text ().toUpper ();
+  Whitelist3_= ui_->Whitelist3->text ().toUpper ();
+  Whitelist4_= ui_->Whitelist4->text ().toUpper ();
+  Whitelist5_= ui_->Whitelist5->text ().toUpper ();
+  Whitelist6_= ui_->Whitelist6->text ().toUpper ();
+  Whitelist7_= ui_->Whitelist7->text ().toUpper ();
+  Whitelist8_= ui_->Whitelist8->text ().toUpper ();
+  Whitelist9_= ui_->Whitelist9->text ().toUpper ();
+  Whitelist10_= ui_->Whitelist10->text ().toUpper ();
+  Whitelist11_= ui_->Whitelist11->text ().toUpper ();
+  Whitelist12_= ui_->Whitelist12->text ().toUpper ();
+  Pass1_= ui_->Pass1->text ().toUpper ();
+  Pass2_= ui_->Pass2->text ().toUpper ();
+  Pass3_= ui_->Pass3->text ().toUpper ();
+  Pass4_= ui_->Pass4->text ().toUpper ();
+  Pass5_= ui_->Pass5->text ().toUpper ();
+  Pass6_= ui_->Pass6->text ().toUpper ();
+  Pass7_= ui_->Pass7->text ().toUpper ();
+  Pass8_= ui_->Pass8->text ().toUpper ();
+  Pass9_= ui_->Pass9->text ().toUpper ();
+  Pass10_= ui_->Pass10->text ().toUpper ();
+  Pass11_= ui_->Pass11->text ().toUpper ();
+  Pass12_= ui_->Pass12->text ().toUpper ();
+  Territory1_= ui_->Territory1->text ();
+  Territory2_= ui_->Territory2->text ();
+  Territory3_= ui_->Territory3->text ();
+  Territory4_= ui_->Territory4->text ();
+  highlight_orange_callsigns_= ui_-> highlight_orange_callsigns->text ().toUpper ();
+  highlight_blue_callsigns_= ui_-> highlight_blue_callsigns->text ().toUpper ();
+  PWR_and_SWR_ = ui_->PWR_and_SWR_check_box->isChecked ();
+  check_SWR_ = ui_->check_SWR_check_box->isChecked ();
+
+  read_voicesPath();
+
   spot_to_psk_reporter_ = ui_->psk_reporter_check_box->isChecked ();
   psk_reporter_tcpip_ = ui_->psk_reporter_tcpip_check_box->isChecked ();
+  eqsl_username_ = ui_->eqsluser_edit->text ();
+  eqsl_passwd_ = ui_->eqslpasswd_edit->text ();
+  eqsl_nickname_ = ui_->eqslnick_edit->text ();
   id_interval_ = ui_->CW_id_interval_spin_box->value ();
+  align_steps_ = ui_->align_spin_box->value ();
+  align_steps2_ = ui_->align_spin_box2->value ();
   ntrials_ = ui_->sbNtrials->value ();
+  volume_ = ui_->TCI_spin_box->value ();
   txDelay_ = ui_->sbTxDelay->value ();
   aggressive_ = ui_->sbAggressive->value ();
   degrade_ = ui_->sbDegrade->value ();
   RxBandwidth_ = ui_->sbBandwidth->value ();
+  tci_audio_ = ui_->tci_audio_check_box->isChecked ();
   id_after_73_ = ui_->CW_id_after_73_check_box->isChecked ();
   tx_QSY_allowed_ = ui_->tx_QSY_check_box->isChecked ();
+  progressBar_red_ = ui_->progress_bar_check_box->isChecked ();
   monitor_off_at_startup_ = ui_->monitor_off_check_box->isChecked ();
   monitor_last_used_ = ui_->monitor_last_used_check_box->isChecked ();
   type_2_msg_gen_ = static_cast<Type2MsgGen> (ui_->type_2_msg_gen_combo_box->currentIndex ());
   log_as_RTTY_ = ui_->log_as_RTTY_check_box->isChecked ();
   report_in_comments_ = ui_->report_in_comments_check_box->isChecked ();
+  specOp_in_comments_ = ui_->specOp_in_comments_check_box->isChecked ();
   prompt_to_log_ = ui_->prompt_to_log_check_box->isChecked ();
   autoLog_ = ui_->cbAutoLog->isChecked();
+  contestingOnly_ = ui_->cbContestingOnly->isChecked();
+  ZZ00_ = ui_->cbZZ00->isChecked ();
+  log4digitGrids_ = ui_->cbLog4digitGrids->isChecked();
   decodes_from_top_ = ui_->decodes_from_top_check_box->isChecked ();
   insert_blank_ = ui_->insert_blank_check_box->isChecked ();
+  detailed_blank_ = ui_->cb_detailed_blank_line->isChecked ();
   DXCC_ = ui_->DXCC_check_box->isChecked ();
+  gridMap_= ui_->Map_Grid_to_State->isChecked ();
+  gridMapAll_ = ui_->Map_All_Messages->isChecked();
   ppfx_ = ui_->ppfx_check_box->isChecked ();
-  clear_DX_ = ui_->clear_DX_check_box->isChecked ();
   miles_ = ui_->miles_check_box->isChecked ();
   quick_call_ = ui_->quick_call_check_box->isChecked ();
   disable_TX_on_73_ = ui_->disable_TX_on_73_check_box->isChecked ();
   force_call_1st_ = ui_->force_call_1st_check_box->isChecked ();
   alternate_bindings_ = ui_->alternate_bindings_check_box->isChecked ();
   watchdog_ = ui_->tx_watchdog_spin_box->value ();
+  tune_watchdog_ = ui_->tune_watchdog_check_box->isChecked ();
+  tune_watchdog_time_ = ui_->tune_watchdog_spin_box->value ();
   TX_messages_ = ui_->TX_messages_check_box->isChecked ();
   data_mode_ = static_cast<DataMode> (ui_->TX_mode_button_group->checkedId ());
   bLowSidelobes_ = ui_->rbLowSidelobes->isChecked();
@@ -2415,16 +3489,41 @@ void Configuration::impl::accept ()
   azel_directory_.setPath (ui_->azel_path_display_label->text ());
   enable_VHF_features_ = ui_->enable_VHF_features_check_box->isChecked ();
   decode_at_52s_ = ui_->decode_at_52s_check_box->isChecked ();
+  kHz_without_k_ = ui_->kHz_without_k_check_box->isChecked ();
+  button_coloring_disabled_ = ui_->disable_button_coloring_check_box->isChecked ();
+  Wait_features_enabled_ = ui_->enable_Wait_features_check_box->isChecked ();
+  showDistance_ = ui_->cb_showDistance->isChecked();
+  showAzimuth_ = ui_->cb_showAzimuth->isChecked();
+  align_ = ui_->cb_Align->isChecked();
+  repeat_Tx_ = ui_->repeat_Tx_check_box->isChecked ();
+  auto_astro_ = ui_->auto_astro_check_box->isChecked ();
   single_decode_ = ui_->single_decode_check_box->isChecked ();
   twoPass_ = ui_->cbTwoPass->isChecked ();
+  highDPI_ = ui_->cbHighDPI->isChecked ();
+  largerTabWidget_ = ui_->cbLargerTabWidget->isChecked ();
   bSuperFox_ = ui_->cbSuperFox->isChecked ();
   Individual_Contest_Name_ = ui_->cbContestName->isChecked ();
+  NCCC_Sprint_ = ui_->cb_NCCC_Sprint->isChecked ();
+  Blacklisted_ = ui_->cbBlacklist->isChecked ();
+  Whitelisted_ = ui_->cbWhitelist->isChecked ();
+  AlwaysPass_ = ui_->cbPass->isChecked ();
+  filters_for_Wait_and_Pounce_only_ = ui_->cb_filters_for_Wait_and_Pounce_only->isChecked ();
+  filters_for_word2_ = ui_->cb_filters_for_word2->isChecked ();
+  twoDays_ = ui_->cb_twoDays->isChecked ();
   bSpecialOp_ = ui_->gbSpecialOpActivity->isChecked ();
+  bCloudLog_ = ui_->gbCloudlog->isChecked ();
+  send_to_eqsl_ = ui_->gbEQSL->isChecked ();
+  cloudLogApiUrl_ = ui_->leCloudlogApiUrl->text ();
+  cloudLogApiKey_ = ui_->leCloudlogApiKey->text ();
+  cloudLogStationID_ = ui_->sbCloudlogStationID->value ();
   SelectedActivity_ = ui_->special_op_activity_button_group->checkedId();
   x2ToneSpacing_ = ui_->cbx2ToneSpacing->isChecked ();
   x4ToneSpacing_ = ui_->cbx4ToneSpacing->isChecked ();
   calibration_.intercept = ui_->calibration_intercept_spin_box->value ();
   calibration_.slope_ppm = ui_->calibration_slope_ppm_spin_box->value ();
+  sortAlphabetically_ = ui_->cbSortAlphabetically->isChecked ();
+  hideCARD_ = ui_->cbHideCARD->isChecked ();
+  AzElExtraLines_ = ui_->checkBoxAzElExtraLines->isChecked ();
   pwrBandTxMemory_ = ui_->checkBoxPwrBandTxMemory->isChecked ();
   pwrBandTuneMemory_ = ui_->checkBoxPwrBandTuneMemory->isChecked ();
   opCall_=ui_->opCallEntry->text();
@@ -2498,6 +3597,10 @@ void Configuration::impl::accept ()
   highlight_only_fields_ = ui_->only_fields_check_box->isChecked ();
   include_WAE_entities_ = ui_->include_WAE_check_box->isChecked ();
   highlight_73_ = ui_->highlight_73_check_box->isChecked ();
+  highlight_orange_ = ui_->highlight_orange_check_box->isChecked ();
+  highlight_blue_ = ui_->highlight_blue_check_box->isChecked ();
+  alternate_erase_button_ = ui_->alternate_erase_button_check_box->isChecked ();
+  show_country_names_ = ui_->show_country_names_check_box->isChecked ();
   LotW_days_since_upload_ = ui_->LotW_days_since_upload_spin_box->value ();
   lotw_users_.set_age_constraint (LotW_days_since_upload_);
 
@@ -2508,8 +3611,35 @@ void Configuration::impl::accept ()
   }
   use_dynamic_grid_ = ui_->use_dynamic_grid->isChecked();
   highlight_DXcall_ = ui_->cbHighlightDXcall->isChecked();
+  clear_DXcall_ = ui_->cbClearDXcall->isChecked();
   highlight_DXgrid_ = ui_->cbHighlightDXgrid->isChecked();
-  Individual_Contest_Name_ = ui_->cbContestName->isChecked();
+  clear_DXgrid_ = ui_->cbClearDXgrid->isChecked();
+  erase_BandActivity_ = ui_->cbEraseBandActivity->isChecked();
+  set_RXtoTX_ = ui_->cbRxToTxAfterQSO->isChecked();
+  ZZ00_ = ui_->cbZZ00->isChecked();
+  NCCC_Sprint_ = ui_->cb_NCCC_Sprint->isChecked();
+  Blacklisted_ = ui_->cbBlacklist->isChecked();
+  Whitelisted_ = ui_->cbWhitelist->isChecked();
+  AlwaysPass_ = ui_->cbPass->isChecked();
+  filters_for_Wait_and_Pounce_only_ = ui_->cb_filters_for_Wait_and_Pounce_only->isChecked();
+  filters_for_word2_ = ui_->cb_filters_for_word2->isChecked();
+  twoDays_ = ui_->cb_twoDays->isChecked();
+  alert_CQ_ = ui_->cbCQ->isChecked();
+  alert_MyCall_ = ui_->cbMyCall->isChecked();
+  alert_DXCC_ = ui_->cbDXCC->isChecked();
+  alert_DXCCOB_ = ui_->cbDXCCOB->isChecked();
+  alert_Grid_ = ui_->cbGrid->isChecked();
+  alert_GridOB_ = ui_->cbGridOB->isChecked();
+  alert_Continent_ = ui_->cbContinent->isChecked();
+  alert_ContinentOB_ = ui_->cbContinentOB->isChecked();
+  alert_CQZ_ = ui_->cbCQZ->isChecked();
+  alert_CQZOB_ = ui_->cbCQZOB->isChecked();
+  alert_ITUZ_ = ui_->cbITUZ->isChecked();
+  alert_ITUZOB_ = ui_->cbITUZOB->isChecked();
+  alert_DXcall_ = ui_->cbDXcall->isChecked();
+  alert_Wanted_ = ui_->cbWanted->isChecked();
+  alert_QSYmessage_ = ui_->cbQSYmessage->isChecked();
+  alert_Enabled_ = ui_->pbAlerts->isChecked();
 
   write_settings ();		// make visible to all
 }
@@ -2559,9 +3689,19 @@ void Configuration::impl::on_reset_highlighting_to_defaults_push_button_clicked 
 {
   if (MessageBox::Yes == MessageBox::query_message (this
                                                     , tr ("Reset Decode Highlighting")
-                                                    , tr ("Reset all decode highlighting and priorities to default values")))
+                                                    , tr ("Reset all decode highlighting and priorities to Default 1 values")))
     {
       next_decode_highlighing_model_.items (DecodeHighlightingModel::default_items ());
+    }
+}
+
+void Configuration::impl::on_reset_highlighting_to_defaults2_push_button_clicked (bool /*checked*/)
+{
+    if (MessageBox::Yes == MessageBox::query_message (this
+                             , tr ("Reset Decode Highlighting")
+                             , tr ("Reset all decode highlighting and priorities to Default 2 values")))
+    {
+      next_decode_highlighing_model_.items (DecodeHighlightingModel::default_items2 ());
     }
 }
 
@@ -2584,9 +3724,9 @@ void Configuration::impl::on_CTY_download_button_clicked (bool /*clicked*/)
   // set up LoTW users CSV file fetching
   connect (&cty_download, &FileDownload::complete, this, &Configuration::impl::after_CTY_downloaded, Qt::UniqueConnection);
   connect (&cty_download, &FileDownload::error, this, &Configuration::impl::error_during_CTY_download, Qt::UniqueConnection);
-
   cty_download.start_download();
 }
+
 void Configuration::impl::set_CTY_DAT_version(QString const& version)
 {
   ui_->CTY_file_label->setText(QString{"CTY File Version: %1"}.arg(version));
@@ -2606,6 +3746,101 @@ void Configuration::impl::after_CTY_downloaded ()
     ui_->CTY_file_label->setText(QString{"CTY File Version: %1"}.arg(logbook_->cty_version()));
   }
 }
+
+void Configuration::impl::on_CALL3_download_button_clicked (bool /*clicked*/)
+{
+  ui_->CALL3_download_button->setEnabled (false); // disable button until download is complete
+  QDir dataPath {QStandardPaths::writableLocation (QStandardPaths::DataLocation)};
+  QFile g {dataPath.absolutePath() + "/" + "CALL3_backup.TXT"};
+  if (g.exists()) QFile::rename(dataPath.absolutePath() + "/" + "CALL3_backup.TXT", dataPath.absolutePath() + "/" + "CALL3_backup.tmp");
+  QFile f {dataPath.absolutePath() + "/" + "CALL3.TXT"};
+  if (f.exists()) QFile::rename(dataPath.absolutePath() + "/" + "CALL3.TXT", dataPath.absolutePath() + "/" + "CALL3_backup.TXT");
+  cty_download.configure(network_manager_,
+                         "https://wsjt-x-improved.sourceforge.io/CALL3.TXT",
+                         dataPath.absoluteFilePath("CALL3.TXT"),
+                         "Downloading latest CALL3.TXT file");
+
+  // set up CALL3.TXT file fetching
+  connect (&cty_download, &FileDownload::complete, this, &Configuration::impl::after_CALL3_downloaded, Qt::UniqueConnection);
+  connect (&cty_download, &FileDownload::error, this, &Configuration::impl::error_during_CALL3_download, Qt::UniqueConnection);
+  cty_download.start_download();
+  ui_->CALL3_file_label->setText("Downloading ...");
+}
+
+void Configuration::impl::on_CALL3_EME_download_button_clicked (bool /*clicked*/)
+{
+  ui_->CALL3_EME_download_button->setEnabled (false); // disable button until download is complete
+  QDir dataPath {QStandardPaths::writableLocation (QStandardPaths::DataLocation)};
+  QFile g {dataPath.absolutePath() + "/" + "CALL3_backup.TXT"};
+  if (g.exists()) QFile::rename(dataPath.absolutePath() + "/" + "CALL3_backup.TXT", dataPath.absolutePath() + "/" + "CALL3_backup.tmp");
+  QFile f {dataPath.absolutePath() + "/" + "CALL3.TXT"};
+  if (f.exists()) QFile::rename(dataPath.absolutePath() + "/" + "CALL3.TXT", dataPath.absolutePath() + "/" + "CALL3_backup.TXT");
+  cty_download.configure(network_manager_,
+                         "https://wsjt-x-improved.sourceforge.io/CALL3_EME.TXT",
+                         dataPath.absoluteFilePath("CALL3.TXT"),
+                         "Downloading latest CALL3.TXT file");
+
+  // set up CALL3.TXT file fetching
+  connect (&cty_download, &FileDownload::complete, this, &Configuration::impl::after_CALL3_downloaded, Qt::UniqueConnection);
+  connect (&cty_download, &FileDownload::error, this, &Configuration::impl::error_during_CALL3_download, Qt::UniqueConnection);
+  cty_download.start_download();
+  ui_->CALL3_file_label->setText("Downloading ...");
+}
+
+void Configuration::impl::error_during_CALL3_download (QString const& reason)
+{
+  MessageBox::warning_message (this, tr ("Error Loading CALL3.TXT file"), reason);
+  ui_->CALL3_download_button->setEnabled (true);
+  ui_->CALL3_EME_download_button->setEnabled (true);
+  QDir dataPath {QStandardPaths::writableLocation (QStandardPaths::DataLocation)};
+  QFile f {dataPath.absolutePath() + "/" + "CALL3.TXT"};
+  if (!f.exists()) QFile::copy(dataPath.absolutePath() + "/" + "CALL3_backup.TXT", dataPath.absolutePath() + "/" + "CALL3.TXT");
+  QFile g {dataPath.absolutePath() + "/" + "CALL3_backup.TXT"};
+  QFile h {dataPath.absolutePath() + "/" + "CALL3_backup.tmp"};
+  if (!g.exists() and h.exists()) {
+    QFile::rename(dataPath.absolutePath() + "/" + "CALL3_backup.tmp", dataPath.absolutePath() + "/" + "CALL3_backup.TXT");
+  } else {
+    if (h.exists()) QFile::remove(dataPath.absolutePath() + "/" + "CALL3_backup.tmp");
+  }
+  read_CALL3_version ();
+}
+
+void Configuration::impl::after_CALL3_downloaded ()
+{
+  ui_->CALL3_download_button->setEnabled (true);
+  ui_->CALL3_EME_download_button->setEnabled (true);
+  QDir dataPath {QStandardPaths::writableLocation (QStandardPaths::DataLocation)};
+  QFile g {dataPath.absolutePath() + "/" + "CALL3_backup.TXT"};
+  QFile h {dataPath.absolutePath() + "/" + "CALL3_backup.tmp"};
+  if (!g.exists() and h.exists()) {
+    QFile::rename(dataPath.absolutePath() + "/" + "CALL3_backup.tmp", dataPath.absolutePath() + "/" + "CALL3_backup.TXT");
+  } else {
+    if (h.exists()) QFile::remove(dataPath.absolutePath() + "/" + "CALL3_backup.tmp");
+  }
+  read_CALL3_version ();
+}
+
+void Configuration::impl::read_CALL3_version ()
+{
+  QString text;
+  QDir dataPath {QStandardPaths::writableLocation (QStandardPaths::DataLocation)};
+  QFile call3file {dataPath.absolutePath() + "/" + "CALL3.TXT"};
+    QTextStream call3stream(&call3file);
+    if(call3file.open (QIODevice::ReadOnly | QIODevice::Text)) {
+        while (!call3stream.atEnd()) {
+            text = call3stream.readLine();
+            if (text.contains("// Version:")) break;
+        }
+        call3stream.flush();
+        call3file.close();
+    }
+  if (text.contains("// Version:")) {
+    ui_->CALL3_file_label->setText("CALL3 File Version:" + text.mid(11,30));
+  } else {
+    ui_->CALL3_file_label->setText("CALL3 File Version: not available");
+  }
+}
+
 void Configuration::impl::on_LotW_CSV_fetch_push_button_clicked (bool /*checked*/)
 {
   lotw_users_.load (ui_->LotW_CSV_URL_line_edit->text (), true, true);
@@ -2637,19 +3872,20 @@ void Configuration::impl::on_hamlib_download_button_clicked (bool /*clicked*/)
   ui_->revert_update_button->setEnabled (false);
   if (ui_->rbHamlib32->isChecked()) {
     cty_download.configure(network_manager_,
-                           "https://n0nb.users.sourceforge.net/dll32/libhamlib-4.dll",
+                           "https://hamlib.sourceforge.net/snapshots-4.7/dll32/libhamlib-4.dll",  // new hamlib download location
                            dataPath.absoluteFilePath("libhamlib-4_new.dll"),
                            "Downloading latest libhamlib-4.dll");
   } else {
     cty_download.configure(network_manager_,
-                           "https://n0nb.users.sourceforge.net/dll64/libhamlib-4.dll",
+                           "https://hamlib.sourceforge.net/snapshots-4.7/dll64/libhamlib-4.dll",  // new hamlib download location
                            dataPath.absoluteFilePath("libhamlib-4_new.dll"),
                            "Downloading latest libhamlib-4.dll");
   }
   connect (&cty_download, &FileDownload::complete, this, &Configuration::impl::after_hamlib_downloaded, Qt::UniqueConnection);
   connect (&cty_download, &FileDownload::error, this, &Configuration::impl::error_during_hamlib_download, Qt::UniqueConnection);
-  cty_download.start_download();
   ui_->in_use->setText("Downloading ...");
+
+  cty_download.start_download();
 #else
   MessageBox::warning_message (this, tr ("Hamlib update only available on Windows."));
 #endif
@@ -2724,18 +3960,29 @@ void Configuration::impl::display_file_information ()
   QFile f {dataPath.absolutePath() + "/" + "libhamlib-4_old.dll"};
   if (f.exists()) {
     if (hamlib_backed_up_=="") {
-          ui_->backed_up->setText(QString{"no hamlib data available, file saved %1"}.arg(birthTime2));
+      ui_->backed_up->setText(QString{"no hamlib data available, file saved %1"}.arg(birthTime2));
     } else {
-          ui_->backed_up->setText(hamlib_backed_up_);
+      ui_->backed_up->setText(hamlib_backed_up_);
     }
   } else {
-    ui_->backed_up->setText("");
+      ui_->backed_up->setText("");
   }
 #else
   extern char* hamlib_version2;
   QString hamlib = QString(QLatin1String(hamlib_version2));
   ui_->in_use->setText(hamlib);
 #endif
+}
+
+void Configuration::impl::on_DXCC_check_box_clicked(bool checked)
+{
+    if (checked) {
+        ui_->ppfx_check_box->setEnabled (true);
+        ui_->show_country_names_check_box->setEnabled (true);
+    } else {
+        ui_->ppfx_check_box->setEnabled (false);
+        ui_->show_country_names_check_box->setEnabled (false);
+    }
 }
 
 void Configuration::impl::on_PTT_port_combo_box_activated (int /* index */)
@@ -2761,6 +4008,38 @@ void Configuration::impl::on_CAT_handshake_button_group_buttonClicked (int /* id
 void Configuration::impl::on_rig_combo_box_currentIndexChanged (int /* index */)
 {
   set_rig_invariants ();
+  if(ui_->rig_combo_box->currentText().startsWith("OmniRig") || ui_->rig_combo_box->currentText().startsWith("DX Lab") ||
+     ui_->rig_combo_box->currentText().startsWith("Ham Radio") || ui_->rig_combo_box->currentText().startsWith("Kenwood TS-480") ||
+     ui_->rig_combo_box->currentText().startsWith("Kenwood TS-850") ||
+     ui_->rig_combo_box->currentText().startsWith("Kenwood TS-870")) {
+     ui_->PWR_and_SWR_check_box->setChecked (false);
+     ui_->PWR_and_SWR_check_box->setEnabled (false);
+     ui_->check_SWR_check_box->setChecked (false);
+     ui_->check_SWR_check_box->setEnabled (false);
+  }
+}
+
+void Configuration::impl::on_PWR_and_SWR_check_box_clicked(bool checked)
+{
+    if (checked) {
+        ui_->check_SWR_check_box->setEnabled (true);
+    } else {
+        ui_->check_SWR_check_box->setEnabled (false);
+    }
+}
+
+void Configuration::impl::on_cbHighDPI_clicked(bool checked)
+{
+  if (checked) {
+      QFile::remove ("DisableHighDpiScaling");
+  } else {
+      static QFile f("DisableHighDpiScaling");
+      f.open(QIODevice::WriteOnly | QIODevice::Text);
+      QString EventConfig = ("DisableHighDpiScaling=\"true\"");
+      QTextStream out(&f);
+      out << EventConfig;
+      f.close();
+  }
 }
 
 void Configuration::impl::on_CAT_data_bits_button_group_buttonClicked (int /* id */)
@@ -2793,10 +4072,26 @@ void Configuration::impl::on_test_CAT_push_button_clicked ()
   ui_->test_CAT_push_button->setStyleSheet ({});
   if (open_rig (true))
     {
-      //Q_EMIT sync (true);
+       // Q_EMIT sync (true);
     }
 
   set_rig_invariants ();
+}
+
+void Configuration::impl::on_pbTestCloudlog_clicked ()
+{
+  //fprintf(stderr, "API URL: %s\n", ui_->leCloudlogApiUrl->text().toStdString().c_str());
+  cloudlog_.testApi(ui_->leCloudlogApiUrl->text(), ui_->leCloudlogApiKey->text());
+}
+
+void Configuration::impl::on_gbCloudlog_clicked ()
+{
+  ui_->pbTestCloudlog->setStyleSheet ("QPushButton {background-color: none;}");
+}
+
+void Configuration::impl::on_gbEQSL_clicked ()
+{
+  send_to_eqsl_ = ui_->gbEQSL->isChecked();
 }
 
 void Configuration::impl::on_test_PTT_push_button_clicked (bool checked)
@@ -2828,6 +4123,41 @@ void Configuration::impl::on_PTT_method_button_group_buttonClicked (int /* id */
 {
   set_rig_invariants ();
 }
+
+void Configuration::impl::on_refresh_push_button_clicked ()
+{
+  //
+  // load combo boxes with audio setup choices
+  //
+//  default_audio_input_device_selected_ = load_audio_devices (QAudio::AudioInput, ui_->sound_input_combo_box, &audio_input_device_);
+//  default_audio_output_device_selected_ = load_audio_devices (QAudio::AudioOutput, ui_->sound_output_combo_box, &audio_output_device_);
+
+  update_audio_channels (ui_->sound_input_combo_box, ui_->sound_input_combo_box->currentIndex (), ui_->sound_input_channel_combo_box, false);
+  update_audio_channels (ui_->sound_output_combo_box, ui_->sound_output_combo_box->currentIndex (), ui_->sound_output_channel_combo_box, true);
+
+  ui_->sound_input_channel_combo_box->setCurrentIndex (audio_input_channel_);
+  ui_->sound_output_channel_combo_box->setCurrentIndex (audio_output_channel_);
+
+  restart_sound_input_device_ = false;
+  restart_sound_output_device_ = false;
+  restart_tci_device_ = false;
+}
+
+void Configuration::impl::on_tci_audio_check_box_clicked(bool checked)
+{
+  tci_audio_ = checked;
+  if (is_tci_ && checked) {
+    find_audio_devices ();
+    ui_->sound_input_channel_combo_box->setCurrentIndex (0);
+    ui_->sound_output_channel_combo_box->setCurrentIndex (0);
+  }
+}
+
+void Configuration::impl::on_TCI_spin_box_valueChanged(double a)
+{
+  volume_ = a;
+}
+
 
 void Configuration::impl::on_add_macro_line_edit_editingFinished ()
 {
@@ -3216,10 +4546,12 @@ void Configuration::impl::on_calibration_slope_ppm_spin_box_valueChanged (double
 void Configuration::impl::on_prompt_to_log_check_box_clicked(bool checked)
 {
   if(checked) ui_->cbAutoLog->setChecked(false);
+  ui_->cbContestingOnly->setEnabled(false);
 }
 
 void Configuration::impl::on_cbAutoLog_clicked(bool checked)
 {
+  ui_->cbContestingOnly->setEnabled(true);
   if(checked) ui_->prompt_to_log_check_box->setChecked(false);
 }
 
@@ -3293,6 +4625,11 @@ void Configuration::impl::on_cbContestName_clicked (bool)
   check_visibility ();
 }
 
+void Configuration::impl::on_cb_NCCC_Sprint_clicked (bool)
+{
+  check_visibility ();
+}
+
 void Configuration::impl::on_cbOTP_clicked(bool)
 {
   check_visibility();
@@ -3320,7 +4657,7 @@ void Configuration::impl::check_visibility ()
     ui_->RTTY_Exchange->setEnabled (false);
   }
   if (ui_->cbContestName->isChecked() and !ui_->rbFox->isChecked() and !ui_->rbHound->isChecked()
-      and !ui_->rbQ65pileup->isChecked() and ui_->gbSpecialOpActivity->isChecked()) {
+      and  !ui_->rbQ65pileup->isChecked() and ui_->gbSpecialOpActivity->isChecked()) {
     ui_->labCN->setEnabled (true);
     ui_->Contest_Name->setEnabled (true);
   } else {
@@ -3340,6 +4677,11 @@ void Configuration::impl::check_visibility ()
     ui_->cbContestName->setEnabled (true);
   } else {
     ui_->cbContestName->setEnabled (false);
+  }
+  if (ui_->rbNA_VHF_Contest->isChecked() and ui_->gbSpecialOpActivity->isChecked()) {
+    ui_->cb_NCCC_Sprint->setEnabled (true);
+  } else {
+    ui_->cb_NCCC_Sprint->setEnabled (false);
   }
   if (!ui_->cbOTP->isChecked() or !ui_->gbSpecialOpActivity->isChecked()) {
     ui_->OTPSeed->setEnabled(false);
@@ -3387,9 +4729,9 @@ void Configuration::impl::on_OTPSeed_textEdited (QString const& url){
     ui_->OTPSeed->setText(url.toUpper());
 }
 
-void Configuration::impl::on_Field_Day_Exchange_textEdited (QString const& exchange)
+void Configuration::impl::on_Field_Day_Exchange_editingFinished ()
 {
-  auto text = exchange.simplified ().toUpper ();
+  QString text = ui_->Field_Day_Exchange->text().toUpper();
   auto class_pos = text.indexOf (QRegularExpression {R"([A-H])"});
   if (class_pos >= 0 && text.size () >= class_pos + 2 && text.at (class_pos + 1) != QChar {' '})
     {
@@ -3398,14 +4740,292 @@ void Configuration::impl::on_Field_Day_Exchange_textEdited (QString const& excha
   ui_->Field_Day_Exchange->setText (text);
 }
 
-void Configuration::impl::on_RTTY_Exchange_textEdited (QString const& exchange)
+void Configuration::impl::on_RTTY_Exchange_editingFinished ()
 {
-  ui_->RTTY_Exchange->setText (exchange.toUpper ());
+  ui_->RTTY_Exchange->setText (ui_->RTTY_Exchange->text ().toUpper ());
 }
 
-void Configuration::impl::on_Contest_Name_textEdited (QString const& exchange)
+void Configuration::impl::on_Contest_Name_editingFinished ()
 {
-  ui_->Contest_Name->setText (exchange.toUpper ());
+  ui_->Contest_Name->setText (ui_->Contest_Name->text ().toUpper ());
+}
+
+void Configuration::impl::on_cbSortAlphabetically_clicked (bool)
+{
+  sortAlphabetically_ = ui_->cbSortAlphabetically->isChecked();
+  ui_->cbHideCARD->setEnabled(sortAlphabetically_);
+}
+
+void Configuration::impl::on_cbHideCARD_clicked (bool)
+{
+  hideCARD_ = ui_->cbHideCARD->isChecked();
+}
+
+void Configuration::impl::on_Blacklist1_editingFinished ()
+{
+  ui_->Blacklist1->setText (ui_->Blacklist1->text ().toUpper ());
+}
+
+void Configuration::impl::on_Blacklist2_editingFinished ()
+{
+  ui_->Blacklist2->setText (ui_->Blacklist2->text ().toUpper ());
+}
+
+void Configuration::impl::on_Blacklist3_editingFinished ()
+{
+  ui_->Blacklist3->setText (ui_->Blacklist3->text ().toUpper ());
+}
+
+void Configuration::impl::on_Blacklist4_editingFinished ()
+{
+  ui_->Blacklist4->setText (ui_->Blacklist4->text ().toUpper ());
+}
+
+void Configuration::impl::on_Blacklist5_editingFinished ()
+{
+  ui_->Blacklist5->setText (ui_->Blacklist5->text ().toUpper ());
+}
+
+void Configuration::impl::on_Blacklist6_editingFinished ()
+{
+  ui_->Blacklist6->setText (ui_->Blacklist6->text ().toUpper ());
+}
+
+void Configuration::impl::on_Blacklist7_editingFinished ()
+{
+  ui_->Blacklist7->setText (ui_->Blacklist7->text ().toUpper ());
+}
+
+void Configuration::impl::on_Blacklist8_editingFinished ()
+{
+  ui_->Blacklist8->setText (ui_->Blacklist8->text ().toUpper ());
+}
+
+void Configuration::impl::on_Blacklist9_editingFinished ()
+{
+  ui_->Blacklist9->setText (ui_->Blacklist9->text ().toUpper ());
+}
+
+void Configuration::impl::on_Blacklist10_editingFinished ()
+{
+  ui_->Blacklist10->setText (ui_->Blacklist10->text ().toUpper ());
+}
+
+void Configuration::impl::on_Blacklist11_editingFinished ()
+{
+  ui_->Blacklist11->setText (ui_->Blacklist11->text ().toUpper ());
+}
+
+void Configuration::impl::on_Blacklist12_editingFinished ()
+{
+  ui_->Blacklist12->setText (ui_->Blacklist12->text ().toUpper ());
+}
+
+void Configuration::impl::on_Whitelist1_editingFinished ()
+{
+  ui_->Whitelist1->setText (ui_->Whitelist1->text ().toUpper ());
+}
+
+void Configuration::impl::on_Whitelist2_editingFinished ()
+{
+  ui_->Whitelist2->setText (ui_->Whitelist2->text ().toUpper ());
+}
+
+void Configuration::impl::on_Whitelist3_editingFinished ()
+{
+  ui_->Whitelist3->setText (ui_->Whitelist3->text ().toUpper ());
+}
+
+void Configuration::impl::on_Whitelist4_editingFinished ()
+{
+  ui_->Whitelist4->setText (ui_->Whitelist4->text ().toUpper ());
+}
+
+void Configuration::impl::on_Whitelist5_editingFinished ()
+{
+  ui_->Whitelist5->setText (ui_->Whitelist5->text ().toUpper ());
+}
+
+void Configuration::impl::on_Whitelist6_editingFinished ()
+{
+  ui_->Whitelist6->setText (ui_->Whitelist6->text ().toUpper ());
+}
+
+void Configuration::impl::on_Whitelist7_editingFinished ()
+{
+  ui_->Whitelist7->setText (ui_->Whitelist7->text ().toUpper ());
+}
+
+void Configuration::impl::on_Whitelist8_editingFinished ()
+{
+  ui_->Whitelist8->setText (ui_->Whitelist8->text ().toUpper ());
+}
+
+void Configuration::impl::on_Whitelist9_editingFinished ()
+{
+  ui_->Whitelist9->setText (ui_->Whitelist9->text ().toUpper ());
+}
+
+void Configuration::impl::on_Whitelist10_editingFinished ()
+{
+  ui_->Whitelist10->setText (ui_->Whitelist10->text ().toUpper ());
+}
+
+void Configuration::impl::on_Whitelist11_editingFinished ()
+{
+  ui_->Whitelist11->setText (ui_->Whitelist11->text ().toUpper ());
+}
+
+void Configuration::impl::on_Whitelist12_editingFinished ()
+{
+  ui_->Whitelist12->setText (ui_->Whitelist12->text ().toUpper ());
+}
+
+void Configuration::impl::on_Pass1_editingFinished ()
+{
+  ui_->Pass1->setText (ui_->Pass1->text ().toUpper ());
+}
+
+void Configuration::impl::on_Pass2_editingFinished ()
+{
+  ui_->Pass2->setText (ui_->Pass2->text ().toUpper ());
+}
+
+void Configuration::impl::on_Pass3_editingFinished ()
+{
+  ui_->Pass3->setText (ui_->Pass3->text ().toUpper ());
+}
+
+void Configuration::impl::on_Pass4_editingFinished ()
+{
+  ui_->Pass4->setText (ui_->Pass4->text ().toUpper ());
+}
+
+void Configuration::impl::on_Pass5_editingFinished ()
+{
+  ui_->Pass5->setText (ui_->Pass5->text ().toUpper ());
+}
+
+void Configuration::impl::on_Pass6_editingFinished ()
+{
+  ui_->Pass6->setText (ui_->Pass6->text ().toUpper ());
+}
+
+void Configuration::impl::on_Pass7_editingFinished ()
+{
+  ui_->Pass7->setText (ui_->Pass7->text ().toUpper ());
+}
+
+void Configuration::impl::on_Pass8_editingFinished ()
+{
+  ui_->Pass8->setText (ui_->Pass8->text ().toUpper ());
+}
+
+void Configuration::impl::on_Pass9_editingFinished ()
+{
+  ui_->Pass9->setText (ui_->Pass9->text ().toUpper ());
+}
+
+void Configuration::impl::on_Pass10_editingFinished ()
+{
+  ui_->Pass10->setText (ui_->Pass10->text ().toUpper ());
+}
+
+void Configuration::impl::on_Pass11_editingFinished ()
+{
+  ui_->Pass11->setText (ui_->Pass11->text ().toUpper ());
+}
+
+void Configuration::impl::on_Pass12_editingFinished ()
+{
+  ui_->Pass12->setText (ui_->Pass12->text ().toUpper ());
+}
+
+void Configuration::impl::on_Territory1_editingFinished ()
+{
+  ui_->Territory1->setText (ui_->Territory1->text ());
+}
+
+void Configuration::impl::on_Territory2_editingFinished ()
+{
+  ui_->Territory2->setText (ui_->Territory2->text ());
+}
+
+void Configuration::impl::on_Territory3_editingFinished ()
+{
+  ui_->Territory3->setText (ui_->Territory3->text ());
+}
+
+void Configuration::impl::on_Territory4_editingFinished ()
+{
+  ui_->Territory4->setText (ui_->Territory4->text ());
+}
+
+void Configuration::impl::on_highlight_orange_callsigns_editingFinished ()
+{
+  ui_->highlight_orange_callsigns->setText (ui_->highlight_orange_callsigns->text ().toUpper ());
+}
+
+void Configuration::impl::on_highlight_blue_callsigns_editingFinished ()
+{
+  ui_->highlight_blue_callsigns->setText (ui_->highlight_blue_callsigns->text ().toUpper ());
+}
+
+void Configuration::impl::on_voices_combo_box_currentIndexChanged (int /* index */)
+{
+  voice_ = ui_->voices_combo_box->currentIndex();
+  read_voicesPath();
+}
+
+void Configuration::impl::read_voices ()
+{
+  QString audioPath = QCoreApplication::applicationDirPath() + "/sounds/";
+  QString voiceList = audioPath + "voices.dat";  // load the content of voices.dat file to the voices combo box
+  QFile file2 {voiceList};
+  QStringList wordList;
+  QTextStream stream2(&file2);
+  if(file2.open (QIODevice::ReadOnly | QIODevice::Text)) {
+    while (!stream2.atEnd()) {
+      QString line = stream2.readLine();
+      wordList = line.split('|');
+      ui_->voices_combo_box->addItem (wordList[1], wordList[0]);
+    }
+    stream2.flush();
+    file2.close();
+  } else {
+    voice_=0;
+  }
+  ui_->voices_combo_box->setCurrentIndex (voice_);
+  read_voicesPath();
+}
+
+void Configuration::impl::read_voicesPath ()
+{
+  voicesPath_ = ui_->voices_combo_box->currentData().toString().left('|');
+}
+
+void Configuration::impl::on_pb_test_alerts_clicked (bool)
+{
+  read_voicesPath();
+#ifdef WIN32
+  QAudioOutput info(QAudioDeviceInfo::defaultOutputDevice());
+  QString audioPath = QCoreApplication::applicationDirPath() + "/sounds" + voicesPath_ + "/";
+  QAudioFormat format;
+  format.setCodec("audio/pcm");
+  format.setSampleRate (48000);
+  format.setChannelCount (1);
+  format.setSampleSize (16);
+  format.setSampleType(QAudioFormat::SignedInt);
+  QAudioOutput* audio;
+  audio = new QAudioOutput(format, this);
+  QFile *effect = new QFile(this);
+  effect->setFileName(QString("%1/%2").arg(audioPath, "Testing123.wav"));
+  effect->open(QIODevice::ReadOnly);
+  audio->start(effect);
+#else
+  QString audioPath = QCoreApplication::applicationDirPath() + "/sounds" + voicesPath_ + "/";
+  QSound::play(audioPath + "Testing123.wav");  // for Linux and macOS
+#endif
 }
 
 bool Configuration::impl::have_rig ()
@@ -3427,6 +5047,7 @@ bool Configuration::impl::open_rig (bool force)
     {
       try
         {
+          if (is_tci_ && rig_active_ && tci_audio_) restart_tci_device_ = true;
           close_rig ();
 
           // create a new Transceiver object
@@ -3445,6 +5066,8 @@ bool Configuration::impl::open_rig (bool force)
           rig_connections_ << connect (rig.get (), &Transceiver::resolution, this, [=] (int resolution) {
               rig_resolution_ = resolution;
             });
+          rig_connections_ << connect (rig.get (), &Transceiver::tciframeswritten, this, &Configuration::impl::handle_transceiver_tciframeswritten);
+          rig_connections_ << connect (rig.get (), &Transceiver::tci_mod_active, this, &Configuration::impl::handle_transceiver_tci_mod_active);
           rig_connections_ << connect (rig.get (), &Transceiver::update, this, &Configuration::impl::handle_transceiver_update);
           rig_connections_ << connect (rig.get (), &Transceiver::failure, this, &Configuration::impl::handle_transceiver_failure);
 
@@ -3471,10 +5094,12 @@ bool Configuration::impl::open_rig (bool force)
           rig_active_ = true;
           LOG_TRACE ("emitting startup_transceiver");
           Q_EMIT start_transceiver (++transceiver_command_number_); // start rig on its thread
+          if(is_tci_) rig_params_ = gather_rig_data ();
           result = true;
         }
       catch (std::exception const& e)
         {
+          qDebug() << "Configuration::impl::open_rig failed with error " << e.what();
           handle_transceiver_failure (e.what ());
         }
 
@@ -3568,10 +5193,169 @@ void Configuration::impl::transceiver_ptt (bool on)
   Q_EMIT set_transceiver (cached_rig_state_, ++transceiver_command_number_);
 }
 
+void Configuration::impl::transceiver_audio (bool on)
+{
+  cached_rig_state_.online (true); // we want the rig online
+  set_cached_mode ();
+  if (cached_rig_state_.audio() != on)
+  {
+    cached_rig_state_.audio (on);
+//    printf("%s(%0.1f) Configuration #:%d audio: %d\n",QDateTime::currentDateTimeUtc().toString("hh:mm:ss.zzz").toStdString().c_str(),transceiver_command_number_+1,on);
+    Q_EMIT set_transceiver (cached_rig_state_, ++transceiver_command_number_);
+  }
+}
+
+void Configuration::impl::transceiver_tune (bool on)
+{
+  cached_rig_state_.online (true); // we want the rig online
+  set_cached_mode ();
+  //cached_rig_state_.ptt (on);
+  cached_rig_state_.tune (on);
+  // qDebug () << "Configuration::impl::transceiver_ptt: n:" << transceiver_command_number_ + 1 << "on:" << on;
+  LOG_TRACE ("emitting set_transceiver: requested state:" << cached_rig_state_);
+  Q_EMIT set_transceiver (cached_rig_state_, ++transceiver_command_number_);
+}
+
+
+void Configuration::impl::transceiver_period (double period)
+{
+  cached_rig_state_.online (true); // we want the rig online
+  set_cached_mode ();
+  if (cached_rig_state_.period() != period)
+  {
+//    printf("%s(%0.1f) Configuration #:%d period: %0.1f cached: %0.1f\n",QDateTime::currentDateTimeUtc().toString("hh:mm:ss.zzz").toStdString().c_str(),transceiver_command_number_+1,period,cached_rig_state_.period());
+    cached_rig_state_.period (period);
+    Q_EMIT set_transceiver (cached_rig_state_, ++transceiver_command_number_);
+  }
+}
+
+void Configuration::impl::transceiver_blocksize (qint32 blocksize)
+{
+  cached_rig_state_.online (true); // we want the rig online
+  set_cached_mode ();
+  if (cached_rig_state_.blocksize() != blocksize)
+  {
+//    printf("%s(%0.1f) Configuration #:%d blocksize: %d cached:%d\n",QDateTime::currentDateTimeUtc().toString("hh:mm:ss.zzz").toStdString().c_str(),transceiver_command_number_+1,blocksize,cached_rig_state_.blocksize());
+    cached_rig_state_.blocksize (blocksize);
+    Q_EMIT set_transceiver (cached_rig_state_, ++transceiver_command_number_);
+  }
+}
+
+void Configuration::impl::transceiver_spread (double spread)
+{
+  cached_rig_state_.online (true); // we want the rig online
+  set_cached_mode ();
+  if (cached_rig_state_.spread() != spread)
+  {
+//    printf("%s(%0.1f) Configuration #:%d spread: %0.1f cached: %0.1f\n",QDateTime::currentDateTimeUtc().toString("hh:mm:ss.zzz").toStdString().c_str(),transceiver_command_number_+1,spread,cached_rig_state_.spread());
+    cached_rig_state_.spread (spread);
+    Q_EMIT set_transceiver (cached_rig_state_, ++transceiver_command_number_);
+  }
+}
+
+void Configuration::impl::transceiver_nsym (int nsym)
+{
+  cached_rig_state_.online (true); // we want the rig online
+  set_cached_mode ();
+  if (cached_rig_state_.nsym() != nsym)
+  {
+//    printf("%s(%0.1f) Configuration #:%d nsym: %d cached:%d\n",QDateTime::currentDateTimeUtc().toString("hh:mm:ss.zzz").toStdString().c_str(),transceiver_command_number_+1,nsym,cached_rig_state_.nsym());
+    cached_rig_state_.nsym (nsym);
+    Q_EMIT set_transceiver (cached_rig_state_, ++transceiver_command_number_);
+  }
+}
+
+void Configuration::impl::transceiver_trfrequency (double trfrequency)
+{
+  cached_rig_state_.online (true); // we want the rig online
+  set_cached_mode ();
+  if (cached_rig_state_.trfrequency() != trfrequency)
+  {
+//    printf("%s(%0.1f) Configuration #:%d trfrequency: %0.1f cached: %0.1f\n",QDateTime::currentDateTimeUtc().toString("hh:mm:ss.zzz").toStdString().c_str(),transceiver_command_number_+1,trfrequency,cached_rig_state_.trfrequency());
+    cached_rig_state_.trfrequency (trfrequency);
+    Q_EMIT set_transceiver (cached_rig_state_, ++transceiver_command_number_);
+  }
+}
+
+void Configuration::impl::transceiver_txvolume (double txvolume)
+{
+  cached_rig_state_.online (true); // we want the rig online
+  set_cached_mode ();
+  if (cached_rig_state_.txvolume() != txvolume)
+  {
+//    printf("%s(%0.1f) Configuration #:%d txvolume: %0.1f cached: %0.1f\n",QDateTime::currentDateTimeUtc().toString("hh:mm:ss.zzz").toStdString().c_str(),transceiver_command_number_+1,txvolume,cached_rig_state_.txvolume());
+    cached_rig_state_.txvolume (txvolume);
+    Q_EMIT set_transceiver (cached_rig_state_, ++transceiver_command_number_);
+  }
+}
+
+void Configuration::impl::transceiver_volume (double volume)
+{
+  cached_rig_state_.online (true); // we want the rig online
+  set_cached_mode ();
+  if (cached_rig_state_.volume() != volume)
+  {
+    //printf("In Configuration::transceiver_volume, volume: %f cached: %f\n",volume,cached_rig_state_.volume());
+    cached_rig_state_.volume (volume);
+    Q_EMIT set_transceiver (cached_rig_state_, ++transceiver_command_number_);
+  }
+}
+
+void Configuration::impl::transceiver_modulator_start (QString jtmode, unsigned symbolslength, double framespersymbol, double frequency, double tonespacing, bool synchronize, bool fastmode, double dbsnr, double trperiod)
+{
+  cached_rig_state_.online (true); // we want the rig online
+  set_cached_mode ();
+  if (!cached_rig_state_.tx_audio())
+  {
+    cached_rig_state_.tx_audio (true);
+    cached_rig_state_.symbolslength (symbolslength);
+    cached_rig_state_.framespersymbol (framespersymbol);
+    cached_rig_state_.trfrequency (frequency);
+    cached_rig_state_.tonespacing (tonespacing);
+    cached_rig_state_.synchronize (synchronize);
+    cached_rig_state_.dbsnr (dbsnr);
+    cached_rig_state_.trperiod (trperiod);
+    cached_rig_state_.jtmode(jtmode);
+    cached_rig_state_.fastmode(fastmode);
+    //    printf("%s(%0.1f) Configuration #:%d modulator_start: symbolslength=%d framespersymbol=%0.1f frequency=%0.1f tonespacing=%0.1f synchronize= %d dbsnr=%0.1f trperiod=%0.1f\n",QDateTime::currentDateTimeUtc().toString("hh:mm:ss.zzz").toStdString().c_str(),transceiver_command_number_+1,symbolslength,framespersymbol,frequency,tonespacing,synchronize,dbsnr,trperiod);
+    Q_EMIT set_transceiver (cached_rig_state_, ++transceiver_command_number_);
+  }
+//  else printf("%s(%0.1f) Configuration modulator_start: WAS ALLREADY RUNNING\n",QDateTime::currentDateTimeUtc().toString("hh:mm:ss.zzz").toStdString().c_str());
+}
+
+void Configuration::impl::transceiver_modulator_stop (bool on)
+{
+  cached_rig_state_.online (true); // we want the rig online
+  set_cached_mode ();
+  if (cached_rig_state_.tx_audio())
+  {
+    cached_rig_state_.tx_audio (false);
+    cached_rig_state_.quick (on);
+//    printf("%s(%0.1f) Configuration #:%d modulator_stop: quick=%d\n",QDateTime::currentDateTimeUtc().toString("hh:mm:ss.zzz").toStdString().c_str(),transceiver_command_number_+1,on);
+    Q_EMIT set_transceiver (cached_rig_state_, ++transceiver_command_number_);
+  }
+//  else printf("%s(%0.1f) Configuration modulator_stop: WAS NOT RUNNING\n",QDateTime::currentDateTimeUtc().toString("hh:mm:ss.zzz").toStdString().c_str());
+}
+
 void Configuration::impl::sync_transceiver (bool /*force_signal*/)
 {
   // pass this on as cache must be ignored
   // Q_EMIT sync (force_signal);
+}
+
+void Configuration::impl::handle_transceiver_tciframeswritten (qint64 count)
+{
+  Q_EMIT self_->transceiver_TCIframesWritten (count);
+}
+
+void Configuration::impl::handle_transceiver_tci_mod_active (bool on)
+{
+  Q_EMIT self_->transceiver_TCImodActive (on);
+}
+
+void Configuration::impl::handle_leavingSettings ()
+{
+  Q_EMIT self_->leavingSettings (true);
 }
 
 void Configuration::impl::handle_transceiver_update (TransceiverState const& state,
@@ -3582,7 +5366,7 @@ void Configuration::impl::handle_transceiver_update (TransceiverState const& sta
   // only follow rig on some information, ignore other stuff
   cached_rig_state_.online (state.online ());
   cached_rig_state_.frequency (state.frequency ());
-  cached_rig_state_.mode (state.mode ());
+  if(!is_tci_) cached_rig_state_.mode (state.mode ());  //was not present in jtdx
   cached_rig_state_.split (state.split ());
 
   if (state.online ())
@@ -3603,7 +5387,10 @@ void Configuration::impl::handle_transceiver_update (TransceiverState const& sta
     }
   else
     {
-      close_rig ();
+      if (is_tci_) {
+        if (sequence_number == transceiver_command_number_)  close_rig ();
+      }
+      else close_rig();
     }
 
   // pass on to clients if current command is processed
@@ -3626,6 +5413,7 @@ void Configuration::impl::handle_transceiver_update (TransceiverState const& sta
 void Configuration::impl::handle_transceiver_failure (QString const& reason)
 {
   LOG_ERROR ("handle_transceiver_failure: reason: " << reason);
+  qDebug() << "Configuration::impl::handle_transceiver_failure called with reason: " << reason << "\n";
   close_rig ();
   ui_->test_PTT_push_button->setChecked (false);
 
@@ -3650,6 +5438,7 @@ void Configuration::impl::close_rig ()
       ui_->test_CAT_push_button->setStyleSheet ("QPushButton {background-color: red;}");
       LOG_TRACE ("emitting stop_transceiver");
       Q_EMIT stop_transceiver ();
+      if (is_tci_) QThread::msleep (100);
       for (auto const& connection: rig_connections_)
         {
           disconnect (connection);
@@ -3687,26 +5476,81 @@ QAudioDeviceInfo Configuration::impl::find_audio_device (QAudio::Mode mode, QCom
             }
         }
       // insert a place holder for the not found device
-      combo_box->insertItem (0, device_name + " (" + tr ("Not found", "audio device missing") + ")", QVariant::fromValue (audio_info_type {}));
+      if(!tci_audio_) combo_box->insertItem (0, device_name + " (" + tr ("Not found", "audio device missing") + ")", QVariant::fromValue (audio_info_type {}));
+      else {
+          combo_box->insertItem (0, "TCI audio", QVariant::fromValue (audio_info_type {}));
+      }
       combo_box->setCurrentIndex (0);
     }
   return {};
 }
 
 // load the available audio devices into the selection combo box
-void Configuration::impl::load_audio_devices (QAudio::Mode mode, QComboBox * combo_box
-                                              , QAudioDeviceInfo * device)
+void Configuration::impl::load_audio_devices(QAudio::Mode mode, QComboBox * combo_box, QAudioDeviceInfo * device)
 {
   using std::copy;
   using std::back_inserter;
 
-  combo_box->clear ();
+  QString selected_device_name = combo_box->currentText(); // Get the currently selected item text
+  combo_box->clear();
 
-  Q_EMIT self_->enumerating_audio_devices ();
-  int current_index = -1;
-  auto const& devices = QAudioDeviceInfo::availableDevices (mode);
-  Q_FOREACH (auto const& p, devices)
+  Q_EMIT self_->enumerating_audio_devices();
+
+  if (sortAlphabetically_) {
+    auto const& devices = QAudioDeviceInfo::availableDevices(mode);
+    printf ("rig_active_ is: %d and tci_audio_ is %d\n", rig_active_, tci_audio_);
+    qDebug () << "qDebug says rig_active_ is: " << rig_active_ << '\n';
+    qDebug () << "qDebug says tci_audio_ is: " << tci_audio_ << '\n';
+    int current_index = -1;
+    if (is_tci_ && tci_audio_) {
+      QList<QVariant> channel_counts;
+      QList<int> scc({1});
+      copy (scc.cbegin (), scc.cend (), back_inserter (channel_counts));
+      combo_box->addItem ("TCI audio", channel_counts);
+      current_index = 0;
+      return;
+    }
+    // Use a vector to store device names and associated audio_info_type
+    std::vector<std::pair<QString, audio_info_type>> device_items;
+
+    Q_FOREACH(auto const& p, devices) {
+      // Check if the device supports the "audio/pcm" codec
+      if (!p.supportedCodecs().contains("audio/pcm")) {
+          continue; // Skip devices that do not support "audio/pcm"
+      }
+#ifndef WIN32
+      if (hideCARD_ && p.deviceName().contains("CARD=")) {
+          continue; // skip ALSA devices on Linux -- we never use them
+      }
+#endif
+      // Convert supported channel counts into something we can store in the item model
+      QList<QVariant> channel_counts;
+      auto scc = p.supportedChannelCounts();
+      copy(scc.cbegin(), scc.cend(), back_inserter(channel_counts));
+
+      audio_info_type info = qMakePair(p, channel_counts);
+      device_items.emplace_back(p.deviceName(), info);
+    }
+    // Sort the device items by device name
+      std::sort(device_items.begin(), device_items.end(), [](const std::pair<QString, audio_info_type>& a, const std::pair<QString, audio_info_type>& b) {
+          return a.first.toLower() < b.first.toLower();
+      });
+    // Add the sorted items back to the combo box
+    for (int i = 0; i < static_cast<int>(device_items.size()); ++i)
     {
+      const auto& item = device_items[i];
+      combo_box->addItem(item.first, QVariant::fromValue(item.second));
+      // Match the device name with the currently selected combo box item
+      if (device->deviceName() == item.first) {
+        current_index = i;
+        combo_box->setCurrentIndex(current_index);
+      }
+    }
+  } else {
+    Q_EMIT self_->enumerating_audio_devices ();
+    int current_index = -1;
+    auto const& devices = QAudioDeviceInfo::availableDevices (mode);
+    Q_FOREACH (auto const& p, devices) {
       // qDebug () << "Configuration::impl::load_audio_devices: input:" << (QAudio::AudioInput == mode) << "name:" << p.deviceName () << "preferred format:" << p.preferredFormat () << "endians:" << p.supportedByteOrders () << "codecs:" << p.supportedCodecs () << "channels:" << p.supportedChannelCounts () << "rates:" << p.supportedSampleRates () << "sizes:" << p.supportedSampleSizes () << "types:" << p.supportedSampleTypes ();
 
       // convert supported channel counts into something we can store in the item model
@@ -3715,13 +5559,14 @@ void Configuration::impl::load_audio_devices (QAudio::Mode mode, QComboBox * com
       copy (scc.cbegin (), scc.cend (), back_inserter (channel_counts));
 
       combo_box->addItem (p.deviceName (), QVariant::fromValue (audio_info_type {p, channel_counts}));
-      if (p == *device)
-        {
+      if (p == *device) {
           current_index = combo_box->count () - 1;
-        }
+      }
     }
-  combo_box->setCurrentIndex (current_index);
+    combo_box->setCurrentIndex (current_index);
+  }
 }
+
 
 // load the available network interfaces into the selection combo box
 void Configuration::impl::load_network_interfaces (CheckableItemComboBox * combo_box, QStringList current)
@@ -3877,27 +5722,59 @@ void Configuration::impl::enumerate_rigs ()
   ui_->rig_combo_box->setCurrentText (rig_params_.rig_name);
 }
 
-void Configuration::impl::fill_port_combo_box (QComboBox * cb)
+void Configuration::impl::fill_port_combo_box(QComboBox* cb)
 {
-  auto current_text = cb->currentText ();
-  cb->clear ();
-  Q_FOREACH (auto const& p, QSerialPortInfo::availablePorts ())
+    auto current_text = cb->currentText();
+    cb->clear();
+
+    // Retrieve available ports and filter out ones with "NULL"
+    QList<QSerialPortInfo> ports;
+    foreach (const QSerialPortInfo &p, QSerialPortInfo::availablePorts())
     {
-      if (!p.portName ().contains ( "NULL" )) // virtual serial port pairs
+        if (!p.portName().contains("NULL")) // virtual serial port pairs
         {
-          // remove possibly confusing Windows device path (OK because
-          // it gets added back by Hamlib)
-          cb->addItem (p.systemLocation ().remove (QRegularExpression {R"(^\\\\\.\\)"}));
-          auto tip = QString {"%1 %2 %3"}.arg (p.manufacturer ()).arg (p.serialNumber ()).arg (p.description ()).trimmed ();
-          if (tip.size ())
-            {
-              cb->setItemData (cb->count () - 1, tip, Qt::ToolTipRole);
-            }
+            ports.append(p);
         }
     }
-  cb->addItem ("USB");
-  cb->setItemData (cb->count () - 1, "Custom USB device", Qt::ToolTipRole);
-  cb->setEditText (current_text);
+
+    // Sort ports by the numeric value of the port name, if possible
+    std::sort(ports.begin(), ports.end(), [](const QSerialPortInfo& a, const QSerialPortInfo& b) {
+        bool isANumeric = a.portName().midRef(3).toInt();
+        bool isBNumeric = b.portName().midRef(3).toInt();
+        if (isANumeric && isBNumeric)
+        {
+            return a.portName().midRef(3).toInt() < b.portName().midRef(3).toInt();
+        }
+        else if (isANumeric)
+        {
+            return true; // a comes before b
+        }
+        else if (isBNumeric)
+        {
+            return false; // b comes before a
+        }
+        else
+        {
+            return a.portName() < b.portName(); // Alphabetical order for non-numeric ports
+        }
+    });
+
+    // Add sorted ports to the combo box
+    for (const auto& p : ports)
+    {
+        // Remove possibly confusing Windows device path (OK because it gets added back by Hamlib)
+        cb->addItem(p.systemLocation().remove(QRegularExpression{R"(^\\\\\.\\)"}));
+
+        auto tip = QString{"%1 %2 %3"}.arg(p.manufacturer()).arg(p.serialNumber()).arg(p.description()).trimmed();
+        if (tip.size())
+        {
+            cb->setItemData(cb->count() - 1, tip, Qt::ToolTipRole);
+        }
+    }
+
+    cb->addItem("USB");
+    cb->setItemData(cb->count() - 1, "Custom USB device", Qt::ToolTipRole);
+    cb->setEditText(current_text);
 }
 
 auto Configuration::impl::apply_calibration (Frequency f) const -> Frequency

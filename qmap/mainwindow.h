@@ -85,10 +85,13 @@ private slots:
   void on_sbMaxDrift_valueChanged(int arg1);
   void on_actionSave_decoded_triggered();
   void on_actionExport_wav_file_at_fQSO_triggered();
-
   void on_actionExport_wav_file_at_fQSO_30a_triggered();
-
   void on_actionExport_wav_file_at_fQSO_30b_triggered();
+  void on_actionFadd_controls_triggered();
+  void on_fAddComboBox_activated();
+  void on_pbSet_clicked();
+  void on_pbAdd_clicked();
+  void handleReply(); //liveCQ
 
 private:
   Ui::MainWindow *ui;
@@ -142,6 +145,10 @@ private:
   bool    m_bWTransmitting=false;
   bool    m_bDecodeAgain=false;
 
+  bool    m_w3szUrl = true; //liveCQ
+  QString m_otherUrl="";    //liveCQ
+  QString w3szUrlAddr="https://w3sz.com/livecq_update.php"; //liveCQ
+
   float   m_pctZap;
 
   int     m_myCallColor;
@@ -163,6 +170,7 @@ private:
   QString m_path;
   QString m_pbdecoding_style1;
   QString m_pbmonitor_style;
+  QString m_pbmonitor_style2;
   QString m_pbAutoOn_style;
   QString m_myCall;
   QString m_myGrid;
@@ -181,6 +189,8 @@ private:
   QHash<QString,bool> m_worked;
   SignalMeter *xSignalMeter;
   SoundInThread soundInThread;             //Instantiate the audio threads
+  bool doLiveCQ = true;  //liveCQ
+  QFile *cqlfi;          //liveCQ
 
   //---------------------------------------------------- private functions
   void readSettings();
@@ -189,6 +199,9 @@ private:
   void updateStatusBar();
   void msgBox(QString t);
   bool isGrid4(QString g);
+  void CreateLiveCQ(QStringList cqliveText);           //liveCQ
+  void sendLiveCQData(QList<QStringList> decodeList);  //liveCQ
+  bool testCall(QString callsign); //liveCQ
 };
 
 extern void getfile(QString fname, bool xpol, int idInt);

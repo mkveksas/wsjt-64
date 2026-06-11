@@ -3,6 +3,12 @@
 #include <vector>
 #include <algorithm>
 
+#include <QAudio>
+#include <QAudioOutput>
+#include <QSound>
+#include <QDir>
+#include <QCoreApplication>
+#include <QTimer>
 #include <QMouseEvent>
 #include <QDateTime>
 #include <QTextCharFormat>
@@ -23,6 +29,22 @@
 
 #include "qt_helpers.hpp"
 #include "moc_displaytext.cpp"
+
+bool play_CQ = false;
+bool play_MyCall = false;
+bool play_DXCC = false;
+bool play_DXCCOB = false;
+bool play_Grid = false;
+bool play_GridOB = false;
+bool play_Continent = false;
+bool play_ContinentOB = false;
+bool play_CQZ = false;
+bool play_CQZOB = false;
+bool play_ITUZ = false;
+bool play_ITUZOB = false;
+bool muted = false;
+
+using SpecOp = Configuration::SpecialOperatingActivity;
 
 DisplayText::DisplayText(QWidget *parent)
   : QTextEdit(parent)
@@ -234,6 +256,17 @@ void DisplayText::new_period ()
     document ()->setMaximumBlockCount (4800);
     document ()->setMaximumBlockCount (5000);
   }
+  alertsTimer.stop ();
+  disconnect (&alertsTimer, &QTimer::timeout, this, &DisplayText::AudioAlerts);
+  if (m_config->alert_Enabled() && (m_config->alert_MyCall() || m_config->alert_DXCC() || m_config->alert_DXCCOB() ||
+      m_config->alert_Grid() || m_config->alert_GridOB() || m_config->alert_Continent() || m_config->alert_ContinentOB() ||
+      m_config->alert_CQZ() || m_config->alert_CQZOB() || m_config->alert_ITUZ() || m_config->alert_ITUZOB() ||
+      m_config->alert_CQ())) {
+      connect (&alertsTimer, &QTimer::timeout, this, &DisplayText::AudioAlerts);
+      alertsTimer.setSingleShot (true);
+      alertsTimer.start (1000);
+  }
+
   extend_vertical_scrollbar (verticalScrollBar ()->minimum (), verticalScrollBar ()->maximum ());
   if (high_volume_ && m_config && m_config->decodes_from_top () && !vertical_scroll_connection_)
     {
@@ -290,15 +323,27 @@ QString DisplayText::appendWorkedB4 (QString message, QString call, QString cons
   // no shortcuts here as some types may be disabled
   if (!countryB4) {
     types.push_back (Highlight::DXCC);
+    if (m_config->alert_DXCC()) {
+      if (!muted) play_DXCC = true;
+    }
   }
   if(!countryB4onBand) {
     types.push_back (Highlight::DXCCBand);
+    if (m_config->alert_DXCCOB()) {
+       if (!muted) play_DXCCOB = true;
+    }
   }
   if(!gridB4) {
     types.push_back (Highlight::Grid);
+    if (m_config->alert_Grid()) {
+      if (!muted) play_Grid = true;
+    }
   }
   if(!gridB4onBand) {
     types.push_back (Highlight::GridBand);
+    if (m_config->alert_GridOB()) {
+      if (!muted) play_GridOB = true;
+    }
   }
   if (!callB4) {
     types.push_back (Highlight::Call);
@@ -308,21 +353,39 @@ QString DisplayText::appendWorkedB4 (QString message, QString call, QString cons
   }
   if (!continentB4) {
     types.push_back (Highlight::Continent);
+    if (m_config->alert_Continent()) {
+      if (!muted) play_Continent = true;
+    }
   }
   if(!continentB4onBand) {
     types.push_back (Highlight::ContinentBand);
+    if (m_config->alert_ContinentOB()) {
+      if (!muted) play_ContinentOB = true;
+    }
   }
   if (!CQZoneB4) {
     types.push_back (Highlight::CQZone);
+    if (m_config->alert_CQZ()) {
+      if (!muted) play_CQZ = true;
+    }
   }
   if(!CQZoneB4onBand) {
     types.push_back (Highlight::CQZoneBand);
+    if (m_config->alert_CQZOB()) {
+      if (!muted) play_CQZOB = true;
+    }
   }
   if (!ITUZoneB4) {
     types.push_back (Highlight::ITUZone);
+    if (m_config->alert_ITUZ()) {
+      if (!muted) play_ITUZ = true;
+    }
   }
   if(!ITUZoneB4onBand) {
     types.push_back (Highlight::ITUZoneBand);
+    if (m_config->alert_ITUZOB()) {
+      if (!muted) play_ITUZOB = true;
+    }
   }
   if (m_config && m_config->lotw_users ().user (call))
     {
@@ -410,7 +473,8 @@ QString DisplayText::leftJustifyAppendage (QString message, QString const& appen
       // use a nbsp to save the start of appended text so we can find
       // it again later, align appended data at a fixed column if
       // there is space otherwise let it float to the right
-      int space_count {40 + padding - message.size ()};
+      int space_count;
+      space_count = (40 + m_config->align_steps() + padding - message.size ());
       if (space_count > 0) {
         message += QString {space_count, QChar {' '}};
       }
@@ -423,18 +487,26 @@ void DisplayText::displayDecodedText(DecodedText const& decodedText, QString con
                                      QString const& mode,
                                      bool displayDXCCEntity, LogBook const& logBook,
                                      QString const& currentBand, bool ppfx, bool bCQonly,
-                                     bool haveFSpread, float fSpread, bool bDisplayPoints, int points)
+                                     bool haveFSpread, float fSpread, bool bDisplayPoints,
+                                     int points, QString distance, bool alertsMuted)
 {
   m_points=points;
   m_bDisplayPoints=bDisplayPoints;
   m_bPrincipalPrefix=ppfx;
+  muted=alertsMuted;
   QColor bg;
   QColor fg;
   bool CQcall = false;
   auto is_73 = decodedText.messageWords().filter (QRegularExpression {"^(73|RR73)$"}).size();
+  if (decodedText.string ().contains (" CQ ")) {
+    if (m_config->alert_CQ()) {
+      if (!muted) play_CQ = true;
+    }
+  }
   if (decodedText.string ().contains (" CQ ")
       || decodedText.string ().contains (" CQDX ")
-      || decodedText.string ().contains (" QRZ "))
+      || decodedText.string ().contains (" QRZ ")
+      || (is_73 && (m_config->highlight_73 ())))
     {
       CQcall = true;
     }
@@ -450,6 +522,18 @@ void DisplayText::displayDecodedText(DecodedText const& decodedText, QString con
   if(!dxGrid.contains(grid_regexp)) dxGrid="";
   message = message.left (message.indexOf (QChar::Nbsp)).trimmed (); // strip appended info
   QString extra;
+  QString state;    // NJ0A
+
+  if (displayDXCCEntity && dxGrid.length() > 0  && logBook.countries ()->lookup (dxCall).primary_prefix  == "K") {
+      //std::cout << dxCall << " -> " << dxGrid <<  " " << logBook.countries ()->lookup (dxCall).primary_prefix <<"\n";
+      if (m_config->GridMap()) {
+          if (CQcall || is_73 || m_config->GridMapAll()) {
+            state = logBook.countries ()->findState(dxGrid);
+          }
+      }
+  }
+  //NJ0A
+
   if (haveFSpread)
     {
       extra += QString {"%1"}.arg (fSpread, 5, 'f', fSpread < 0.95 ? 3 : 2) + QChar {' '};
@@ -461,7 +545,8 @@ void DisplayText::displayDecodedText(DecodedText const& decodedText, QString con
       message = message.left (ap_pos).trimmed ();
     }
   m_CQPriority="";
-  if (CQcall || (is_73 && (m_config->highlight_73 ())))
+  if (CQcall || (is_73 && m_config->highlight_73()) || (mode == "FT4" && m_config->highlight_73() && m_config->NCCC_Sprint()
+      && (SpecOp::NA_VHF == m_config->special_op_id()) && decodedText.string().contains(" R ")))
     {
       if (displayDXCCEntity)
         {
@@ -484,7 +569,54 @@ void DisplayText::displayDecodedText(DecodedText const& decodedText, QString con
     }
   else
     {
-      message = leftJustifyAppendage (message, extra);
+      if (m_config->show_country_names())
+        {
+          auto const& looked_up = logBook.countries ()->lookup (dxCall);
+          auto countryName = looked_up.entity_name;
+
+          if (m_bPrincipalPrefix) {
+              extra += looked_up.primary_prefix;
+          } else {
+              // do some obvious abbreviations
+              countryName.replace ("Islands", "Is.");
+              countryName.replace ("Island", "Is.");
+              countryName.replace ("North ", "N. ");
+              countryName.replace ("Northern ", "N. ");
+              countryName.replace ("South ", "S. ");
+              countryName.replace ("East ", "E. ");
+              countryName.replace ("Eastern ", "E. ");
+              countryName.replace ("West ", "W. ");
+              countryName.replace ("Western ", "W. ");
+              countryName.replace ("Central ", "C. ");
+              countryName.replace (" and ", " & ");
+              countryName.replace ("Republic", "Rep.");
+              countryName.replace ("United States of America", "U.S.A.");
+              countryName.replace ("United States", "U.S.A.");
+              countryName.replace ("Fed. Rep. of ", "");
+              countryName.replace ("French ", "Fr.");
+              countryName.replace ("Asiatic", "AS");
+              countryName.replace ("European", "EU");
+              countryName.replace ("African", "AF");
+
+              // assign WAE entities to the correct DXCC when "Include extra WAE entities" is not selected
+              if (!(m_config->include_WAE_entities())) {
+                countryName.replace ("Bear Is.", "Svalbard");
+                countryName.replace ("Shetland Is.", "Scotland");
+                countryName.replace ("AF Italy", "Italy");
+                countryName.replace ("Sicily", "Italy");
+                countryName.replace ("Vienna Intl Ctr", "Austria");
+                countryName.replace ("AF Turkey", "Turkey");
+                countryName.replace ("EU Turkey", "Turkey");
+              }
+
+              extra += countryName;
+          }
+          message = leftJustifyAppendage(message, extra);
+        }
+      else
+        {
+          message = leftJustifyAppendage (message, extra);
+        }
     }
 
   if (myCall.size ())
@@ -496,14 +628,73 @@ void DisplayText::displayDecodedText(DecodedText const& decodedText, QString con
         }
       if ((decodedText.clean_string () + " ").contains (QRegularExpression {regexp}))
         {
-          highlight_types types {Highlight::MyCall};
-          set_colours (m_config, &bg, &fg, types);
+        QStringList tw;
+        if (mode == "FT8" or mode == "FT4" or mode == "MSK144") {
+          tw=decodedText.string().mid(24).split(" ",SkipEmptyParts);
+        } else {
+          tw=decodedText.string().mid(22).split(" ",SkipEmptyParts);
+        }
+          if ((tw.size () > 0 && tw[0].contains(myCall)) or decodedText.clean_string().contains("; " + myCall)) {
+            highlight_types types {Highlight::MyCall};
+            set_colours (m_config, &bg, &fg, types);
+            if (m_config->alert_MyCall()) play_MyCall = true;
+          } else {
+            highlight_types types {Highlight::Tx};
+            set_colours (m_config, &bg, &fg, types);
+          }
         }
     }
 
+  if (m_config->GridMap() && !m_bDisplayPoints) {
+      if (ppfx) {               //NJ0A
+          extra = " ";
+      } else {
+          extra = "      ";
+      }
+      message = leftJustifyAppendage(message, state);    //NJ0A
+  }
+
+  // display distance and azimuth
+  if (distance.length() > 0) {
+      if (m_config->align()) {
+          if (!displayDXCCEntity) {
+              message = leftJustifyAppendage (message, "[" + distance + "]");
+          } else {
+              QString space = " ";
+              if (m_bPrincipalPrefix) {
+                  if (message.length() < (49 + m_config->align_steps() + m_config->align_steps2())) {
+                      message = leftJustifyAppendage ((message + (space.repeated(30))).left(48 + m_config->align_steps() + m_config->align_steps2()), "[" + distance + "]");
+                  } else {
+                      message = leftJustifyAppendage (message, " [" + distance + "]");
+                  }
+              } else {
+                  if (message.length() < 59 + m_config->align_steps() + m_config->align_steps2()) {
+                      message = leftJustifyAppendage ((message + (space.repeated(40))).left(59 + m_config->align_steps() + m_config->align_steps2()), "[" + distance + "]");
+                  } else {
+                      message = leftJustifyAppendage (message, "[" + distance + "]");
+                  }
+              }
+          }
+      } else {
+         message = leftJustifyAppendage (message, "[" + distance + "]");
+      }
+  }
+
+  // initialize audible alerts for MSK144 (still experimental)
+  if(mode=="MSK144") {
+    if ((m_config->alert_Enabled()) && ((m_config->alert_DXCC()) || (m_config->alert_DXCCOB()) || (m_config->alert_Grid()) ||
+        (m_config->alert_GridOB()) || (m_config->alert_Continent()) || (m_config->alert_ContinentOB()) || (m_config->alert_CQZ()) ||
+        (m_config->alert_CQZOB()) || (m_config->alert_ITUZ()) || (m_config->alert_ITUZOB()) || (m_config->alert_CQ()))) {
+      alertsTimer.stop ();
+      disconnect (&alertsTimer, &QTimer::timeout, this, &DisplayText::AudioAlerts);
+      connect (&alertsTimer, &QTimer::timeout, this, &DisplayText::AudioAlerts);
+      alertsTimer.setSingleShot (true);
+      alertsTimer.start (1000);
+    }
+  }
+
   insertText (message.trimmed (), bg, fg, decodedText.call (), dxCall);
 }
-
 
 void DisplayText::displayTransmittedText(QString text, QString modeTx, qint32 txFreq,
                                          bool bFastMode, double TRperiod,bool bSuperfox)
@@ -633,16 +824,16 @@ namespace
 void DisplayText::highlight_callsign (QString const& callsign, QColor const& bg,
                                       QColor const& fg, bool last_period_only)
 {
-  if (!callsign.size ())
+  auto regexp = callsign;
+  if (!callsign.size () || callsign == "" || callsign == " " || callsign == "0")
     {
       return;
     }
   if (callsign == "CLEARALL!")  // programmatic means of clearing all highlighting
-    {
-      highlighted_calls_.clear();
-      return;
-    }
-  auto regexp = callsign;
+  {
+    highlighted_calls_.clear();
+    return;
+  }
   // allow for hashed callsigns and escape any regexp metacharacters
   QRegularExpression target {QString {"<?"}
                              + regexp.replace (QLatin1Char {'+'}, QLatin1String {"\\+"})
@@ -722,4 +913,292 @@ void DisplayText::highlight_callsign (QString const& callsign, QColor const& bg,
         }
     }
   setCurrentCharFormat (old_format);
+}
+
+void DisplayText::AudioAlerts()
+{
+#ifdef WIN32
+  if(m_config->alert_Enabled()) {
+        QAudioOutput info(QAudioDeviceInfo::defaultOutputDevice());
+        QString audioPath = QCoreApplication::applicationDirPath() + "/sounds" + m_config->voicesPath() + "/";
+        QAudioFormat format;
+        format.setCodec("audio/pcm");
+        format.setSampleRate (48000);
+        format.setChannelCount (1);
+        format.setSampleSize (16);
+        format.setSampleType(QAudioFormat::SignedInt);
+        QAudioOutput* audio;
+        audio = new QAudioOutput(format, this);
+        connect(audio, SIGNAL(stateChanged(QAudio::State)), this, SLOT(handleStateChanged(QAudio::State)));
+#else
+  if(m_config->alert_Enabled()) {
+        QString audioPath = QCoreApplication::applicationDirPath() + "/sounds" + m_config->voicesPath() + "/";
+#endif
+        QFile *effect2 = new QFile(this);
+        QFile *effect3 = new QFile(this);
+        QFile *effect4 = new QFile(this);
+        QFile *effect5 = new QFile(this);
+        QFile *effect6 = new QFile(this);
+        QFile *effect7 = new QFile(this);
+        QFile *effect8 = new QFile(this);
+        QFile *effect9 = new QFile(this);
+        QFile *effect10 = new QFile(this);
+        QFile *effect11 = new QFile(this);
+        QFile *effect12 = new QFile(this);
+        QFile *effect13 = new QFile(this);
+        effect2->setFileName(QString("%1/%2").arg(audioPath, "MyCall.wav"));
+        effect3->setFileName(QString("%1/%2").arg(audioPath, "DXCC.wav"));
+        effect4->setFileName(QString("%1/%2").arg(audioPath, "DXCCOnBand.wav"));
+        effect5->setFileName(QString("%1/%2").arg(audioPath, "Continent.wav"));
+        effect6->setFileName(QString("%1/%2").arg(audioPath, "ContinentOnBand.wav"));
+        effect7->setFileName(QString("%1/%2").arg(audioPath, "CQZone.wav"));
+        effect8->setFileName(QString("%1/%2").arg(audioPath, "CQZoneOnBand.wav"));
+        effect9->setFileName(QString("%1/%2").arg(audioPath, "ITUZone.wav"));
+        effect10->setFileName(QString("%1/%2").arg(audioPath, "ITUZoneOnBand.wav"));
+        effect11->setFileName(QString("%1/%2").arg(audioPath, "Grid.wav"));
+        effect12->setFileName(QString("%1/%2").arg(audioPath, "GridOnBand.wav"));
+        effect13->setFileName(QString("%1/%2").arg(audioPath, "CQ.wav"));
+        static int startIndex = 0;
+        int nextStartIndex = startIndex +1;
+        switch (startIndex) {
+        case 0:
+            if (play_MyCall) {
+#ifdef WIN32
+                effect2->open(QIODevice::ReadOnly);
+                audio->start(effect2);
+#else
+                QSound::play(audioPath + "MyCall.wav");  // for Linux and macOS
+#endif
+                play_MyCall = false;
+                alertsTimer.start (1000);
+                startIndex = nextStartIndex;
+                return;
+            } else {
+                nextStartIndex++;
+            }
+            Q_FALLTHROUGH();
+        case 1:
+            if (play_DXCC) {
+#ifdef WIN32
+                effect3->open(QIODevice::ReadOnly);
+                audio->start(effect3);
+#else
+                QSound::play(audioPath + "DXCC.wav");  // for Linux and macOS
+#endif
+                play_DXCC = false;
+                play_DXCCOB = false;
+                alertsTimer.start (1200);
+                startIndex = nextStartIndex;
+                return;
+            } else {
+                nextStartIndex++;
+            }
+            Q_FALLTHROUGH();
+        case 2:
+            if (play_DXCCOB && !play_DXCC) {
+#ifdef WIN32
+                effect4->open(QIODevice::ReadOnly);
+                audio->start(effect4);
+#else
+                QSound::play(audioPath + "DXCCOnBand.wav");  // for Linux and macOS
+#endif
+                play_DXCCOB = false;
+                alertsTimer.start (1800);
+                startIndex = nextStartIndex;
+                return;
+            } else {
+                nextStartIndex++;
+            }
+            Q_FALLTHROUGH();
+        case 3:
+            if (play_Continent) {
+#ifdef WIN32
+                effect5->open(QIODevice::ReadOnly);
+                audio->start(effect5);
+#else
+                QSound::play(audioPath + "Continent.wav");  // for Linux and macOS
+#endif
+                play_Continent = false;
+                play_ContinentOB = false;
+                play_GridOB = false;
+                play_CQZOB = false;
+                play_ITUZOB = false;
+                alertsTimer.start (1000);
+                startIndex = nextStartIndex;
+                return;
+            } else {
+                nextStartIndex++;
+            }
+            Q_FALLTHROUGH();
+        case 4:
+            if (play_ContinentOB && !play_Continent) {
+#ifdef WIN32
+                effect6->open(QIODevice::ReadOnly);
+                audio->start(effect6);
+#else
+                QSound::play(audioPath + "ContinentOnBand.wav");  // for Linux and macOS
+#endif
+                play_ContinentOB = false;
+                play_GridOB = false;
+                play_CQZOB = false;
+                play_ITUZOB = false;
+                alertsTimer.start (2000);
+                startIndex = nextStartIndex;
+                return;
+            } else {
+                nextStartIndex++;
+            }
+            Q_FALLTHROUGH();
+        case 5:
+            if (play_CQZ) {
+#ifdef WIN32
+                effect7->open(QIODevice::ReadOnly);
+                audio->start(effect7);
+#else
+                QSound::play(audioPath + "CQZone.wav");  // for Linux and macOS
+#endif
+                play_CQZ = false;
+                play_CQZOB = false;
+                alertsTimer.start (1500);
+                startIndex = nextStartIndex;
+                return;
+            } else {
+                nextStartIndex++;
+            }
+            Q_FALLTHROUGH();
+        case 6:
+            if (play_CQZOB && !play_CQZ) {
+#ifdef WIN32
+                effect8->open(QIODevice::ReadOnly);
+                audio->start(effect8);
+#else
+                QSound::play(audioPath + "CQZoneOnBand.wav");  // for Linux and macOS
+#endif
+                play_CQZOB = false;
+                alertsTimer.start (1800);
+                startIndex = nextStartIndex;
+                return;
+            } else {
+                nextStartIndex++;
+            }
+            Q_FALLTHROUGH();
+        case 7:
+            if (play_ITUZ) {
+#ifdef WIN32
+                effect9->open(QIODevice::ReadOnly);
+                audio->start(effect9);
+#else
+                QSound::play(audioPath + "ITUZone.wav");  // for Linux and macOS
+#endif
+                play_ITUZ = false;
+                play_ITUZOB = false;
+                play_GridOB = false;
+                alertsTimer.start (1500);
+                startIndex = nextStartIndex;
+                return;
+            } else {
+                nextStartIndex++;
+            }
+            Q_FALLTHROUGH();
+        case 8:
+            if (play_ITUZOB && !(play_ITUZ)) {
+#ifdef WIN32
+                effect10->open(QIODevice::ReadOnly);
+                audio->start(effect10);
+#else
+                QSound::play(audioPath + "ITUZoneOnBand.wav");  // for Linux and macOS
+#endif
+                play_ITUZOB = false;
+                play_GridOB = false;
+                alertsTimer.start (1900);
+                startIndex = nextStartIndex;
+                return;
+            } else {
+                nextStartIndex++;
+            }
+            Q_FALLTHROUGH();
+        case 9:
+            if (play_Grid) {
+#ifdef WIN32
+                effect11->open(QIODevice::ReadOnly);
+                audio->start(effect11);
+#else
+                QSound::play(audioPath + "Grid.wav");  // for Linux and macOS
+#endif
+                play_Grid = false;
+                play_GridOB = false;
+                alertsTimer.start (1000);
+                startIndex = nextStartIndex;
+                return;
+            } else {
+                nextStartIndex++;
+            }
+            Q_FALLTHROUGH();
+        case 10:
+            if (play_GridOB && !play_Grid) {
+#ifdef WIN32
+                effect12->open(QIODevice::ReadOnly);
+                audio->start(effect12);
+#else
+                QSound::play(audioPath + "GridOnBand.wav");  // for Linux and macOS
+#endif
+                play_GridOB = false;
+                alertsTimer.start (1500);
+                startIndex = nextStartIndex;
+                return;
+            } else {
+                nextStartIndex++;
+            }
+            Q_FALLTHROUGH();
+        case 11:
+            if (play_CQ) {
+#ifdef WIN32
+                effect13->open(QIODevice::ReadOnly);
+                audio->start(effect13);
+#else
+                QSound::play(audioPath + "CQ.wav");  // for Linux and macOS
+#endif
+                play_CQ = false;
+                alertsTimer.start (1000);
+                nextStartIndex++;
+                return;
+            } else {
+                nextStartIndex++;
+            }
+            Q_FALLTHROUGH();
+        case 12:
+            // stop any running alerts timer, clear temp data, and restart alerts timer
+            alertsTimer.stop ();
+#ifdef WIN32
+            effect2->close();
+            effect2->deleteLater();
+            effect3->close();
+            effect3->deleteLater();
+            effect4->close();
+            effect4->deleteLater();
+            effect5->close();
+            effect5->deleteLater();
+            effect6->close();
+            effect6->deleteLater();
+            effect7->close();
+            effect7->deleteLater();
+            effect8->close();
+            effect8->deleteLater();
+            effect9->close();
+            effect9->deleteLater();
+            effect10->close();
+            effect10->deleteLater();
+            effect11->close();
+            effect11->deleteLater();
+            effect12->close();
+            effect12->deleteLater();
+            effect13->close();
+            effect13->deleteLater();
+            audio->deleteLater();  // remove QAudioSink to avoid a memory leak
+#endif
+            alertsTimer.start (1250);
+            startIndex = 0;
+            return;
+        }
+  }
 }

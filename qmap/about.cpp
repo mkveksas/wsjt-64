@@ -8,13 +8,13 @@ CAboutDlg::CAboutDlg(QWidget *parent) :
 {
   ui->setupUi(this);
   ui->labelTxt->setText("<html><h2>" + QString {"QMAP v"
-                + QCoreApplication::applicationVersion ()
-                + " " + revision ()}.simplified () + "</h2><br />"
-    "QMAP is a wideband receiver for the Q65 protocol, intnded<br />"
-    "primarily for amateur radio EME communication.  It works <br />"
-    "in close cooperation with WSJT-X, versions 2.7 and later. <br /><br />"
-    "Copyright 2001-2024 by Joe Taylor, K1JT.   Additional <br />"
-    "acknowledgments are contained in the source code.");
+                + QCoreApplication::applicationVersion ()+ " "
+                + revision ()}.simplified () + "</h2>"
+    "QMAP is a wideband receiver for the Q65 protocol, intended<br/>"
+    "primarily for amateur radio EME communication.  It works<br/>"
+    "in close cooperation with WSJT-X versions 2.7.0 and later.<br/><br/>"
+    "Copyright 2001-2026 by Joe Taylor, K1JT., and the WSJT <br/>"
+    "Development Group. <br/>");
 }
 
 CAboutDlg::~CAboutDlg()

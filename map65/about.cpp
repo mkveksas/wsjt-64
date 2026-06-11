@@ -13,8 +13,8 @@ CAboutDlg::CAboutDlg(QWidget *parent) :
     "MAP65 implements a wideband polarization-matching receiver <br />"
     "for the JT65 protocol, with a matching transmitting facility. <br />"
     "It is primarily intended for amateur radio EME communication. <br /><br />"
-    "Copyright 2001-2021 by Joe Taylor, K1JT.   Additional <br />"
-    "acknowledgments are contained in the source code.");
+    "Copyright 2001-2026 by Joe Taylor, K1JT, and the WSJT <br/>"
+    "Development Group.");
 }
 
 CAboutDlg::~CAboutDlg()

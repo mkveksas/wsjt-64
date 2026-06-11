@@ -180,7 +180,7 @@ effective (63,13) code with a payload of k = 13 information symbols
 conveyed by n = 63 channel symbols.  The punctured symbols consist of
 a 12-bit CRC computed from the 13 information symbols.  The CRC is
 used to reduce the false-decode rate to a very low value.  A 22-symbol
-pseudorandom sequence spread throughout a transmission is sent as
+pseudo-random sequence spread throughout a transmission is sent as
 “tone 0” and used for synchronization.  The total number of channel
 symbols in a Q65 transmission is thus 63 + 22 = 85.  Q65 offers T/R
 sequence lengths of 15, 30, 60, 120, and 300 s, and submodes A - E
@@ -188,7 +188,7 @@ have tone spacings 1, 2, 4, 8, and 16 times the symbol rate.  Submode
 designations include a number for sequence length and a letter for
 tone spacing, as in Q65-15A, Q65-120C, etc.  Occupied bandwidths are
 65 times the tone spacing, ranging from 19 Hz (Q65-300A) to a maximum
-of 1733 Hz (Q65-15C, Q65-30D, and Q65-60E).  
+of 1733 Hz (Q65-15C, Q65-30D, and Q65-60E).
 
 [[WSPR_PROTOCOL]]
 ==== WSPR
@@ -206,7 +206,7 @@ the following examples:
  - Type 1: K1ABC FN42 37
  - Type 2: PJ4/K1ABC 37
  - Type 3: <PJ4/K1ABC> FK52UD 37
- 
+
 Type 1 messages contain a standard callsign, a 4-character Maidenhead
 grid locator, and power level in dBm. Type 2 messages omit the grid
 locator but include a compound callsign, while type 3 messages replace
@@ -394,10 +394,10 @@ and your QSO partner ± 200 Hz.
 |===
 |Mode     |FEC Type   |(n,k)   | Q|Modulation Type|Keying rate (Baud)
 |Bandwidth (Hz)|Sync Energy|Tx Duration (s)
-|JT9E     |K=32, r=1/2|(206,72)| 8| 9-FSK| 25.0 |  225  | 0.19| 3.400 
-|JT9F     |K=32, r=1/2|(206,72)| 8| 9-FSK| 50.0 |  450  | 0.19| 1.700 
-|JT9G     |K=32, r=1/2|(206,72)| 8| 9-FSK|100.0 |  900  | 0.19| 0.850 
-|JT9H     |K=32, r=1/2|(206,72)| 8| 9-FSK|200.0 | 1800  | 0.19| 0.425 
-|MSK144   |LDPC       |(128,90)| 2| OQPSK| 2000 | 2400  | 0.11| 0.072 
-|MSK144 Sh|LDPC       |(32,16) | 2| OQPSK| 2000 | 2400  | 0.20| 0.020 
+|JT9E     |K=32, r=1/2|(206,72)| 8| 9-FSK| 25.0 |  225  | 0.19| 3.400
+|JT9F     |K=32, r=1/2|(206,72)| 8| 9-FSK| 50.0 |  450  | 0.19| 1.700
+|JT9G     |K=32, r=1/2|(206,72)| 8| 9-FSK|100.0 |  900  | 0.19| 0.850
+|JT9H     |K=32, r=1/2|(206,72)| 8| 9-FSK|200.0 | 1800  | 0.19| 0.425
+|MSK144   |LDPC       |(128,90)| 2| OQPSK| 2000 | 2400  | 0.11| 0.072
+|MSK144 Sh|LDPC       |(32,16) | 2| OQPSK| 2000 | 2400  | 0.20| 0.020
 |===

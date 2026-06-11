@@ -11,7 +11,7 @@ void golay24_table_(int cw[])
 
   int i,j,k;
   int aux;
-  int weight(int vector); 
+  int weight(int vector);
 
   for(k=0; k<4096; k++) {
     c[0] = k;

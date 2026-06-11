@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include "ui_devsetup.h"
+#include "commons.h"
 
 class DevSetup : public QDialog
 {
@@ -53,8 +54,13 @@ public:
 
   QColor  m_colorBackground;
 
+  QString m_otherUrl; //liveCQ
+  bool m_w3szUrl; //liveCQ
+  bool m_spot_to_psk_reporter; //PSKReporter
+
 public slots:
   void accept();
+  void onButtonClicked();
 
 private slots:
   void on_soundCardRadioButton_toggled(bool checked);
@@ -79,7 +85,7 @@ private slots:
   void on_sbBlue3_valueChanged(int arg1);
   void on_pushButton_5_clicked();
   void on_mult570TxSpinBox_valueChanged(int arg1);
-  void on_rbIQXT_toggled(bool checked);  
+  void on_rbIQXT_toggled(bool checked);
   void on_sbTxOffset_valueChanged(double f);
   void on_sb_dB_valueChanged(int n);
 

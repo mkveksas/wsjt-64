@@ -2,7 +2,7 @@ subroutine fil6521(c1,n1,c2,n2)
 
 ! FIR lowpass filter designed using ScopeFIR
 
-!                  Pass #1   Pass #2  
+!                  Pass #1   Pass #2
 ! -----------------------------------------------
 ! fsample    (Hz)  1378.125   Input sample rate
 ! Ntaps            21         Number of filter taps

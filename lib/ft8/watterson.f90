@@ -62,7 +62,7 @@ subroutine watterson(c,npts,nsig,fs,delay,fspread)
 !     write(61,3001) i/12000.0,c(i)
 !3001 format(3f12.6)
   enddo
-  rms=sqrt(sq/nsig) 
+  rms=sqrt(sq/nsig)
   c=c/rms
 
   return

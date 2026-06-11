@@ -30,7 +30,7 @@ program jt9sim
      go to 999
   endif
 
-  call getarg(1,msg0)  
+  call getarg(1,msg0)
   call fmtmsg(msg0,iz)
   message=msg0                       !Transmitted message
   call getarg(2,arg)
@@ -42,7 +42,7 @@ program jt9sim
   call getarg(5,arg)
   read(arg,*) snrdb                  !S/N in dB (2500 hz reference BW)
   call getarg(6,arg)
-  read(arg,*) nfiles                 !Number of files     
+  read(arg,*) nfiles                 !Number of files
 
   rmsdb=25.
   rms=10.0**(0.05*rmsdb)
@@ -70,11 +70,11 @@ program jt9sim
   call init_random_seed()       ! seed Fortran RANDOM_NUMBER generator
   call sgran()                  ! see C rand generator (used in gran)
 
-  h=default_header(12000,npts)  
+  h=default_header(12000,npts)
   k=0                                !Silence compiler warning
 
   if(msg0(1:3).eq.'sin') read(msg0(4:),*) sinfreq
-  
+
   if(message.eq."") open(12,file='msgs.txt',status='old')
 
   write(*,1000)
@@ -112,7 +112,7 @@ program jt9sim
 
         f=f0
         if(nsigs.gt.1) f=f0 - 0.5d0*fspan + fspan*(isig-1.d0)/(nsigs-1.d0)
-        snrdbx=snrdb 
+        snrdbx=snrdb
 !        snrdbx=snrdb + (ifile-1)*4.0
         sig=10.0**(0.05*snrdbx)
         if(snrdb.gt.90.0) sig=1.0
@@ -160,7 +160,7 @@ program jt9sim
         enddo
         call unpackbits(i4DataSymNoGray,69,3,i1ScrambledBits)
         call interleave9(i1ScrambledBits,-1,i1Bits)
- 
+
         do i=1,206
            i4=-10
            if(i1Bits(i).eq.1) i4=10

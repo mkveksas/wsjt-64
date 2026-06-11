@@ -1,6 +1,6 @@
 // This is a comment line, anything with // is ignored at process time.
 = _WSJT-X_ User Guide
-Joseph H Taylor, Jr, K1JT
+//Joseph H Taylor, Jr, K1JT et al.
 :revnumber: {VERSION}
 // For web-pages, adding :badges: is ok, but is a security issue for
 // package building .deb, .rpm, etc as it exposes the IP address and the images
@@ -35,6 +35,10 @@ include::new_features.adoc[]
 [[INTRO_SUBSECTIONS]]
 include::intro_subsections.adoc[]
 
+[[MODES]]
+== Modes
+include::modes.adoc[]
+
 [[SYSREQ]]
 == System Requirements
 include::system-requirements.adoc[]
@@ -42,10 +46,8 @@ include::system-requirements.adoc[]
 [[INSTALL]]
 == Installation
 
-Installation packages for released versions on Windows, Linux, and OS
-X are found on the {homepage}. Click on the _WSJT-X_ link at the
-left margin and select the appropriate package for your operating
-system.
+Installation packages for Windows, Linux, and macOS are found on the
+{downloads}.
 
 [[INSTALL_WIN]]
 === Windows
@@ -56,7 +58,7 @@ include::install-windows.adoc[]
 include::install-linux.adoc[]
 
 [[INSTALL_OSX]]
-=== OS X and macOS
+=== MacOS
 include::install-mac.adoc[]
 
 ////
@@ -65,13 +67,17 @@ include::install-mac.adoc[]
 include::install-from-source.adoc[]
 ////
 
-[[CONFIG]] 
+[[MENUS]]
+== Menus
+include::menus.adoc[]
+
+[[CONFIG]]
 == Settings
 
 Select *Settings* from the *File* menu or by typing *F2*.  (On
 Macintosh select *Preferences* from the _WSJT-X_ menu, or use the
 keyboard shortcut *Cmd+,*).  The following sections describe setup
-options available on eight tabs selectable near the top of the window.
+options available on tabs selectable near the top of the window.
 
 [[GENERAL]]
 === General
@@ -105,33 +111,17 @@ include::settings-colors.adoc[]
 === Advanced
 include::settings-advanced.adoc[]
 
-[[DARK_STYLE]]
-=== Dark Style
+[[ALERTS]]
+=== Audible Alerts
+include::settings-alerts.adoc[]
 
-An optional *Dark* style is available.  To make it effective you will
-probably want to redefine your color settings.  In Windows or Linux,
-start the program from a command-prompt window using the following
-command, or modify the _WSJT-X_ desktop shortcut accordingly:
+[[FILTERS]]
+=== Filters
+include::settings-filters.adoc[]
 
- wsjtx --stylesheet :/qdarkstyle/style.qss
-
-In macOS, enter the following command from a terminal:
-
- open /Applications/wsjtx.app --args -stylesheet :/qdarkstyle/style.qss
-
-In Linux using the Unity or GNOME GUI the following commands will
-update the _WSJT-X_ start up:
-
-....
-sed '/Exec=wsjtx/ s/$/ -stylesheet :\/qdarkstyle\/style.qss/' \
-  /usr/share/applications/wsjtx.desktop >~/.local/share/applications/wsjtx.desktop
-update-desktop-database ~/.local/share/applications/
-....
-
-Depending on your operating system, the main _WSJT-X_ window will look
-something like this:
-
-image::Windows_Dark.png[align="center"]
+[[KEYBOARD_MOUSE]]
+== Keyboard and Mouse Commands
+include::keyboard_mouse.adoc[]
 
 [[TRANSCEIVER]]
 == Transceiver Setup
@@ -141,12 +131,11 @@ include::transceiver-setup.adoc[]
 == Basic Operating Tutorial
 
 This section introduces the basic user controls and program behavior
-of _WSJT-X_, with particular emphasis on the FT8 mode.
-We suggest that new users should go through the full HF-oriented
-tutorial, preferably while at your radio.  
-
-Subsequent sections cover additional details on <<MAKE_QSOS,Making
-QSOs>>, <<WSPR,WSPR mode>> and <<VHF_AND_UP,VHF+ Features>>.
+of _WSJT-X_, with particular emphasis on the FT8 mode. Most new users
+should go through the full HF-oriented tutorial, preferably while at
+your operating setup. Subsequent tutorial sections will cover
+additional details on <<MAKE_QSOS,Making QSOs>>, <<WSPR,WSPR mode>>,
+and <<VHF_AND_UP,VHF+ Features>>.
 
 [[TUT_SAMPLES]]
 include::tutorial-download-samples.adoc[]
@@ -175,10 +164,9 @@ include::tutorial-example6.adoc[]
 == Making QSOs
 include::make-qso.adoc[]
 
-[[Message_System]]
-== Message System
-include::message-creator.adoc[]
-
+[[LOGGING]]
+== Logging
+include::logging.adoc[]
 
 [[VHF_AND_UP]]
 == VHF+ Features
@@ -191,12 +179,8 @@ include::wspr.adoc[]
 [[COMMAND_REF]]
 == On-Screen Controls
 
-[[MENUS]]
-=== Menus
-include::controls-functions-menus.adoc[]
-
 [[CONTROLS_MAIN]]
-=== Button Row
+=== Button Rows
 include::controls-functions-main-window.adoc[]
 
 [[CONTROLS_LEFT]]
@@ -208,20 +192,20 @@ include::controls-functions-left.adoc[]
 include::controls-functions-center.adoc[]
 
 [[CONTROLS_MSGS]]
-=== Tx Messages
+=== Right
 include::controls-functions-messages.adoc[]
 
 [[STATUS_BAR]]
 === Status Bar
 include::controls-functions-status-bar.adoc[]
 
+[[BAND_ACTIVITY]]
+=== Band Activity Window
+include::band-activity-window.adoc[]
+
 [[CONTROLS_WIDE]]
 === Wide Graph
 include::controls-functions-wide-graph.adoc[]
-
-[[LOGGING]]
-== Logging
-include::logging.adoc[]
 
 [[DECODER_NOTES]]
 == Decoder Notes
@@ -238,7 +222,6 @@ include::cooperating-programs.adoc[]
 [[PLATFORM]]
 == Platform Dependencies
 include::platform-dependencies.adoc[]
-
 
 [[FAQ]]
 == Frequently Asked Questions

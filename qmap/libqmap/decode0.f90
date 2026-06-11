@@ -10,7 +10,7 @@ subroutine decode0(dd,ss,savg)
   logical*1 bAlso30
   character mycall*12,hiscall*12,mygrid*6,hisgrid*6,datetime*20
   character mycall0*12,hiscall0*12,hisgrid0*6
-  character*64 result
+  character*72 result
   common/decodes/ndecodes,ncand2,nQDecoderDone,nWDecoderBusy,              &
        nWTransmitting,kHzRequested,result(50)
   common/npar/fcenter,nutc,fselected,mousedf,mousefqso,nagain,            &
@@ -37,11 +37,12 @@ subroutine decode0(dd,ss,savg)
      enddo
 10   rmsdd=1.5*i
   endif
-      
+
   mycall0=mycall
   hiscall0=hiscall
   hisgrid0=hisgrid
 
+  if(sum(dd).eq.0.0 .or. sum(ss).eq.0.0 .or. sum(savg).eq.0.0) return
   call timer('qmapa   ',0)
   call qmapa(dd,ss,savg,newdat,nutc,fcenter,ntol,nfa,nfb,                  &
        mousedf,mousefqso,nagain,ntx30a,ntx30b,nfshift,max_drift,offset,    &

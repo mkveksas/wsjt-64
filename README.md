@@ -28,10 +28,11 @@ Check out this repo, and ask Claude Code or OpenAI Codex on how to build it for 
        \/          \/                                   \/      |__|
 ```
 
-Copyright (C) 2001 - 2023 by Joe Taylor, K1JT.
+Copyright (C) 2001 - 2026 by Joe Taylor, K1JT.
 
-WSJT-X Version 2.6.1 offers eleven different protocols or modes: FT4,
-FT8, JT4, JT9, JT65, Q65, FST4, MSK144, WSPR, FST4W, and Echo. The
+WSJT-64 Version 3.0.1 offers the WSJT-X protocols plus the experimental
+FT1 and FT2 modes: FT1, FT2, FT4, FT8, JT4, JT9, JT65, Q65, FST4,
+MSK144, WSPR, FST4W, and Echo. The
 first seven are designed for making reliable QSOs under weak-signal
 conditions. They use nearly identical message structure and source
 encoding. JT65 and Q65 were designed for EME (“moonbounce”), but not

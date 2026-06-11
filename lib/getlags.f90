@@ -19,7 +19,7 @@ subroutine getlags(nsps8,lag0,lag1,lag2)
      lag1=93
      lag2=102
      lag0=96
-  else 
+  else
      stop 'Error in getlags'
   endif
 

@@ -34,6 +34,7 @@ public:
       , tx {0}
       , dop {0}
       , width {0}
+      , techo {0}
     {}
     Correction (Correction const&) = default;
     Correction& operator = (Correction const&) = default;
@@ -49,6 +50,7 @@ public:
     FrequencyDelta tx;
     double dop;
     double width;
+    double techo;
   };
 
   Correction astroUpdate(QDateTime const& t,
@@ -65,11 +67,14 @@ public:
   bool bDither();
   void selectOwnEcho();
   void selectOnDxEcho();
+  void setSkedFreq(double freqMHz);
   qint32 nfRIT();
   qint32 DopplerMethod();
+  qint32 largeOffset();
 
   Q_SLOT void nominal_frequency (Frequency rx, Frequency tx);
   Q_SIGNAL void tracking_update () const;
+  Q_SIGNAL void skedFreq(double freqMHz) const;
 
 protected:
   void hideEvent (QHideEvent *) override;
@@ -83,6 +88,7 @@ private slots:
   void on_rbOnDxEcho_clicked(bool);
   void on_rbCallDx_clicked(bool);
   void on_cbDopplerTracking_toggled(bool);
+  void on_pbSet_clicked();
 
 private:
   void read_settings ();
@@ -93,10 +99,13 @@ private:
   Configuration const * configuration_;
   QScopedPointer<Ui::Astro> ui_;
 
+  double m_skedFreq;
   qint32 m_DopplerMethod;
   int m_dop;
   int m_dop00;
+  int ibShift;
   //int m_dx_two_way_dop;
+  bool astroStart = true;
 };
 
 inline

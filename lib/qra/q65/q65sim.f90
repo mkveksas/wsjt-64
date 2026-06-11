@@ -16,15 +16,15 @@ program q65sim
   real*4 xnoise(NMAX)                    !Generated random noise
   real*4 dat(NMAX)                       !Generated real data
   complex cdat(NMAX)                     !Generated complex waveform
-  complex cspread(0:NMAX-1)              !Complex amplitude for Rayleigh fading 
+  complex cspread(0:NMAX-1)              !Complex amplitude for Rayleigh fading
   complex z
   real*8 f00,f0,dt,twopi,phi,dphi,baud,fsample,freq
   character fname*17,csubmode*1,arg*12,c2*2
   character*37 msg,msgsent,imsg(10)
-  
+
   nargs=iargc()
   if(nargs.ne.11) then
-     print*,'Usage:   q65sim         "msg"     A-E freq fDop DT  f1 Stp TRp Nsig Nfile SNR'
+     print*,'Usage:   q65sim         "msg"     A-F freq fDop DT  f1 Stp TRp Nsig Nfile SNR'
      print*,'Example: q65sim "K1ABC W9XYZ EN37" A  1500 0.0 0.0 0.0  1   60   1    1   -26'
      print*,'Example: q65sim "ST" A  1500 0.0 0.0 0.0  1   60   1   -26'
      print*,'         fDop = Doppler spread'
@@ -83,7 +83,7 @@ program q65sim
   nsym=85                            !Number of channel symbols
   mode65=2**(ichar(csubmode) - ichar('A'))
 
-  
+
   imsg(1)=msg
   if(nsig.ge.2) then
      i0=index(msg,' ')
@@ -120,7 +120,7 @@ program q65sim
   baud=12000.d0/nsps                 !Keying rate (6.67 baud fot 15-s sequences)
   h=default_header(12000,npts)
 
-  write(*,1004) 
+  write(*,1004)
 1004 format('File    TR   Freq Mode  S/N   Dop     DT   f1  Stp  Message'/70('-'))
 
   do ifile=1,nfiles  !Loop over requested number of files
@@ -186,7 +186,7 @@ program q65sim
            if(k.ge.1) cdat(k)=cdat(k) + sig*z
         enddo
      enddo
-     
+
      if(fspread.ne.0) then                  !Apply specified Doppler spread
         df=12000.0/nfft
         cspread(0)=1.0

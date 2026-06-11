@@ -1,7 +1,7 @@
 function stdmsg(msg0)
 
   ! Returns .true. if msg0 a standard "JT-style" message
-  
+
   ! i3.n3
   !  0.0   Free text
   !  0.1   DXpeditiion mode
@@ -38,6 +38,6 @@ function stdmsg(msg0)
 !  enddo
 !  flush(82)
 !###
-  
+
   return
 end function stdmsg
