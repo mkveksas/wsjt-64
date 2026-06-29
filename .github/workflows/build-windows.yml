@@ -68,7 +68,7 @@ jobs:
 
       - name: Cache pFUnit
         id: pfunit-cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: pfunit-prefix
           key: pfunit-windows-v4.9.0-${{ hashFiles('.github/workflows/build-windows.yml') }}
@@ -109,7 +109,7 @@ jobs:
 
       - name: Cache Hamlib
         id: hamlib-cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: hamlib-prefix
           key: hamlib-windows-${{ inputs.hamlib_branch }}-${{ hashFiles('.github/workflows/build-windows.yml') }}
