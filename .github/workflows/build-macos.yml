@@ -65,7 +65,7 @@ jobs:
 
       - name: Cache pFUnit
         id: pfunit-cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: pfunit-prefix
           key: pfunit-macos-${{ inputs.arch }}-v4.9.0-${{ hashFiles('.github/workflows/build-macos.yml') }}
@@ -99,7 +99,7 @@ jobs:
 
       - name: Cache Hamlib
         id: hamlib-cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: hamlib-prefix
           key: hamlib-macos-${{ inputs.arch }}-${{ inputs.hamlib_branch }}-${{ hashFiles('.github/workflows/build-macos.yml') }}
